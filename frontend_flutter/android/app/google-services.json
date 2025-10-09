@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "570047516781",
+    "project_id": "gym-managment-aa0a1",
+    "storage_bucket": "gym-managment-aa0a1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570047516781:android:939896480040a571ba6f64",
+        "android_client_info": {
+          "package_name": "com.example.frontend_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7ctrMglv5ELYCkh6nL23dvrzjNPtymNY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
