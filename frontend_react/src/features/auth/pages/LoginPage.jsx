@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signIn } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
+import { signIn, forgotPassword } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
+
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -9,14 +10,38 @@ const LoginPage = () => {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleForgotPassword = async (event) => {
+        event.preventDefault();
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            await forgotPassword(email);
+            alert('Đã gửi email đặt lại mật khẩu!');
+        } catch (err) {
+            console.error('Lỗi gửi email đặt lại mật khẩu:', err);
+            setError('Không thể gửi email đặt lại mật khẩu.');
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     const handleLogin = async (event) => {
         event.preventDefault();
         setError(null);
         setIsLoading(true);
 
         try {
-            await signIn(email, password);
-            navigate('/dashboard'); // Chuyển hướng đến trang dashboard sau khi thành công
+            
+        const result = await signIn(email,password);
+        const jwtToken = result.token;
+        console.log("JWT Token:", jwtToken);
+        const userData = result.user;
+        console.log("User Data:", userData);
+        localStorage.setItem('token', jwtToken); // Lưu token vào localStorage
+
+
+        navigate('/dashboard'); // Chuyển hướng đến trang dashboard sau khi thành công
         } catch (err) {
             // Chuyển đổi mã lỗi của Firebase thành thông báo thân thiện
             let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
@@ -60,6 +85,9 @@ const LoginPage = () => {
                     {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
                 </button>
             </form>
+            <button onClick={handleForgotPassword} disabled={isLoading || !email}>
+                Quên mật khẩu
+            </button>
         </div>
     );
 };

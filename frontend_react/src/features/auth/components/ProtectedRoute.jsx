@@ -7,7 +7,8 @@ import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute = () => {
-    const { currentUser, loading } = useAuth(); // Dòng này không thay đổi
+    const { currentUser, loading } = useAuth();
+    console.log('[ProtectedRoute] currentUser:', currentUser, 'loading:', loading);
 
     if (loading) {
         return <div>Loading...</div>;
