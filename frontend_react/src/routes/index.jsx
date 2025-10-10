@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
 import ShowQRPage from "../features/qr/pages/ShowQRPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
-import ResetPassword from "../features/auth/pages/ResetPasswordPage.jsx";
-import ChangePassword from "../features/auth/pages/ChangePassword.jsx";
+import ResetPassword from "../features/auth/pages/ResetPasswordPageTest.jsx";
+import ChangePassword from "../features/auth/pages/ChangePasswordPage.jsx";
+import ForgotPasswordPage from "../features/auth/pages/ForgotPassword.jsx";
+import LoginPage from "../features/auth/pages/LoginPage.jsx";
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -12,7 +13,11 @@ const AppRouter = () => {
         {/* Route công khai */}
         <Route path="/login" element={<LoginPage />} />
         
-        <Route path="/forgot-password" element={<ResetPassword />} />
+
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+
 
         {/* Các route được bảo vệ */}
         <Route element={<ProtectedRoute />}>
