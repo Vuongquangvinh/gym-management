@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthObserver((user) => {
       setCurrentUser(user);
       setLoading(false);
+      console.log('[AuthProvider] currentUser:', user);
     });
     return () => unsubscribe(); // Cleanup
   }, []);

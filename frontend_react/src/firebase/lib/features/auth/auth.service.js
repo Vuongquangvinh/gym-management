@@ -2,9 +2,21 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+  updatePassword,
 } from "firebase/auth";
 import { auth } from "../../config/firebase.js"; // Import instance `auth` từ file config
 
+export const verifyResetCode = (oobCode) => {
+  return verifyPasswordResetCode(auth, oobCode);
+};
+
+// Đặt lại mật khẩu mới
+export const confirmResetPassword = (oobCode, newPassword) => {
+  return confirmPasswordReset(auth, oobCode, newPassword);
+};
 /**
  * Hàm đăng nhập bằng email và mật khẩu.
  * @param {string} email
@@ -12,7 +24,22 @@ import { auth } from "../../config/firebase.js"; // Import instance `auth` từ 
  * @returns {Promise<UserCredential>}
  */
 export const signIn = (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+  // 1. Thực hiện đăng nhập
+  return signInWithEmailAndPassword(auth, email, password)
+    .then(async (userCredential) => {
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(/* forceRefresh */ true);
+      return {
+        user: user,
+        token: idToken,
+      };
+    })
+    .catch((error) => {
+      // 5. Xử lý lỗi đăng nhập (ví dụ: email sai, mật khẩu sai)
+      console.error("Đăng nhập thất bại:", error.code, error.message);
+      // Rút ngắn mã lỗi để dễ xử lý hơn ở UI
+      throw new Error(error.code);
+    });
 };
 
 /**
@@ -30,4 +57,12 @@ export const signOutUser = () => {
  */
 export const onAuthObserver = (callback) => {
   return onAuthStateChanged(auth, callback);
+};
+
+export const forgotPassword = (email) => {
+  return sendPasswordResetEmail(auth, email);
+};
+
+export const changePassword = (newPassword) => {
+  return updatePassword(auth, newPassword);
 };
