@@ -6,17 +6,18 @@ import ResetPassword from "../features/auth/pages/ResetPasswordPageTest.jsx";
 import ChangePassword from "../features/auth/pages/ChangePasswordPage.jsx";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPassword.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
+import AdminPage from "../features/admin/Dashboard.jsx";
 const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Route công khai */}
+
         <Route path="/login" element={<LoginPage />} />
-        
 
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
+    
 
 
         {/* Các route được bảo vệ */}

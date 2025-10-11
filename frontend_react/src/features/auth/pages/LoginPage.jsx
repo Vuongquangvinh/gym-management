@@ -81,7 +81,7 @@ export default function LoginPage() {
             <label className="remember">
               <input type="checkbox" /> Ghi nhớ
             </label>
-            <Link className="text-link" to="/forgot">Quên mật khẩu?</Link>
+            <Link className="text-link" to="/forgot-password">Quên mật khẩu?</Link>
           </div>
 
           <button className="btn primary" type="submit" disabled={loading}>
