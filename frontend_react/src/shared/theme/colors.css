@@ -1,0 +1,17 @@
+:root{
+  --color-primary: #0D47A1;
+  --color-primaryVariant: #08316A;
+  --color-secondary: #00897B;
+  --color-accent: #FFB300;
+  --color-background: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-textPrimary: #0B2545;
+  --color-textSecondary: #546E7A;
+  --color-muted: #9E9E9E;
+  --color-border: #E0E0E0;
+  --color-success: #2E7D32;
+  --color-warning: #F57C00;
+  --color-error: #D32F2F;
+  --color-qrScan: #1976D2;
+  --color-overlay: rgba(11,37,69,0.6);
+}
