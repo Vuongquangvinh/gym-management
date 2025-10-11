@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { cssVars } from '../../../shared/theme/colors';
+import './login.css';
 import { verifyResetCode, confirmResetPassword } from '../../../firebase/lib/features/auth/auth.service.js';
 
 // Custom hook để lấy query params từ URL
@@ -18,8 +20,14 @@ const ResetPassword = () => {
   const [message, setMessage] = useState('');
   const [isVerifying, setIsVerifying] = useState(true);
 
-  // Bước 1: Xác thực oobCode khi component được tải
   useEffect(() => {
+    if (!document.getElementById('theme-colors')) {
+      const style = document.createElement('style');
+      style.id = 'theme-colors';
+      style.innerHTML = `:root {\n${cssVars()}\n}`;
+      document.head.appendChild(style);
+    }
+    // Bước 1: Xác thực oobCode khi component được tải
     if (!oobCode) {
       setError('Mã không hợp lệ hoặc đã hết hạn.');
       setIsVerifying(false);
@@ -60,34 +68,63 @@ const ResetPassword = () => {
   };
 
   if (isVerifying) {
-    return <div>Đang kiểm tra yêu cầu...</div>;
+    return <div className="login-page"><div className="login-card"><div>Đang kiểm tra yêu cầu...</div></div></div>;
   }
 
   return (
-    <div>
-      <h3>Đặt lại mật khẩu mới</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      
-      {!message && ( // Ẩn form sau khi thành công
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Mật khẩu mới"
-            required
-          />
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Xác nhận mật khẩu mới"
-            required
-          />
-          <button type="submit">Xác nhận</button>
+    <div className="login-page">
+      <div className="bg-shapes">
+        <span className="shape s1" />
+        <span className="shape s2" />
+        <span className="shape s3" />
+      </div>
+
+      <div className="login-card">
+        <div className="brand">
+          <div className="logo">REPS</div>
+          <div className="brand-text">
+            <h1>Đặt lại mật khẩu</h1>
+            <p>Nhập mật khẩu mới để thay đổi mật khẩu tài khoản của bạn</p>
+          </div>
+        </div>
+
+        <form className="login-form" onSubmit={handleSubmit} noValidate>
+          {message ? (
+            <div className="form-success">{message}</div>
+          ) : (
+            <>
+              {error && <div className="form-error">{error}</div>}
+              <label className="field">
+                <span>Mật khẩu mới</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mật khẩu mới"
+                  required
+                />
+              </label>
+              <label className="field">
+                <span>Xác nhận mật khẩu mới</span>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Xác nhận mật khẩu mới"
+                  required
+                />
+              </label>
+              <button className="btn primary" type="submit">Xác nhận</button>
+              <div className="or">hoặc</div>
+              <Link to="/login" className="btn outline" style={{ textDecoration: 'none' }}>Quay lại đăng nhập</Link>
+            </>
+          )}
         </form>
-      )}
+
+        <footer className="card-foot">
+          <small>Vẫn cần trợ giúp? <a href="#">Liên hệ quản trị</a></small>
+        </footer>
+      </div>
     </div>
   );
 };

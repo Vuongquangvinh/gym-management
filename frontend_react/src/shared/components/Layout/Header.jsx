@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import './header.css';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import { useNavigate } from 'react-router-dom';
-import { signOutUser, forgotPassword } from '../../../firebase/lib/features/auth/auth.service.js';
+import { signOutUser } from '../../../firebase/lib/features/auth/auth.service.js';
 
 export default function Header({ onToggle }) {
 	const [open, setOpen] = useState(false);
@@ -23,15 +23,7 @@ export default function Header({ onToggle }) {
 	}
 
 	async function handleChangePassword() {
-		if (!currentUser?.email) return alert('Không có email để gửi hướng dẫn');
-		if (!confirm(`Gửi email đặt lại mật khẩu tới ${currentUser.email}?`)) return;
-		try {
-			await forgotPassword(currentUser.email);
-			alert('Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
-		} catch (e) {
-			console.error(e);
-			alert('Gửi email đặt lại thất bại');
-		}
+		navigate('/change-password');
 	}
 
 	return (
@@ -47,7 +39,7 @@ export default function Header({ onToggle }) {
 				<button className="icon-btn" aria-label="Notifications">
 					🔔
 					<span className="badge">3</span>
-				</button>
+				</button>``
 
 				<div className="user dropdown" onClick={() => setOpen((v) => !v)}>
 					<div className="avatar">{currentUser?.email?.charAt(0)?.toUpperCase() ?? 'A'}</div>
