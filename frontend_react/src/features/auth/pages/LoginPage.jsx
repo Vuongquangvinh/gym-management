@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { signIn } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
+
+
 import { cssVars } from '../../../shared/theme/colors';
 import './login.css';
 
@@ -8,7 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     // inject theme CSS variables once so the stylesheet can use them
     if (!document.getElementById('theme-colors')) {
@@ -19,21 +23,51 @@ export default function LoginPage() {
     }
   }, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  // function handleSubmit(e) {
+  //   e.preventDefault();
+  //   setError(null);
+  //   setLoading(true);
 
-    // simulate authentication
-    setTimeout(() => {
-      setLoading(false);
-      if (!email.includes('@') || password.length < 6) {
-        setError('Vui lòng nhập email hợp lệ và mật khẩu ít nhất 6 ký tự.');
-        return;
-      }
-      alert('Đăng nhập thành công (mô phỏng)');
-    }, 900);
-  }
+  //   // simulate authentication
+  //   setTimeout(() => {
+  //     setLoading(false);
+  //     if (!email.includes('@') || password.length < 6) {
+  //       setError('Vui lòng nhập email hợp lệ và mật khẩu ít nhất 6 ký tự.');
+  //       return;
+  //     }
+  //     alert('Đăng nhập thành công (mô phỏng)');
+  //   }, 900);
+  // }
+
+  const handleLogin = async (event) => {
+          event.preventDefault();
+          setError(null);
+          setLoading(true);
+  
+          try {
+              
+          const result = await signIn(email,password);
+          const jwtToken = result.token;
+          console.log("JWT Token:", jwtToken);
+          const userData = result.user;
+          console.log("User Data:", userData);
+          localStorage.setItem('token', jwtToken); // Lưu token vào localStorage
+  
+  
+          navigate('/admin'); // Chuyển hướng đến trang dashboard sau khi thành công
+          } catch (err) {
+              // Chuyển đổi mã lỗi của Firebase thành thông báo thân thiện
+              let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
+              if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                  friendlyMessage = "Email hoặc mật khẩu không chính xác.";
+              } else if (err.code === 'auth/invalid-email') {
+                  friendlyMessage = "Địa chỉ email không hợp lệ.";
+              }
+              setError(friendlyMessage);
+          } finally {
+              setLoading(false);
+          }
+      };
 
   return (
     <div className="login-page">
@@ -52,7 +86,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
+        <form className="login-form" onSubmit={handleLogin} noValidate>
           {error && <div className="form-error">{error}</div>}
 
           <label className="field">

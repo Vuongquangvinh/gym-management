@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AddNewUser from '../../../features/admin/components/AddNewUser.jsx';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import '../../../features/admin/admin.css';
+import UserModel from '../../../firebase/lib/features/user/user.model.js';
 // small inline SVG icons to avoid adding deps
 const Icon = ({ name }) => {
   const map = {
@@ -15,36 +17,60 @@ const Icon = ({ name }) => {
   return <span className="side-icon">{map[name]}</span>;
 };
 
+
 export default function Sidebar() {
   const { currentUser } = useAuth() || {};
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Admin';
+  const [showAddUser, setShowAddUser] = useState(false);
+
+  const handleOpenAddUser = () => setShowAddUser(true);
+  const handleCloseAddUser = () => setShowAddUser(false);
+  const handleSubmitAddUser = async (userData, password) => {
+    console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData)
+    try {
+      const newUser = await UserModel.create(userData, password);
+      console.log("🚀 ~ handleSubmitAddUser ~ newUser:", newUser)
+    } catch (error) {
+      console.error("🚀 ~ handleSubmitAddUser ~ error:", error)
+    }
+    
+
+    
+
+
+    // TODO: Gửi dữ liệu lên server hoặc xử lý tạo user
+    // setShowAddUser(false);
+  };
 
   return (
-    <aside className="admin-sidebar">
-      <button className="mobile-close" onClick={() => window.dispatchEvent(new CustomEvent('closeAdminMenu'))}>✕</button>
+    <>
+      <aside className="admin-sidebar">
+        <button className="mobile-close" onClick={() => window.dispatchEvent(new CustomEvent('closeAdminMenu'))}>✕</button>
 
-      <div className="side-brand"><NavLink to="/admin" style={{textDecoration:'none', color:'inherit'}}>REPS</NavLink></div>
+        <div className="side-brand"><NavLink to="/admin" style={{textDecoration:'none', color:'inherit'}}>REPS</NavLink></div>
 
-      <nav className="side-nav">
-        <NavLink to="/admin" end className={({isActive})=> isActive? 'active':''}><Icon name="dashboard"/> Dashboard</NavLink>
-        <NavLink to="/admin/members" className={({isActive})=> isActive? 'active':''}><Icon name="members"/> Members</NavLink>
-        <NavLink to="/admin/checkins" className={({isActive})=> isActive? 'active':''}><Icon name="checkins"/> Check-ins</NavLink>
-        <NavLink to="/admin/packages" className={({isActive})=> isActive? 'active':''}><Icon name="packages"/> Packages</NavLink>
-        <NavLink to="/admin/reports" className={({isActive})=> isActive? 'active':''}><Icon name="reports"/> Reports</NavLink>
-        <NavLink to="/admin/settings" className={({isActive})=> isActive? 'active':''}><Icon name="settings"/> Settings</NavLink>
-      </nav>
+        <nav className="side-nav">
+          <NavLink to="/admin" end className={({isActive})=> isActive? 'active':''}><Icon name="dashboard"/> Dashboard</NavLink>
+          <NavLink to="/admin/members" className={({isActive})=> isActive? 'active':''}><Icon name="members"/> Members</NavLink>
+          <NavLink to="/admin/checkins" className={({isActive})=> isActive? 'active':''}><Icon name="checkins"/> Check-ins</NavLink>
+          <NavLink to="/admin/packages" className={({isActive})=> isActive? 'active':''}><Icon name="packages"/> Packages</NavLink>
+          <NavLink to="/admin/reports" className={({isActive})=> isActive? 'active':''}><Icon name="reports"/> Reports</NavLink>
+          <NavLink to="/admin/settings" className={({isActive})=> isActive? 'active':''}><Icon name="settings"/> Settings</NavLink>
+        </nav>
 
-      <div className="side-cta"> 
-        <button className="btn small" onClick={()=>alert('Create new member (mô phỏng)')}>+ Tạo mới</button>
-      </div>
-
-      <div className="side-profile">
-        <div className="avatar">{displayName[0]?.toUpperCase()}</div>
-        <div className="profile-meta">
-          <div className="name">{displayName}</div>
-          <div className="email">{currentUser?.email ?? 'admin@example.com'}</div>
+        <div className="side-cta"> 
+          <button className="btn small" onClick={handleOpenAddUser}>+ Tạo mới</button>
         </div>
-      </div>
-    </aside>
+
+        <div className="side-profile">
+          <div className="avatar">{displayName[0]?.toUpperCase()}</div>
+          <div className="profile-meta">
+            <div className="name">{displayName}</div>
+            <div className="email">{currentUser?.email ?? 'admin@example.com'}</div>
+          </div>
+        </div>
+      </aside>
+      <AddNewUser isOpen={showAddUser} onClose={handleCloseAddUser} onSubmit={handleSubmitAddUser} />
+    </>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cssVars } from '../../../shared/theme/colors';
 import './login.css';
+import { forgotPassword } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -16,13 +17,31 @@ export default function ForgotPassword() {
     }
   }, []);
 
-  function handleSend(e) {
+  async function handleSend(e) {
     e.preventDefault();
-    // basic validation
     if (!email || !email.includes('@')) return;
-    // simulate send
-    setTimeout(() => setSent(true), 700);
+    try {
+      await forgotPassword(email);
+      setSent(true);
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+    }
   }
+    // const handleForgotPassword = async (event) => {
+    //       event.preventDefault();
+    //       setError(null);
+    //       setIsLoading(true);
+  
+    //       try {
+    //           await forgotPassword(email);
+    //           alert('Đã gửi email đặt lại mật khẩu!');
+    //       } catch (err) {
+    //           console.error('Lỗi gửi email đặt lại mật khẩu:', err);
+    //           setError('Không thể gửi email đặt lại mật khẩu.');
+    //       } finally {
+    //           setIsLoading(false);
+    //       }
+    //   }
 
   return (
     <div className="login-page">

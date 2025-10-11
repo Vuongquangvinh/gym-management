@@ -6,6 +6,8 @@ import {
   confirmPasswordReset,
   verifyPasswordResetCode,
   updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "firebase/auth";
 import { auth } from "../../config/firebase.js"; // Import instance `auth` từ file config
 
@@ -63,6 +65,16 @@ export const forgotPassword = (email) => {
   return sendPasswordResetEmail(auth, email);
 };
 
-export const changePassword = (newPassword) => {
-  return updatePassword(auth, newPassword);
+export const changePassword = async (currentPassword, newPassword) => {
+  console.log(
+    "🚀 ~ changePassword ~ currentPassword, newPassword:",
+    currentPassword,
+    newPassword
+  );
+  const user = auth.currentUser;
+  console.log("🚀 ~ changePassword ~ user:", user.email);
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  return updatePassword(user, newPassword);
 };
