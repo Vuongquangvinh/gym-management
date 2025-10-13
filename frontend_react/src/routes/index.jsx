@@ -24,7 +24,7 @@ const AppRouter = () => {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Các route được bảo vệ */}
-          <Route element={<ProtectedRoute />}>
+          {/* <Route element={<ProtectedRoute />}> */}
             <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/qr" element={<ShowQRPage />} />
             {/* Route admin layout và các trang con */}
@@ -36,7 +36,7 @@ const AppRouter = () => {
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
             </Route>
-          </Route>
+          {/* </Route> */}
           {/* Route cho trang không tồn tại */}
         </Routes>
       </React.Suspense>
