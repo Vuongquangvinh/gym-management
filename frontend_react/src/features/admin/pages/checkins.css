@@ -1,0 +1,39 @@
+@import '../../../shared/theme/colors.css';
+
+.checkins-root { display:flex; flex-direction:column; gap:12px; }
+.checkins-header { display:flex; justify-content:space-between; align-items:center; }
+.checkins-title { margin:0; font-size:20px; }
+
+.checkins-actions { display:flex; gap:12px; align-items:center; }
+.live-indicator { display:flex; gap:8px; align-items:center; }
+.live-dot { width:10px; height:10px; border-radius:50%; background: linear-gradient(90deg,var(--color-qrScan), var(--color-primary)); box-shadow: 0 6px 18px rgba(25,118,210,0.18); }
+.checkin-qr { background: linear-gradient(90deg,var(--color-secondary),var(--color-secondaryVariant)); }
+
+.checkins-card { padding:14px; }
+.checkins-controls { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+.controls-left { display:flex; gap:8px; align-items:center; }
+.input-search { padding:10px 12px; border-radius:10px; border:1px solid var(--color-border); min-width:260px; }
+.select-range { padding:10px 12px; border-radius:10px; border:1px solid var(--color-border); }
+.checkbox-label { display:flex; gap:6px; align-items:center; color:var(--color-textPrimary); }
+
+.controls-right { text-align:right; }
+.today-count { font-size:20px; font-weight:800; color:var(--color-primary); }
+
+.table-wrap { overflow-x:auto; }
+.checkins-table { width:100%; border-collapse:collapse; min-width:860px; }
+.checkins-table thead th { text-align:left; padding:12px 10px; color:var(--color-textSecondary); font-weight:700; font-size:13px; }
+.checkins-table tbody td { padding:12px 10px; border-top:1px solid rgba(0,0,0,0.04); vertical-align:middle; }
+.member-cell { display:flex; gap:10px; align-items:center; }
+.member-avatar { width:44px; height:44px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; color:white; font-weight:800; background: linear-gradient(180deg,var(--color-primary),var(--color-primaryVariant)); box-shadow: 0 8px 24px rgba(13,71,161,0.08); }
+.member-name { font-weight:700; }
+
+.source-badge { padding:6px 8px; border-radius:999px; font-weight:700; font-size:12px; display:inline-block; }
+.source-badge.qr { background: linear-gradient(90deg,var(--color-qrScan), #4aa3ff); color:white; }
+.source-badge.manual { background: #f2f4f6; color:var(--color-textPrimary); border:1px solid var(--color-border); }
+
+.no-result { padding:24px; text-align:center; color:var(--color-textSecondary); }
+
+@media (max-width:980px) { .input-search { min-width:160px; } .checkins-card { padding:12px; } }
+
+.spinner { width:36px; height:36px; border-radius:50%; border:4px solid rgba(0,0,0,0.06); border-top-color: var(--color-primary); animation: spin 800ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
