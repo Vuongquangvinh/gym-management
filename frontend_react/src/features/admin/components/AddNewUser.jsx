@@ -5,7 +5,6 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
   const [form, setForm] = useState({
     full_name: "",
     phone_number: "",
-    password: "",
     avatar_url: "",
     date_of_birth: "",
     gender: "other",
@@ -33,7 +32,7 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
     setError("");
     setSuccessMessage("");
     // Validate các trường bắt buộc
-    if (!form.full_name || !form.phone_number || !form.password || !form.date_of_birth || !form.gender || !form.membership_status || !form.current_package_id || !form.package_end_date || !form.join_date) {
+    if (!form.full_name || !form.phone_number || !form.date_of_birth || !form.gender || !form.membership_status || !form.current_package_id || !form.package_end_date || !form.join_date) {
       setError("Vui lòng nhập đầy đủ các trường bắt buộc.");
       return;
     }
@@ -59,7 +58,7 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
         fitness_goal: form.fitness_goal ? form.fitness_goal.split(',').map(s => s.trim()) : [],
         medical_conditions: form.medical_conditions ? form.medical_conditions.split(',').map(s => s.trim()) : [],
         initial_measurements: initial_measurements, // Gán đối tượng vừa tạo
-      }, form.password);
+      });
       setSuccessMessage("Tạo người dùng thành công!");
       // Nếu muốn reset form sau khi thành công, bỏ comment dòng dưới:
       // setForm({ ...form, full_name: "", phone_number: "", email: "", password: "", avatar_url: "", date_of_birth: "", gender: "other", membership_status: "Active", current_package_id: "", package_end_date: "", join_date: "", assigned_staff_id: "", fitness_goal: "", medical_conditions: "", weight: "", height: "" });
@@ -112,16 +111,8 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                 <span>Số điện thoại *</span>
                 <input name="phone_number" value={form.phone_number} onChange={handleChange} required />
               </label>
-             
-             
-             
             </div>
             <div className="addnewuser-form-col">
-               <label className="field">
-                <span>Mật khẩu *</span>
-                <input name="password" type="password" value={form.password} onChange={handleChange} required />
-              </label>
-             
               <label className="field">
                 <span>Trạng thái gói tập *</span>
                 <select name="membership_status" value={form.membership_status} onChange={handleChange} required>
