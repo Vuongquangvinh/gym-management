@@ -1,4 +1,4 @@
-// src/services/userModel.js
+// src/firebase/lib/features/user/spendingUser.model.js
 import {
   collection,
   doc,
@@ -6,6 +6,7 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   serverTimestamp,
@@ -17,12 +18,9 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase.js";
 import Joi from "joi";
-import bcrypt from "bcryptjs";
-import { SpendingUserModel } from "./spendingUser.model.js";
 
-// Schema validation với Joi (chuẩn hóa theo yêu cầu)
-// Chú ý: branch_id đang required, nếu chưa có thì có thể để optional()
-const userSchema = Joi.object({
+// Schema validation cho spending_users (không có password)
+const spendingUserSchema = Joi.object({
   _id: Joi.string().required(),
   full_name: Joi.string().min(2).required(),
   phone_number: Joi.string().required(),
@@ -47,7 +45,6 @@ const userSchema = Joi.object({
       })
     )
     .optional(),
-  // branch_id: Joi.string().required(), // Nếu chưa có collection branch thì tạm thời comment lại
   join_date: Joi.date().required(),
   assigned_staff_id: Joi.string().allow("").optional(),
   last_checkin_time: Joi.date().allow(null).optional(),
@@ -58,12 +55,15 @@ const userSchema = Joi.object({
   initial_measurements: Joi.object().optional(),
   createdAt: Joi.any().optional(),
   updatedAt: Joi.any().optional(),
+  // Trường đặc biệt để đánh dấu đã được chuyển đổi
+  isTransferred: Joi.boolean().optional(),
 });
 
 /**
- * Class UserModel cho Firestore (client-side)
+ * Class SpendingUserModel cho collection spending_users
+ * Dành cho việc admin tạo tài khoản trước khi user đăng nhập lần đầu
  */
-export class UserModel {
+export class SpendingUserModel {
   constructor({
     _id = "",
     full_name = "",
@@ -85,6 +85,7 @@ export class UserModel {
     medical_conditions = [],
     initial_measurements = {},
     isActive = true,
+    isTransferred = false,
     createdAt = null,
     updatedAt = null,
   } = {}) {
@@ -108,6 +109,7 @@ export class UserModel {
     this.medical_conditions = medical_conditions;
     this.initial_measurements = initial_measurements;
     this.isActive = isActive;
+    this.isTransferred = isTransferred;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
@@ -149,7 +151,7 @@ export class UserModel {
     delete dataToValidate.updatedAt;
 
     // Tiến hành validate trên đối tượng đã được làm sạch
-    const { error, value } = userSchema.validate(dataToValidate, {
+    const { error, value } = spendingUserSchema.validate(dataToValidate, {
       abortEarly: false,
     });
 
@@ -160,10 +162,23 @@ export class UserModel {
     return value;
   }
 
-  // Tạo user mới (không dùng Firebase Auth) - deprecated, sử dụng SpendingUserModel.create thay thế
-  static async create(userData, password = null) {
+  // Tạo spending user mới (admin tạo trước khi user đăng nhập)
+  static async create(userData) {
     try {
-      // 1. Kiểm tra xem số điện thoại đã tồn tại chưa
+      // 1. Kiểm tra xem số điện thoại đã tồn tại trong spending_users chưa
+      const existingSpendingUserQuery = query(
+        collection(db, "spending_users"),
+        where("phone_number", "==", userData.phone_number)
+      );
+      const existingSpendingUserSnapshot = await getDocs(
+        existingSpendingUserQuery
+      );
+
+      if (!existingSpendingUserSnapshot.empty) {
+        throw new Error("Số điện thoại này đã được tạo trong hệ thống.");
+      }
+
+      // 2. Kiểm tra xem số điện thoại đã tồn tại trong users chưa
       const existingUserQuery = query(
         collection(db, "users"),
         where("phone_number", "==", userData.phone_number)
@@ -171,230 +186,124 @@ export class UserModel {
       const existingUserSnapshot = await getDocs(existingUserQuery);
 
       if (!existingUserSnapshot.empty) {
-        throw new Error("Số điện thoại này đã được sử dụng.");
+        throw new Error(
+          "Số điện thoại này đã được sử dụng bởi người dùng khác."
+        );
       }
 
-      // 2. Hash password trước khi lưu (nếu có)
-      let hashedPassword = null;
-      if (password) {
-        const saltRounds = 10;
-        hashedPassword = await bcrypt.hash(password, saltRounds);
-      }
-
-      // 3. Tạo ID tự động cho user
-      const userId = doc(collection(db, "users")).id;
+      // 3. Tạo ID tự động cho spending user
+      const spendingUserId = doc(collection(db, "spending_users")).id;
 
       // 4. Gán _id và validate dữ liệu
       const dataToSave = {
         ...userData,
-        _id: userId,
+        _id: spendingUserId,
+        isTransferred: false,
       };
 
-      const validatedData = UserModel.validate(dataToSave);
+      const validatedData = SpendingUserModel.validate(dataToSave);
 
       // 5. Tạo instance và lưu vào Firestore
-      const newUser = new UserModel({
+      const newSpendingUser = new SpendingUserModel({
         ...validatedData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      const docRef = doc(db, "users", userId);
-      const firestoreData = newUser.toFirestore();
-
-      // Thêm hashed password vào dữ liệu lưu vào Firestore (nếu có)
-      const dataToSaveInFirestore = { ...firestoreData };
-      if (hashedPassword) {
-        dataToSaveInFirestore.password = hashedPassword;
-      }
-
-      await setDoc(docRef, dataToSaveInFirestore);
-
-      // 6. Trả về instance đã tạo (không có password)
-      newUser._id = userId;
-      return newUser;
-    } catch (error) {
-      console.error("Lỗi khi tạo người dùng:", error);
-
-      // Xử lý các lỗi phổ biến
-      if (error.message.includes("Số điện thoại này đã được sử dụng")) {
-        throw error;
-      }
-      if (password && password.length < 6) {
-        throw new Error("Mật khẩu quá yếu, cần ít nhất 6 ký tự.");
-      }
-      throw new Error(`Không thể tạo người dùng: ${error.message}`);
-    }
-  }
-
-  // Đăng nhập bằng số điện thoại và password
-  static async login(phoneNumber, password) {
-    try {
-      const userQuery = query(
-        collection(db, "users"),
-        where("phone_number", "==", phoneNumber)
-      );
-      const userSnapshot = await getDocs(userQuery);
-
-      if (userSnapshot.empty) {
-        throw new Error("Số điện thoại không tồn tại.");
-      }
-
-      const userDoc = userSnapshot.docs[0];
-      const userData = userDoc.data();
-
-      // Kiểm tra password bằng bcrypt
-      const isPasswordValid = await bcrypt.compare(password, userData.password);
-      if (!isPasswordValid) {
-        throw new Error("Mật khẩu không đúng.");
-      }
-
-      // Chuyển đổi Timestamp về JS Date
-      Object.keys(userData).forEach((key) => {
-        if (userData[key] instanceof Timestamp) {
-          userData[key] = userData[key].toDate();
-        }
-      });
-
-      if (Array.isArray(userData.frozen_history)) {
-        userData.frozen_history = userData.frozen_history.map((item) => ({
-          start:
-            item.start instanceof Timestamp ? item.start.toDate() : item.start,
-          end: item.end instanceof Timestamp ? item.end.toDate() : item.end,
-        }));
-      }
-
-      if (
-        userData.initial_measurements &&
-        userData.initial_measurements.date instanceof Timestamp
-      ) {
-        userData.initial_measurements.date =
-          userData.initial_measurements.date.toDate();
-      }
-
-      // Trả về user instance (không có password)
-      const { password: _, ...userDataWithoutPassword } = userData;
-      return new UserModel({ _id: userDoc.id, ...userDataWithoutPassword });
-    } catch (error) {
-      console.error("Lỗi khi đăng nhập:", error);
-      throw error;
-    }
-  }
-
-  // Đăng nhập lần đầu bằng số điện thoại (chuyển từ spending_users sang users)
-  static async firstTimeLogin(phoneNumber) {
-    try {
-      // 1. Kiểm tra xem user đã tồn tại trong users chưa
-      const existingUserQuery = query(
-        collection(db, "users"),
-        where("phone_number", "==", phoneNumber)
-      );
-      const existingUserSnapshot = await getDocs(existingUserQuery);
-
-      if (!existingUserSnapshot.empty) {
-        throw new Error("Người dùng đã được kích hoạt trước đó.");
-      }
-
-      // 2. Tìm thông tin trong spending_users
-      const spendingUser = await SpendingUserModel.getByPhoneNumber(
-        phoneNumber
-      );
-      if (!spendingUser) {
-        throw new Error("Số điện thoại chưa được đăng ký bởi admin.");
-      }
-
-      // 3. Tạo ID mới cho user trong collection users
-      const userId = doc(collection(db, "users")).id;
-
-      // 4. Chuyển đổi dữ liệu từ spending_user sang user
-      const userData = {
-        _id: userId,
-        full_name: spendingUser.full_name,
-        phone_number: spendingUser.phone_number,
-        email: spendingUser.email,
-        avatar_url: spendingUser.avatar_url,
-        date_of_birth: spendingUser.date_of_birth,
-        gender: spendingUser.gender,
-        membership_status: spendingUser.membership_status,
-        current_package_id: spendingUser.current_package_id,
-        package_end_date: spendingUser.package_end_date,
-        remaining_sessions: spendingUser.remaining_sessions,
-        frozen_history: spendingUser.frozen_history,
-        join_date: spendingUser.join_date,
-        assigned_staff_id: spendingUser.assigned_staff_id,
-        last_checkin_time: spendingUser.last_checkin_time,
-        lead_source: spendingUser.lead_source,
-        fitness_goal: spendingUser.fitness_goal,
-        medical_conditions: spendingUser.medical_conditions,
-        initial_measurements: spendingUser.initial_measurements,
-        isActive: spendingUser.isActive,
-      };
-
-      // 5. Validate dữ liệu
-      const validatedData = UserModel.validate(userData);
-
-      // 6. Tạo user mới trong collection users
-      const newUser = new UserModel({
-        ...validatedData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      const docRef = doc(db, "users", userId);
-      const firestoreData = newUser.toFirestore();
+      const docRef = doc(db, "spending_users", spendingUserId);
+      const firestoreData = newSpendingUser.toFirestore();
 
       await setDoc(docRef, firestoreData);
 
-      // 7. Đánh dấu spending_user đã được chuyển đổi
-      await SpendingUserModel.markAsTransferred(spendingUser._id);
-
-      // 8. Trả về user đã tạo
-      newUser._id = userId;
-      return newUser;
+      // 6. Trả về instance đã tạo
+      newSpendingUser._id = spendingUserId;
+      return newSpendingUser;
     } catch (error) {
-      console.error("Lỗi khi đăng nhập lần đầu:", error);
+      console.error("Lỗi khi tạo spending user:", error);
+      throw new Error(`Không thể tạo thông tin người dùng: ${error.message}`);
+    }
+  }
+
+  // Lấy spending user theo số điện thoại
+  static async getByPhoneNumber(phoneNumber) {
+    try {
+      const spendingUserQuery = query(
+        collection(db, "spending_users"),
+        where("phone_number", "==", phoneNumber),
+        where("isTransferred", "==", false)
+      );
+      const spendingUserSnapshot = await getDocs(spendingUserQuery);
+
+      if (spendingUserSnapshot.empty) {
+        return null;
+      }
+
+      const spendingUserDoc = spendingUserSnapshot.docs[0];
+      const spendingUserData = spendingUserDoc.data();
+
+      // Chuyển đổi Timestamp về JS Date
+      Object.keys(spendingUserData).forEach((key) => {
+        if (spendingUserData[key] instanceof Timestamp) {
+          spendingUserData[key] = spendingUserData[key].toDate();
+        }
+      });
+
+      if (Array.isArray(spendingUserData.frozen_history)) {
+        spendingUserData.frozen_history = spendingUserData.frozen_history.map(
+          (item) => ({
+            start:
+              item.start instanceof Timestamp
+                ? item.start.toDate()
+                : item.start,
+            end: item.end instanceof Timestamp ? item.end.toDate() : item.end,
+          })
+        );
+      }
+
+      if (
+        spendingUserData.initial_measurements &&
+        spendingUserData.initial_measurements.date instanceof Timestamp
+      ) {
+        spendingUserData.initial_measurements.date =
+          spendingUserData.initial_measurements.date.toDate();
+      }
+
+      return new SpendingUserModel({
+        _id: spendingUserDoc.id,
+        ...spendingUserData,
+      });
+    } catch (error) {
+      console.error("Lỗi khi lấy spending user:", error);
       throw error;
     }
   }
 
-  // Kiểm tra số điện thoại có tồn tại trong spending_users không
-  static async checkPhoneInSpendingUsers(phoneNumber) {
-    try {
-      const spendingUser = await SpendingUserModel.getByPhoneNumber(
-        phoneNumber
-      );
-      return spendingUser !== null;
-    } catch (error) {
-      console.error("Lỗi khi kiểm tra số điện thoại:", error);
-      return false;
+  // Lấy spending user theo ID
+  static async getById(id) {
+    const docRef = doc(db, "spending_users", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return null;
+
+    const data = docSnap.data();
+    // Chuyển đổi Timestamp về JS Date
+    Object.keys(data).forEach((key) => {
+      if (data[key] instanceof Timestamp) {
+        data[key] = data[key].toDate();
+      }
+    });
+    // Xử lý initial_measurements.date
+    if (
+      data.initial_measurements &&
+      data.initial_measurements.date instanceof Timestamp
+    ) {
+      data.initial_measurements.date = data.initial_measurements.date.toDate();
     }
+    return new SpendingUserModel({ _id: docSnap.id, ...data });
   }
 
-  // Lưu hoặc Cập nhật  Firestore
-  async save() {
-    const data = { ...this };
-    // Validate trước khi lưu
-    const validatedData = UserModel.validate(data);
-
-    const docRef = doc(db, "users", this._id);
-    const dataToSave = new UserModel(validatedData).toFirestore();
-
-    await setDoc(
-      docRef,
-      {
-        ...dataToSave,
-        updatedAt: serverTimestamp(),
-        // Giữ lại createdAt nếu đã tồn tại, nếu không thì tạo mới
-        createdAt: this.createdAt ? dataToSave.createdAt : serverTimestamp(),
-      },
-      { merge: true } // Dùng merge để không ghi đè mất các trường không có trong model
-    );
-    return this;
-  }
-
-  // Cập nhật một phần dữ liệu cho user
+  // Cập nhật một phần dữ liệu cho spending user
   static async update(id, updateData) {
-    const docRef = doc(db, "users", id);
+    const docRef = doc(db, "spending_users", id);
     const dataToUpdate = { ...updateData };
 
     // Danh sách các trường ngày tháng cần chuyển đổi
@@ -459,84 +368,34 @@ export class UserModel {
     });
   }
 
-  // Lấy user theo ID
-  static async getById(id) {
-    const docRef = doc(db, "users", id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return null;
-
-    const data = docSnap.data();
-    // Chuyển đổi Timestamp về JS Date
-    Object.keys(data).forEach((key) => {
-      if (data[key] instanceof Timestamp) {
-        data[key] = data[key].toDate();
-      }
+  // Đánh dấu spending user đã được chuyển đổi
+  static async markAsTransferred(id) {
+    const docRef = doc(db, "spending_users", id);
+    await updateDoc(docRef, {
+      isTransferred: true,
+      updatedAt: serverTimestamp(),
     });
-    // Xử lý initial_measurements.date
-    if (
-      data.initial_measurements &&
-      data.initial_measurements.date instanceof Timestamp
-    ) {
-      data.initial_measurements.date = data.initial_measurements.date.toDate();
-    }
-    return new UserModel({ _id: docSnap.id, ...data });
   }
 
-  // Lấy user theo số điện thoại
-  static async getByPhoneNumber(phoneNumber) {
-    try {
-      const userQuery = query(
-        collection(db, "users"),
-        where("phone_number", "==", phoneNumber)
-      );
-      const userSnapshot = await getDocs(userQuery);
-
-      if (userSnapshot.empty) {
-        return null;
-      }
-
-      const userDoc = userSnapshot.docs[0];
-      const userData = userDoc.data();
-
-      // Chuyển đổi Timestamp về JS Date
-      Object.keys(userData).forEach((key) => {
-        if (userData[key] instanceof Timestamp) {
-          userData[key] = userData[key].toDate();
-        }
-      });
-
-      if (Array.isArray(userData.frozen_history)) {
-        userData.frozen_history = userData.frozen_history.map((item) => ({
-          start:
-            item.start instanceof Timestamp ? item.start.toDate() : item.start,
-          end: item.end instanceof Timestamp ? item.end.toDate() : item.end,
-        }));
-      }
-
-      if (
-        userData.initial_measurements &&
-        userData.initial_measurements.date instanceof Timestamp
-      ) {
-        userData.initial_measurements.date =
-          userData.initial_measurements.date.toDate();
-      }
-
-      return new UserModel({ _id: userDoc.id, ...userData });
-    } catch (error) {
-      console.error("Lỗi khi lấy user theo số điện thoại:", error);
-      return null;
-    }
+  // Xóa spending user (sau khi đã chuyển thành công)
+  static async delete(id) {
+    const docRef = doc(db, "spending_users", id);
+    await deleteDoc(docRef);
   }
 
   /**
+   * Lấy danh sách spending users với phân trang
    * @param {Object} filters - bộ lọc
    * @param {number} limit - số lượng user mỗi lần lấy
    * @param {any} startAfterDoc - docSnapshot để bắt đầu sau (hoặc null)
    * @returns {Object} { users, lastDoc, hasMore }
    */
   static async getAll(filters = {}, limit = 10, startAfterDoc = null) {
-    const usersCollectionRef = collection(db, "users");
+    const spendingUsersCollectionRef = collection(db, "spending_users");
     let queryConstraints = [];
+
+    // Chỉ lấy những user chưa được chuyển đổi
+    queryConstraints.push(where("isTransferred", "==", false));
 
     if (filters.status === "about-to-expire") {
       const today = new Date();
@@ -562,13 +421,13 @@ export class UserModel {
       queryConstraints.push(orderBy("createdAt", "desc"));
     }
 
-    // 4. Thêm phân trang
+    // Thêm phân trang
     queryConstraints.push(fsLimit(limit));
     if (startAfterDoc) {
       queryConstraints.push(fsStartAfter(startAfterDoc));
     }
 
-    const finalQuery = query(usersCollectionRef, ...queryConstraints);
+    const finalQuery = query(spendingUsersCollectionRef, ...queryConstraints);
     const querySnapshot = await getDocs(finalQuery);
 
     const users = querySnapshot.docs.map((docSnap) => {
@@ -592,7 +451,7 @@ export class UserModel {
         data.initial_measurements.date =
           data.initial_measurements.date.toDate();
       }
-      return new UserModel({ _id: docSnap.id, ...data });
+      return new SpendingUserModel({ _id: docSnap.id, ...data });
     });
 
     const lastDoc =
@@ -604,16 +463,20 @@ export class UserModel {
     return { users, lastDoc, hasMore };
   }
 
-  // số liệu cho card ở member
+  // Số liệu thống kê cho spending users
   static async getDashboardStats() {
     try {
-      const usersCollectionRef = collection(db, "users");
+      const spendingUsersCollectionRef = collection(db, "spending_users");
 
-      const totalQuery = query(usersCollectionRef);
+      const totalQuery = query(
+        spendingUsersCollectionRef,
+        where("isTransferred", "==", false)
+      );
 
       const activeQuery = query(
-        usersCollectionRef,
-        where("membership_status", "==", "Active")
+        spendingUsersCollectionRef,
+        where("membership_status", "==", "Active"),
+        where("isTransferred", "==", false)
       );
 
       const today = new Date();
@@ -621,9 +484,10 @@ export class UserModel {
       aWeekFromNow.setDate(today.getDate() + 7);
 
       const expiringQuery = query(
-        usersCollectionRef,
+        spendingUsersCollectionRef,
         where("package_end_date", ">=", today),
-        where("package_end_date", "<=", aWeekFromNow)
+        where("package_end_date", "<=", aWeekFromNow),
+        where("isTransferred", "==", false)
       );
 
       const [totalSnapshot, activeSnapshot, expiringSnapshot] =
@@ -639,10 +503,10 @@ export class UserModel {
         expiring: expiringSnapshot.data().count,
       };
     } catch (error) {
-      console.error("Lỗi khi lấy số liệu thống kê:", error);
+      console.error("Lỗi khi lấy số liệu thống kê spending users:", error);
       return { total: 0, active: 0, expiring: 0 };
     }
   }
 }
 
-export default UserModel;
+export default SpendingUserModel;

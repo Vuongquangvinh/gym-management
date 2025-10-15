@@ -3,7 +3,7 @@ import AddNewUser from '../../../features/admin/components/AddNewUser.jsx';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import '../../../features/admin/admin.css';
-import UserModel from '../../../firebase/lib/features/user/user.model.js';
+import AuthService from '../../../firebase/lib/features/auth/authService.js';
 // small inline SVG icons to avoid adding deps
 const Icon = ({ name }) => {
   const map = {
@@ -25,21 +25,16 @@ export default function Sidebar() {
 
   const handleOpenAddUser = () => setShowAddUser(true);
   const handleCloseAddUser = () => setShowAddUser(false);
-  const handleSubmitAddUser = async (userData, password) => {
+  const handleSubmitAddUser = async (userData) => {
     console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData)
     try {
-      const newUser = await UserModel.create(userData, password);
-      console.log("🚀 ~ handleSubmitAddUser ~ newUser:", newUser)
+      const newSpendingUser = await AuthService.createUserByAdmin(userData);
+      console.log("🚀 ~ handleSubmitAddUser ~ newSpendingUser:", newSpendingUser)
+      setShowAddUser(false); // Đóng modal sau khi tạo thành công
     } catch (error) {
       console.error("🚀 ~ handleSubmitAddUser ~ error:", error)
+      // TODO: Hiển thị thông báo lỗi cho user
     }
-    
-
-    
-
-
-    // TODO: Gửi dữ liệu lên server hoặc xử lý tạo user
-    // setShowAddUser(false);
   };
 
   return (
