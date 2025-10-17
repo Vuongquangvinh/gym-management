@@ -159,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen>
             end: Alignment.bottomRight,
             colors: [
               AppColors.primary.withOpacity(0.05),
-              AppColors.background,
+              context.background,
               AppColors.secondary.withOpacity(0.05),
             ],
           ),
@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen>
                             style: GoogleFonts.montserrat(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                              color: context.textPrimary,
                               height: 1.2,
                             ),
                           ),
@@ -221,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen>
                             'Đăng nhập để tiếp tục',
                             style: GoogleFonts.montserrat(
                               fontSize: 16,
-                              color: AppColors.textSecondary,
+                              color: context.textSecondary,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen>
                         child: Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: context.surface,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
@@ -259,16 +259,16 @@ class _LoginScreenState extends State<LoginScreen>
                                     style: GoogleFonts.montserrat(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
+                                      color: context.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: AppColors.background,
+                                      color: context.background,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: AppColors.border,
+                                        color: context.border,
                                         width: 1.5,
                                       ),
                                     ),
@@ -282,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen>
                                           decoration: BoxDecoration(
                                             border: Border(
                                               right: BorderSide(
-                                                color: AppColors.border,
+                                                color: context.border,
                                                 width: 1.5,
                                               ),
                                             ),
@@ -292,7 +292,7 @@ class _LoginScreenState extends State<LoginScreen>
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
-                                              color: AppColors.textPrimary,
+                                              color: context.textPrimary,
                                             ),
                                           ),
                                         ),
@@ -321,12 +321,12 @@ class _LoginScreenState extends State<LoginScreen>
                                             ],
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
-                                              color: AppColors.textPrimary,
+                                              color: context.textPrimary,
                                             ),
                                             decoration: InputDecoration(
                                               hintText: 'Nhập số điện thoại',
                                               hintStyle: GoogleFonts.montserrat(
-                                                color: AppColors.textSecondary,
+                                                color: context.textSecondary,
                                                 fontSize: 14,
                                               ),
                                               border: InputBorder.none,
@@ -391,7 +391,7 @@ class _LoginScreenState extends State<LoginScreen>
                           Text(
                             'Chưa có tài khoản? ',
                             style: GoogleFonts.montserrat(
-                              color: AppColors.textSecondary,
+                              color: context.textSecondary,
                               fontSize: 14,
                             ),
                           ),

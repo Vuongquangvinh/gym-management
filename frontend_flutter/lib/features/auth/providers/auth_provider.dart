@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import "package:logger/logger.dart";
 
 final logger = Logger();
@@ -99,6 +98,11 @@ class AuthProvider with ChangeNotifier {
           if (userCredential == null) {
             return 'Xác thực OTP thất bại';
           }
+          // Lưu userId vào SharedPreferences
+          final userId = userQuery.docs.first.id;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('userId', userId);
+          await prefs.setBool('isLoggedIn', true); // Đánh dấu đã đăng nhập
           return null; // Thành công
         } catch (e, stack) {
           debugPrint('[OTP VERIFY ERROR] $e');
@@ -129,6 +133,18 @@ class AuthProvider with ChangeNotifier {
       final success = await transferSpendingUserToUsers(phoneNumber);
       if (!success) {
         return 'Không tìm thấy thông tin user hoặc chuyển đổi thất bại';
+      }
+      // Sau khi chuyển, lấy userId mới tạo và lưu vào SharedPreferences
+      final userQuery = await _firestore
+          .collection('users')
+          .where('phone_number', isEqualTo: phoneNumber)
+          .limit(1)
+          .get();
+      if (userQuery.docs.isNotEmpty) {
+        final userId = userQuery.docs.first.id;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', userId);
+        await prefs.setBool('isLoggedIn', true); 
       }
       return null; // Thành công
     }

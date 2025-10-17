@@ -7,14 +7,21 @@ class RecentWorkoutsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = context.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.card,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDarkMode
+              ? AppColors.borderDark.withOpacity(0.3)
+              : AppColors.borderLight.withOpacity(0.1),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.06),
+            color: AppColors.primary.withOpacity(isDarkMode ? 0.15 : 0.06),
             blurRadius: 20,
             offset: const Offset(0, 10),
             spreadRadius: -5,
@@ -30,9 +37,9 @@ class RecentWorkoutsWidget extends StatelessWidget {
               Text(
                 'Lịch sử tập luyện',
                 style: GoogleFonts.montserrat(
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               TextButton(
@@ -49,13 +56,13 @@ class RecentWorkoutsWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 9),
-          ..._buildWorkoutList(),
+          ..._buildWorkoutList(context),
         ],
       ),
     );
   }
 
-  List<Widget> _buildWorkoutList() {
+  List<Widget> _buildWorkoutList(BuildContext context) {
     final workouts = [
       {
         'date': '14/10',
@@ -63,7 +70,7 @@ class RecentWorkoutsWidget extends StatelessWidget {
         'duration': '45p',
         'calories': 320,
         'icon': Icons.directions_run,
-        'color': AppColors.primary,
+        'color': AppColors.cardio,
       },
       {
         'date': '13/10',
@@ -71,7 +78,7 @@ class RecentWorkoutsWidget extends StatelessWidget {
         'duration': '60p',
         'calories': 410,
         'icon': Icons.fitness_center,
-        'color': AppColors.secondary,
+        'color': AppColors.strength,
       },
       {
         'date': '12/10',
@@ -79,91 +86,87 @@ class RecentWorkoutsWidget extends StatelessWidget {
         'duration': '30p',
         'calories': 180,
         'icon': Icons.self_improvement,
-        'color': AppColors.accent,
+        'color': AppColors.yoga,
       },
     ];
 
-    return workouts
-        .map(
-          (w) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+    return workouts.map((w) => _buildWorkoutItem(context, w)).toList();
+  }
+
+  Widget _buildWorkoutItem(BuildContext context, Map<String, dynamic> workout) {
+    final isDarkMode = context.isDarkMode;
+    final color = workout['color'] as Color;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkMode
+              ? [color.withOpacity(0.15), color.withOpacity(0.08)]
+              : [color.withOpacity(0.05), color.withOpacity(0.02)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(isDarkMode ? 0.3 : 0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  (w['color'] as Color).withOpacity(0.05),
-                  (w['color'] as Color).withOpacity(0.02),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: (w['color'] as Color).withOpacity(0.15),
-              ),
+              color: color.withOpacity(isDarkMode ? 0.25 : 0.15),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Row(
+            child: Icon(workout['icon'] as IconData, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: (w['color'] as Color).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    w['icon'] as IconData,
-                    color: w['color'] as Color,
-                    size: 24,
+                Text(
+                  '${workout['type']}',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${w['type']}',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${w['date']} • ${w['duration']}',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 4),
+                Text(
+                  '${workout['date']} • ${workout['duration']}',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    color: context.textSecondary,
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${w['calories']}',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: w['color'] as Color,
-                      ),
-                    ),
-                    Text(
-                      'calories',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
-        )
-        .toList();
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${workout['calories']}',
+                style: GoogleFonts.montserrat(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                'kcal',
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  color: context.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

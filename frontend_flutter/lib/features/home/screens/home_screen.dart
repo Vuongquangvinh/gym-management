@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../theme/colors.dart';
+import '../../../providers/theme_provider.dart';
 import '../widgets/health_summary_widget.dart';
 import '../widgets/goals_progress_widget.dart';
 import '../widgets/recent_workouts_widget.dart';
 import '../widgets/member_card_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Đặt ở đầu file
+import "package:logger/logger.dart";
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+final logger = Logger();
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +21,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? _fullName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    logger.d('UserId: $userId');
+    if (userId != null) {
+      // Lấy thông tin user từ Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          _fullName = userDoc.data()?['full_name'] ?? '';
+        });
+      }
+    }
+  }
+
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -35,9 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     final dateString =
         '${now.day.toString().padLeft(2, '0')} Tháng ${now.month}, ${now.year}';
+    final isDarkMode = context.isDarkMode;
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.background,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -45,7 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
             expandedHeight: 200,
             floating: false,
             pinned: true,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundColor: isDarkMode
+                ? AppColors.surfaceDark
+                : AppColors.primary.withOpacity(0.1),
             flexibleSpace: LayoutBuilder(
               builder: (context, constraints) {
                 // Tính toán mức độ thu nhỏ (0.0 = expanded, 1.0 = collapsed)
@@ -60,10 +98,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primary.withOpacity(0.1),
-                          AppColors.secondary.withOpacity(0.05),
-                        ],
+                        colors: isDarkMode
+                            ? [AppColors.surfaceDark, AppColors.cardDark]
+                            : [
+                                AppColors.primary.withOpacity(0.1),
+                                AppColors.secondary.withOpacity(0.05),
+                              ],
                       ),
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(32),
@@ -105,17 +145,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     dateString,
                                     style: GoogleFonts.montserrat(
                                       fontSize: 13,
-                                      color: AppColors.textSecondary,
+                                      color: context.textSecondary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Xin chào, Eren',
+                                    'Xin chào, ${_fullName ?? "..."}',
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 20,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
+                                      color: context.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -125,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         '251kcal',
                                         style: GoogleFonts.montserrat(
                                           fontSize: 13,
-                                          color: AppColors.accent,
+                                          color: AppColors.calories,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -133,8 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Text(
                                         'Năng lượng',
                                         style: GoogleFonts.montserrat(
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
+                                          fontSize: 10,
+                                          color: context.textSecondary,
                                         ),
                                       ),
                                     ],
@@ -142,6 +182,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
+                            // Theme Toggle Button
+                            GestureDetector(
+                              onTap: () => themeProvider.toggleTheme(),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Icon(
+                                  isDarkMode
+                                      ? Icons.light_mode
+                                      : Icons.dark_mode,
+                                  color: AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -186,10 +248,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               vertical: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.surface.withOpacity(0.8),
+                              color: context.surface.withOpacity(0.8),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: AppColors.border.withOpacity(0.5),
+                                color: context.border.withOpacity(0.5),
                               ),
                             ),
                             child: Row(
@@ -199,13 +261,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'Tìm kiếm bài tập, dinh dưỡng...',
                                     style: GoogleFonts.montserrat(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: context.textSecondary,
                                     ),
                                   ),
                                 ),
                                 Icon(
                                   Icons.search,
-                                  color: AppColors.textSecondary,
+                                  color: context.textSecondary,
                                   size: 22,
                                 ),
                               ],
@@ -230,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
+                                color: context.surface,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -260,11 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     cardType: 'Thẻ tập Gym Premium',
                     expiryDate: '31/12/2025',
                     isActive: true,
-                    onScanQR: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Quét mã QR thẻ tập!')),
-                      );
-                    },
+                    onScanQR: () {},
                   ),
                   const SizedBox(height: 18),
                   HealthSummaryWidget(),
@@ -280,9 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surface,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
+        unselectedItemColor: context.textSecondary,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'Quét QR'),

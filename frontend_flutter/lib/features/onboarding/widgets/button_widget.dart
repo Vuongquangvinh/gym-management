@@ -105,7 +105,7 @@ class SecondaryButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.textSecondary,
+        foregroundColor: context.textSecondary,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
       child: Row(

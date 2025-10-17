@@ -129,7 +129,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -196,7 +196,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
                     'Check-in nhanh chóng, tiện lợi và bảo mật với mã QR. Mỗi thành viên sẽ có mã QR riêng để vào phòng tập.',
                     style: GoogleFonts.montserrat(
                       fontSize: 16,
-                      color: AppColors.textPrimary.withOpacity(0.85),
+                      color: context.textPrimary.withOpacity(0.85),
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
