@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useCheckins } from '../../../firebase/lib/features/checkin/checkin.provier.jsx';
+import { useCheckins } from '../../../firebase/lib/features/checkin';
 import { UserModel } from '../../../firebase/lib/features/user/user.model.js';
 import { toast } from 'react-toastify';
 import './AddCheckinModal.css';
@@ -126,7 +126,7 @@ export default function AddCheckinModal({ isOpen, onClose }) {
   };
 
   // Handle modal close
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setSearchQuery('');
     setSearchResults([]);
     setSelectedMember(null);
@@ -135,7 +135,7 @@ export default function AddCheckinModal({ isOpen, onClose }) {
     setIsSearching(false);
     setIsSaving(false);
     onClose();
-  };
+  }, [onClose]);
 
   // Handle click outside modal
   const handleOverlayClick = (e) => {
@@ -156,7 +156,7 @@ export default function AddCheckinModal({ isOpen, onClose }) {
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   // Cleanup timeout
   useEffect(() => {

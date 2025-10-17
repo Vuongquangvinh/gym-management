@@ -1,8 +1,23 @@
-import { collection, query, orderBy, limit as limitFn, onSnapshot, startAfter, 
-  getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, where, 
-  or, and, Timestamp } from 'firebase/firestore';
-import { db } from '../../config/firebase.js';
-import CheckinModel from './checkin.model.js';
+import {
+  collection,
+  query,
+  orderBy,
+  limit as limitFn,
+  onSnapshot,
+  startAfter,
+  getDocs,
+  addDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  where,
+  or,
+  Timestamp,
+} from "firebase/firestore";
+import { db } from "../../config/firebase.js";
+import CheckinModel from "./checkin.model.js";
 
 /**
  * Subscribe to recent checkins (realtime)
@@ -12,8 +27,13 @@ import CheckinModel from './checkin.model.js';
  * @param {Function} onError - Callback khi có lỗi
  * @returns {Function} Hàm hủy subscription
  */
-export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onError) {
-  const col = collection(db, 'checkins');
+export function subscribeRecentCheckins(
+  filters = {},
+  limit = 50,
+  onUpdate,
+  onError
+) {
+  const col = collection(db, "checkins");
   let queryConstraints = [];
 
   // Xử lý tìm kiếm theo tên hoặc gói trước
@@ -22,12 +42,12 @@ export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onEr
     // Sử dụng OR để tìm theo tên hoặc gói
     queryConstraints.push(
       or(
-        where('memberName', '>=', searchTerm),
-        where('packageId', '>=', searchTerm)
+        where("memberName", ">=", searchTerm),
+        where("packageId", ">=", searchTerm)
       )
     );
   }
-  
+
   // Xử lý filter thời gian
   if (filters.date || filters.range) {
     let startDate = null;
@@ -41,17 +61,17 @@ export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onEr
     } else if (filters.range) {
       endDate = new Date();
       endDate.setHours(23, 59, 59, 999);
-      
+
       startDate = new Date();
       startDate.setHours(0, 0, 0, 0);
-      
-      switch(filters.range) {
-        case 'today':
+
+      switch (filters.range) {
+        case "today":
           break;
-        case '7d':
+        case "7d":
           startDate.setDate(startDate.getDate() - 7);
           break;
-        case '30d':
+        case "30d":
           startDate.setDate(startDate.getDate() - 30);
           break;
         default:
@@ -60,20 +80,24 @@ export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onEr
     }
 
     if (startDate && endDate) {
-      queryConstraints.push(where('checkedAt', '>=', Timestamp.fromDate(startDate)));
-      queryConstraints.push(where('checkedAt', '<=', Timestamp.fromDate(endDate)));
+      queryConstraints.push(
+        where("checkedAt", ">=", Timestamp.fromDate(startDate))
+      );
+      queryConstraints.push(
+        where("checkedAt", "<=", Timestamp.fromDate(endDate))
+      );
     }
   }
 
   // Xử lý lọc theo nguồn check-in
   if (filters.source) {
-    queryConstraints.push(where('source', '==', filters.source));
+    queryConstraints.push(where("source", "==", filters.source));
   } else if (filters.onlyQR) {
-    queryConstraints.push(where('source', '==', 'QR'));
+    queryConstraints.push(where("source", "==", "QR"));
   }
 
   // Sắp xếp theo thời gian gần nhất
-  queryConstraints.push(orderBy('checkedAt', 'desc'));
+  queryConstraints.push(orderBy("checkedAt", "desc"));
 
   // Thêm giới hạn số lượng
   queryConstraints.push(limitFn(limit));
@@ -88,11 +112,11 @@ export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onEr
         CheckinModel.normalizeCheckin({ id: d.id, ...d.data() })
       );
       const last = snapshot.docs[snapshot.docs.length - 1] || null;
-      if (typeof onUpdate === 'function') onUpdate({ docs, last });
+      if (typeof onUpdate === "function") onUpdate({ docs, last });
     },
     (err) => {
-      console.error('subscribeRecentCheckins error', err);
-      if (typeof onError === 'function') onError(err);
+      console.error("subscribeRecentCheckins error", err);
+      if (typeof onError === "function") onError(err);
     }
   );
 }
@@ -105,10 +129,17 @@ export function subscribeRecentCheckins(filters = {}, limit = 50, onUpdate, onEr
  */
 export async function fetchMoreCheckins(lastDoc, limit = 50) {
   if (!lastDoc) return { docs: [], last: null };
-  const col = collection(db, 'checkins');
-  const q = query(col, orderBy('checkedAt', 'desc'), startAfter(lastDoc), limitFn(limit));
+  const col = collection(db, "checkins");
+  const q = query(
+    col,
+    orderBy("checkedAt", "desc"),
+    startAfter(lastDoc),
+    limitFn(limit)
+  );
   const snap = await getDocs(q);
-  const docs = snap.docs.map((d) => CheckinModel.normalizeCheckin({ id: d.id, ...d.data() }));
+  const docs = snap.docs.map((d) =>
+    CheckinModel.normalizeCheckin({ id: d.id, ...d.data() })
+  );
   const last = snap.docs[snap.docs.length - 1] || null;
   return { docs, last };
 }
@@ -122,11 +153,18 @@ export async function createCheckin(payload) {
   try {
     const validated = CheckinModel.validate(payload);
     const prepared = CheckinModel.prepare(validated);
-    const col = collection(db, 'checkins');
+    const col = collection(db, "checkins");
     const res = await addDoc(col, prepared);
-    return { id: res.id, ...prepared };
+
+    // Return normalized data with current timestamp
+    return CheckinModel.normalizeCheckin({
+      id: res.id,
+      ...prepared,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   } catch (error) {
-    console.error('Error creating checkin:', error);
+    console.error("Error creating checkin:", error);
     throw error;
   }
 }
@@ -137,7 +175,7 @@ export async function createCheckin(payload) {
  * @returns {Promise<Object|null>} Checkin data
  */
 export async function getCheckinById(id) {
-  const docRef = doc(db, 'checkins', id);
+  const docRef = doc(db, "checkins", id);
   const docSnap = await getDoc(docRef);
   if (!docSnap.exists()) return null;
   return CheckinModel.normalizeCheckin({ id: docSnap.id, ...docSnap.data() });
@@ -150,10 +188,10 @@ export async function getCheckinById(id) {
  * @returns {Promise<void>}
  */
 export async function updateCheckin(id, data) {
-  const docRef = doc(db, 'checkins', id);
+  const docRef = doc(db, "checkins", id);
   await updateDoc(docRef, {
     ...data,
-    updatedAt: serverTimestamp()
+    updatedAt: serverTimestamp(),
   });
 }
 
@@ -163,6 +201,6 @@ export async function updateCheckin(id, data) {
  * @returns {Promise<void>}
  */
 export async function deleteCheckin(id) {
-  const docRef = doc(db, 'checkins', id);
+  const docRef = doc(db, "checkins", id);
   await deleteDoc(docRef);
 }

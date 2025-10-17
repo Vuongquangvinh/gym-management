@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckinProvider } from '../../../firebase/lib/features/checkin/checkin.provier.jsx';
+import { CheckinProvider } from '../../../firebase/lib/features/checkin';
 import DataTableCheckin from '../components/DataTableCheckin';
 import AddCheckinModal from '../components/AddCheckinModal';
 import './checkins.css';

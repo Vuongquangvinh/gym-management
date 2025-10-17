@@ -1,24 +1,18 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import CheckinModel from './checkin.model.js';
+import { 
+  createCheckin as createCheckinService,
+  updateCheckin as updateCheckinService,
+  deleteCheckin as deleteCheckinService
+} from './checkin.service.js';
+import { CheckinContext } from './checkin.context.jsx';
 
-export const CheckinContext = createContext({
-  items: [],
-  loading: true,
-  loadingMore: false,
-  error: null,
-  fetchMore: async () => [],
-  hasMore: true,
-  members: [],
-  membersLoading: true,
-  membersError: null,
-  filters: {},
-  updateFilters: () => {},
-});
-
-export function useCheckins() {
-  return useContext(CheckinContext);
-}
+// Temporary fetchAllMembers function - should be imported from members module
+const fetchAllMembers = async () => {
+  // TODO: Implement proper member fetching from members module
+  return [];
+};
 
 export function CheckinProvider({ children, limit = 30 }) {
   // State chính
@@ -101,7 +95,7 @@ export function CheckinProvider({ children, limit = 30 }) {
 
   const addCheckin = async (payload) => {
     try {
-      const result = await CheckinService.createCheckin(payload);
+      const result = await createCheckinService(payload);
       console.log('Check-in thành công:', result);
       setItems((prev) => [result, ...prev]); // Cập nhật danh sách check-ins
       return result;
@@ -139,17 +133,53 @@ export function CheckinProvider({ children, limit = 30 }) {
     });
   }, []);
 
+  // Edit checkin
+  const editCheckin = useCallback(async (id, updateData) => {
+    try {
+      await updateCheckinService(id, updateData);
+      
+      // Update local state
+      setItems(prev => prev.map(item => 
+        item.id === id ? { ...item, ...updateData } : item
+      ));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating checkin:', error);
+      throw error;
+    }
+  }, []);
+
+  // Delete checkin
+  const deleteCheckin = useCallback(async (id) => {
+    try {
+      await deleteCheckinService(id);
+      
+      // Update local state
+      setItems(prev => prev.filter(item => item.id !== id));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting checkin:', error);
+      throw error;
+    }
+  }, []);
+
   const value = {
     items,
+    checkins: items, // Alias for backward compatibility
     loading,
     loadingMore,
     error,
     fetchMore,
+    loadMore: fetchMore, // Alias for backward compatibility
     hasMore,
     members,
     membersLoading,
     membersError,
     addCheckin,
+    editCheckin,
+    deleteCheckin,
     filters,
     updateFilters
   };
@@ -157,4 +187,4 @@ export function CheckinProvider({ children, limit = 30 }) {
   return <CheckinContext.Provider value={value}>{children}</CheckinContext.Provider>;
 }
 
-export default { CheckinProvider, useCheckins };
+export default CheckinProvider;

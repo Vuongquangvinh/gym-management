@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import "./DataTableCheckin.css";
-import { useCheckins } from "../../../firebase/lib/features/checkin/checkin.provier.jsx";
+import { useCheckins } from "../../../firebase/lib/features/checkin";
 import EditCheckinModal from "./EditCheckinModal.jsx";
 import { toast } from 'react-toastify';
 
