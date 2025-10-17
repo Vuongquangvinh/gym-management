@@ -536,7 +536,10 @@ export class UserModel {
    */
   static async getAll(filters = {}, limit = 10, startAfterDoc = null) {
     const usersCollectionRef = collection(db, "users");
-    let queryConstraints = [];
+    const queryConstraints = [];
+
+    // Tăng limit khi có search query để đảm bảo tìm đủ kết quả
+    const effectiveLimit = filters.searchQuery && !filters.status ? Math.max(limit, 50) : limit;
 
     if (filters.status === "about-to-expire") {
       const today = new Date();
@@ -554,8 +557,7 @@ export class UserModel {
       if (/^\d+$/.test(searchQuery)) {
         queryConstraints.push(where("phone_number", "==", searchQuery));
       } else {
-        queryConstraints.push(where("full_name", ">=", searchQuery));
-        queryConstraints.push(where("full_name", "<=", searchQuery + "\uf8ff"));
+        // Tìm kiếm case-insensitive bằng cách lấy tất cả và filter ở client
         queryConstraints.push(orderBy("full_name"));
       }
     } else {
@@ -563,7 +565,7 @@ export class UserModel {
     }
 
     // 4. Thêm phân trang
-    queryConstraints.push(fsLimit(limit));
+    queryConstraints.push(fsLimit(effectiveLimit));
     if (startAfterDoc) {
       queryConstraints.push(fsStartAfter(startAfterDoc));
     }
@@ -571,7 +573,7 @@ export class UserModel {
     const finalQuery = query(usersCollectionRef, ...queryConstraints);
     const querySnapshot = await getDocs(finalQuery);
 
-    const users = querySnapshot.docs.map((docSnap) => {
+    let users = querySnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
       Object.keys(data).forEach((field) => {
         if (data[field] instanceof Timestamp) {
@@ -595,11 +597,40 @@ export class UserModel {
       return new UserModel({ _id: docSnap.id, ...data });
     });
 
+    // Filter case-insensitive search trên client nếu có searchQuery
+    if (filters.searchQuery && !filters.status && !/^\d+$/.test(filters.searchQuery.trim())) {
+      const searchQuery = filters.searchQuery.trim().toLowerCase();
+      console.log('🔍 Searching for:', searchQuery);
+      console.log('📊 Total users before filter:', users.length);
+      
+      // Log một vài users để debug
+      users.slice(0, 5).forEach((user, index) => {
+        console.log(`User ${index + 1}:`, user.full_name);
+      });
+      
+      users = users.filter(user => {
+        const hasMatch = user.full_name && user.full_name.toLowerCase().includes(searchQuery);
+        if (hasMatch) {
+          console.log('✅ Match found:', user.full_name);
+        }
+        return hasMatch;
+      });
+      
+      console.log('🎯 Users after filter:', users.length);
+      
+      // Giới hạn kết quả về limit ban đầu sau khi filter
+      users = users.slice(0, limit);
+    }
+
     const lastDoc =
       querySnapshot.docs.length > 0
         ? querySnapshot.docs[querySnapshot.docs.length - 1]
         : null;
-    const hasMore = querySnapshot.docs.length === limit;
+    
+    // Cập nhật logic hasMore cho search
+    const hasMore = filters.searchQuery && !filters.status 
+      ? users.length === limit 
+      : querySnapshot.docs.length === effectiveLimit;
 
     return { users, lastDoc, hasMore };
   }
