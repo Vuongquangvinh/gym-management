@@ -4,7 +4,7 @@ import Sidebar from '../../shared/components/Layout/Sidebar';
 import Header from '../../shared/components/Layout/Header';
 import Footer from '../../shared/components/Layout/Footer';
 import './admin.css';
-import { CheckinProvider } from '../../firebase/lib/features/checkin/checkin.provier.jsx';
+import { CheckinProvider } from '../../firebase/lib/features/checkin/checkin.provider.jsx';
 
 export default function AdminLayout({ children }) {
   const [open, setOpen] = useState(false);

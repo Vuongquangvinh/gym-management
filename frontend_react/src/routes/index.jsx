@@ -8,6 +8,7 @@ import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import AdminLayout from '../features/admin/AdminLayout';
 import React from 'react';
 const Dashboard = React.lazy(() => import('../features/admin/Dashboard'));
+const CheckinDashboard = React.lazy(() => import('../features/admin/components/CheckinDashboard'));
 const Members = React.lazy(() => import('../features/admin/pages/Members'));
 const Checkins = React.lazy(() => import('../features/admin/pages/Checkins'));
 const Packages = React.lazy(() => import('../features/admin/pages/Packages'));
@@ -32,6 +33,7 @@ const AppRouter = () => {
               <Route index element={<Dashboard />} />
               <Route path="members" element={<Members />} />
               <Route path="checkins" element={<Checkins />} />
+              <Route path="checkin-stats" element={<CheckinDashboard />} />
               <Route path="packages" element={<Packages />} />
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
