@@ -9,7 +9,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.background,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -18,12 +18,12 @@ class WelcomeScreen extends StatelessWidget {
             child: Column(
               children: [
                 // Logo và tiêu đề
-                _buildHeader(),
+                _buildHeader(context),
 
                 const SizedBox(height: 32),
 
                 // Nội dung chính
-                _buildMainContent(),
+                _buildMainContent(context),
 
                 const SizedBox(height: 32),
 
@@ -39,7 +39,7 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       children: [
         // Logo container
@@ -75,7 +75,7 @@ class WelcomeScreen extends StatelessWidget {
                 style: GoogleFonts.montserrat(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: context.textPrimary,
                   letterSpacing: -1,
                 ),
               ),
@@ -98,7 +98,7 @@ class WelcomeScreen extends StatelessWidget {
           'Everybody Can Train',
           style: GoogleFonts.montserrat(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: context.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -106,7 +106,7 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildMainContent(BuildContext context) {
     return Column(
       children: [
         Text(
@@ -114,7 +114,7 @@ class WelcomeScreen extends StatelessWidget {
           style: GoogleFonts.montserrat(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: context.textPrimary,
           ),
           textAlign: TextAlign.center,
         ),
@@ -125,7 +125,7 @@ class WelcomeScreen extends StatelessWidget {
           'Ứng dụng quản lý phòng gym hiện đại, giúp bạn theo dõi lịch tập, quản lý thành viên và tối ưu hóa trải nghiệm tập luyện.',
           style: GoogleFonts.montserrat(
             fontSize: 13,
-            color: AppColors.textPrimary.withOpacity(0.85),
+            color: context.textPrimary.withOpacity(0.85),
             height: 1.4,
           ),
           textAlign: TextAlign.center,
@@ -134,27 +134,30 @@ class WelcomeScreen extends StatelessWidget {
         const SizedBox(height: 20),
 
         // Features
-        _buildFeatures(),
+        _buildFeatures(context),
       ],
     );
   }
 
-  Widget _buildFeatures() {
+  Widget _buildFeatures(BuildContext context) {
     return Column(
       children: [
         _buildFeatureItem(
+          context,
           icon: Icons.qr_code_scanner,
           title: 'Quét QR Code',
           description: 'Check-in nhanh chóng',
         ),
         const SizedBox(height: 10),
         _buildFeatureItem(
+          context,
           icon: Icons.group,
           title: 'Quản lý thành viên',
           description: 'Theo dõi thông tin',
         ),
         const SizedBox(height: 10),
         _buildFeatureItem(
+          context,
           icon: Icons.analytics,
           title: 'Thống kê chi tiết',
           description: 'Báo cáo doanh thu',
@@ -163,7 +166,8 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem({
+  Widget _buildFeatureItem(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String description,
@@ -198,7 +202,7 @@ class WelcomeScreen extends StatelessWidget {
                 description,
                 style: GoogleFonts.montserrat(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ],
@@ -238,7 +242,7 @@ class WelcomeScreen extends StatelessWidget {
             Text(
               'Đã có tài khoản? ',
               style: GoogleFonts.montserrat(
-                color: AppColors.textSecondary,
+                color: context.textSecondary,
                 fontSize: 13,
               ),
             ),

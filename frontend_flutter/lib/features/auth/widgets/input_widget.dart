@@ -34,7 +34,7 @@ class InputWidget extends StatelessWidget {
           style: GoogleFonts.montserrat(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -46,31 +46,38 @@ class InputWidget extends StatelessWidget {
           onChanged: onChanged,
           style: GoogleFonts.montserrat(
             fontSize: 16,
-            color: AppColors.textPrimary,
+            color: context.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.montserrat(
-              color: AppColors.muted,
+              color: context.textSecondary.withOpacity(0.6),
               fontSize: 15,
             ),
             filled: true,
-            fillColor: AppColors.surface,
+            fillColor: context.surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 18,
               vertical: 16,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.border, width: 1.2),
+              borderSide: BorderSide(color: context.border, width: 1.2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.border, width: 1.2),
+              borderSide: BorderSide(color: context.border, width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: AppColors.primary, width: 2),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: context.border.withOpacity(0.5),
+                width: 1.2,
+              ),
             ),
             suffixIcon: suffixIcon,
           ),

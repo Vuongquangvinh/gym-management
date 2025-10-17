@@ -129,7 +129,7 @@ class _Onboarding2ScreenState extends State<Onboarding2Screen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -196,7 +196,7 @@ class _Onboarding2ScreenState extends State<Onboarding2Screen>
                     'Theo dõi thông tin, lịch sử tập luyện và gói tập của từng thành viên. Quản lý dễ dàng, hỗ trợ chăm sóc khách hàng tốt hơn.',
                     style: GoogleFonts.montserrat(
                       fontSize: 16,
-                      color: AppColors.textPrimary.withOpacity(0.85),
+                      color: context.textPrimary.withOpacity(0.85),
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,

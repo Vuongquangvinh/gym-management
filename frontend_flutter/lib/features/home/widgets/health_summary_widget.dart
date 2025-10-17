@@ -7,15 +7,21 @@ class HealthSummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = context.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.card,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.08)),
+        border: Border.all(
+          color: isDarkMode
+              ? AppColors.borderDark.withOpacity(0.3)
+              : AppColors.borderLight.withOpacity(0.08),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.06),
+            color: AppColors.primary.withOpacity(isDarkMode ? 0.15 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -24,35 +30,75 @@ class HealthSummaryWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Sức khỏe hôm nay',
-            style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Sức khỏe hôm nay',
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: context.textPrimary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.secondary.withOpacity(0.2),
+                      AppColors.accent.withOpacity(0.2),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_fire_department,
+                      size: 16,
+                      color: AppColors.calories,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '1,250 kcal',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.calories,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: _buildHealthCard(
+                  context,
                   Icons.directions_walk,
                   'Bước',
                   '7,500',
                   '/ 10,000',
-                  const Color(0xFF4FC3F7),
+                  AppColors.steps,
                   0.75,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildHealthCard(
+                  context,
                   Icons.favorite,
                   'Nhịp tim',
                   '78',
                   'bpm',
-                  const Color(0xFFFF6B9D),
+                  AppColors.heartRate,
                   1.0,
                 ),
               ),
@@ -63,22 +109,24 @@ class HealthSummaryWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildHealthCard(
+                  context,
                   Icons.local_drink,
                   'Nước',
                   '1.8',
                   '/ 2.0L',
-                  const Color(0xFF42E695),
+                  AppColors.water,
                   0.9,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildHealthCard(
+                  context,
                   Icons.route,
                   'Quãng đường',
                   '5.2',
                   'km',
-                  const Color(0xFFFFB74D),
+                  AppColors.nutrition,
                   1.0,
                 ),
               ),
@@ -90,6 +138,7 @@ class HealthSummaryWidget extends StatelessWidget {
   }
 
   Widget _buildHealthCard(
+    BuildContext context,
     IconData icon,
     String label,
     String value,
@@ -97,12 +146,14 @@ class HealthSummaryWidget extends StatelessWidget {
     Color color,
     double progress,
   ) {
+    final isDarkMode = context.isDarkMode;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(isDarkMode ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withOpacity(isDarkMode ? 0.3 : 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +164,7 @@ class HealthSummaryWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withOpacity(isDarkMode ? 0.25 : 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -147,7 +198,7 @@ class HealthSummaryWidget extends StatelessWidget {
                   text: unit,
                   style: GoogleFonts.montserrat(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ],
@@ -158,7 +209,7 @@ class HealthSummaryWidget extends StatelessWidget {
             label,
             style: GoogleFonts.montserrat(
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
