@@ -145,16 +145,16 @@ class MemberCardWidget extends StatelessWidget {
               child: QrImageView(
                 data: memberName, // hoặc dữ liệu bạn muốn mã hóa
                 version: QrVersions.auto,
-                size: 90, // Tăng kích thước QR
+                size: 120, // Tăng kích thước QR
                 gapless: false,
                 backgroundColor: Colors.transparent,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
-                  color: Color(0xFF1565C0), // màu chủ đạo
+                  color: Color.fromARGB(255, 255, 255, 255), // màu chủ đạo
                 ),
                 dataModuleStyle: const QrDataModuleStyle(
                   dataModuleShape: QrDataModuleShape.square,
-                  color: Color(0xFF1976D2), // màu chủ đạo
+                  color: Color.fromARGB(255, 246, 246, 247), // màu chủ đạo
                 ),
               ),
             ),

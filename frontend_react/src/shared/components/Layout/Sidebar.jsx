@@ -27,14 +27,47 @@ export default function Sidebar() {
   const handleOpenAddUser = () => setShowAddUser(true);
   const handleCloseAddUser = () => setShowAddUser(false);
   const handleSubmitAddUser = async (userData) => {
-    console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData)
+    console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData);
+    
     try {
-      const newSpendingUser = await AuthService.createUserByAdmin(userData);
-      console.log("🚀 ~ handleSubmitAddUser ~ newSpendingUser:", newSpendingUser)
-      setShowAddUser(false); // Đóng modal sau khi tạo thành công
+      // Bước 1: Tạo link thanh toán PayOS
+      const res = await fetch('/api/payos/create-gym-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          packageId: userData.current_package_id,
+          packageName: userData.package_name,
+          packagePrice: userData.package_price,
+          packageDuration: userData.package_duration,
+          userId: userData.phone_number, // Dùng phone làm userId tạm thời
+          userName: userData.full_name,
+          userEmail: userData.email,
+          userPhone: userData.phone_number,
+          returnUrl: `${window.location.origin}/admin/members`,
+          cancelUrl: `${window.location.origin}/admin/members`,
+        }),
+      });
+
+      const paymentData = await res.json();
+      
+      if (paymentData.success && paymentData.data && paymentData.data.checkoutUrl) {
+        // Bước 2: Lưu thông tin userData vào localStorage để tạo user sau khi thanh toán
+        localStorage.setItem('pendingUserData', JSON.stringify({
+          ...userData,
+          orderCode: paymentData.data.orderCode,
+          paymentLinkId: paymentData.data.paymentLinkId,
+        }));
+        
+        // Bước 3: Chuyển hướng đến trang thanh toán PayOS
+        window.location.href = paymentData.data.checkoutUrl;
+      } else {
+        alert('Không thể tạo link thanh toán: ' + (paymentData.message || 'Lỗi không xác định'));
+      }
     } catch (error) {
-      console.error("🚀 ~ handleSubmitAddUser ~ error:", error)
-      // TODO: Hiển thị thông báo lỗi cho user
+      console.error("🚀 ~ handleSubmitAddUser ~ error:", error);
+      alert('Có lỗi xảy ra khi tạo thanh toán: ' + error.message);
     }
   };
 

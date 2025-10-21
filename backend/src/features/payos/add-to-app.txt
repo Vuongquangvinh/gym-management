@@ -1,0 +1,7 @@
+import payosRoutes from "./features/payos/payos.routes.js";
+
+// ...existing code...
+
+app.use("/payos", payosRoutes);
+
+// ...existing code...
