@@ -4,7 +4,7 @@ import UserModel from "../../../firebase/lib/features/user/user.model.js";
 import DetailMember from "./DetailMember.jsx";
 import useDebounce from "../hook/useDebounce.jsx";
 
-export default function DataTableMember({ onEdit, onDisable }) {
+export default function DataTableMember() {
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0 });
      const [statsLoading, setStatsLoading] = useState(true);
   // State cho phân trang
@@ -148,8 +148,6 @@ export default function DataTableMember({ onEdit, onDisable }) {
           <option value="Active">Hoạt động</option>
           <option value="about-to-expire">Hết hạn sau 7 ngày</option>
           <option value="Expired">Hết hạn</option>
-          <option value="Frozen">Tạm dừng</option>
-          <option value="Trial">Dùng thử</option>
           
         </select>
       </div>

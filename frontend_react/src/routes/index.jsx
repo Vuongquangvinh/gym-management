@@ -20,7 +20,7 @@ const AppRouter = () => {
       <React.Suspense fallback={<div>Loading...</div>}>
         <Routes>
           {/* Route công khai */}
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 

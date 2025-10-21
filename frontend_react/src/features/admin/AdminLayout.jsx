@@ -17,12 +17,13 @@ export default function AdminLayout({ children }) {
     return () => window.removeEventListener('closeAdminMenu', handler);
   }, []);
 
+  // Sửa layout: flex, sidebar 100vh, main chiếm phần còn lại, content cuộn độc lập
   return (
-    <div className={`admin-root ${open ? 'menu-open' : ''}`}>
+    <div className={`admin-root ${open ? 'menu-open' : ''}`} style={{ display: 'flex', height: '100vh', minHeight: '0' }}>
       <Sidebar />
-      <div className="admin-main">
+      <div className="admin-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '0' }}>
         <Header onToggle={toggle} />
-        <div className="admin-content">
+        <div className="admin-content" style={{ flex: 1, overflow: 'auto', minHeight: '0' }}>
           {/* Render nested routes here */}
           <CheckinProvider>
             <Outlet />

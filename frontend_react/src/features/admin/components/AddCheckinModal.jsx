@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useCheckins } from '../../../firebase/lib/features/checkin';
-import { UserModel } from '../../../firebase/lib/features/user/user.model.js';
-import { toast } from 'react-toastify';
+import { useCheckins } from '../../../firebase/lib/features/checkin/index.js';
+import { UserModel } from "../../../firebase/lib/features/user/user.model.js";import { toast } from 'react-toastify';
 import './AddCheckinModal.css';
 
 export default function AddCheckinModal({ isOpen, onClose }) {
