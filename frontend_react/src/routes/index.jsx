@@ -10,6 +10,8 @@ import React from 'react';
 const Dashboard = React.lazy(() => import('../features/admin/Dashboard'));
 const CheckinDashboard = React.lazy(() => import('../features/admin/components/CheckinDashboard'));
 const Members = React.lazy(() => import('../features/admin/pages/Members'));
+const Employees = React.lazy(() => import('../features/admin/pages/Employees'));
+const PTPricing = React.lazy(() => import('../features/admin/components/pt/PTPricingPage'));
 const Checkins = React.lazy(() => import('../features/admin/pages/Checkins'));
 const Packages = React.lazy(() => import('../features/admin/pages/Packages'));
 const Reports = React.lazy(() => import('../features/admin/pages/Reports'));
@@ -20,7 +22,7 @@ const AppRouter = () => {
       <React.Suspense fallback={<div>Loading...</div>}>
         <Routes>
           {/* Route công khai */}
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
@@ -32,6 +34,8 @@ const AppRouter = () => {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="members" element={<Members />} />
+              <Route path="employees" element={<Employees />} />
+              <Route path="pt-pricing" element={<PTPricing />} />
               <Route path="checkins" element={<Checkins />} />
               <Route path="checkin-stats" element={<CheckinDashboard />} />
               <Route path="packages" element={<Packages />} />

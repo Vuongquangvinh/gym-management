@@ -276,40 +276,40 @@ export default function DataTableCheckin({ onAddCheckin }) {
       </div>
 
       {/* Quick Stats */}
-      <div className="quick-stats">
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-title">Check-ins hiện tại</div>
-            <div className="stat-icon current">👥</div>
+      <div className="quick-stats-checkins">
+        <div className="stat-card-checkins">
+          <div className="stat-header-checkins">
+            <div className="stat-title-checkins">Check-ins hiện tại</div>
+            <div className="stat-icon-checkins current">👥</div>
           </div>
-          <div className="stat-value">{checkins.length}</div>
-          <div className="stat-description">Tổng số lượt check-in</div>
+          <div className="stat-value-checkins">{checkins.length}</div>
+          <div className="stat-description-checkins">Tổng số lượt check-in</div>
         </div>
-        
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-title">Hôm nay</div>
-            <div className="stat-icon today">🕐</div>
+
+        <div className="stat-card-checkins">
+          <div className="stat-header-checkins">
+            <div className="stat-title-checkins">Hôm nay</div>
+            <div className="stat-icon-checkins today">🕐</div>
           </div>
-          <div className="stat-value">
+          <div className="stat-value-checkins">
             {checkins.filter(c => {
               const today = new Date();
               const checkinDate = c.checkedAt?.toDate ? c.checkedAt.toDate() : new Date(c.checkedAt);
               return checkinDate.toDateString() === today.toDateString();
             }).length}
           </div>
-          <div className="stat-description">Check-in trong ngày</div>
+          <div className="stat-description-checkins">Check-in trong ngày</div>
         </div>
-        
-        <div className="stat-card">
-          <div className="stat-header">
-            <div className="stat-title">QR Code</div>
-            <div className="stat-icon qr">📱</div>
+
+        <div className="stat-card-checkins">
+          <div className="stat-header-checkins">
+            <div className="stat-title-checkins">QR Code</div>
+            <div className="stat-icon-checkins qr">📱</div>
           </div>
-          <div className="stat-value">
+          <div className="stat-value-checkins">
             {checkins.filter(c => c.source === 'QR').length}
           </div>
-          <div className="stat-description">Quét QR Code</div>
+          <div className="stat-description-checkins">Quét QR Code</div>
         </div>
       </div>
 
