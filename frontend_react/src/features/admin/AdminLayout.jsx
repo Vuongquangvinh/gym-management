@@ -5,6 +5,8 @@ import Header from '../../shared/components/Layout/Header';
 import Footer from '../../shared/components/Layout/Footer';
 import './admin.css';
 import { CheckinProvider } from '../../firebase/lib/features/checkin/checkin.provider.jsx';
+import { PTProvider } from '../../firebase/lib/features/pt/pt.provider.jsx';
+import { EmployeeProvider } from '../../firebase/lib/features/employee/employee.provider.jsx';
 
 export default function AdminLayout({ children }) {
   const [open, setOpen] = useState(false);
@@ -25,9 +27,13 @@ export default function AdminLayout({ children }) {
         <Header onToggle={toggle} />
         <div className="admin-content" style={{ flex: 1, overflow: 'auto', minHeight: '0' }}>
           {/* Render nested routes here */}
-          <CheckinProvider>
-            <Outlet />
-          </CheckinProvider>
+          <EmployeeProvider>
+            <CheckinProvider>
+              <PTProvider>
+                <Outlet />
+              </PTProvider>
+            </CheckinProvider>
+          </EmployeeProvider>
         </div>
         <Footer />
       </div>

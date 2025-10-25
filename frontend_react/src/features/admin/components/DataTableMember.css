@@ -58,7 +58,7 @@
   padding: 24px 0;
 }
 
-.active {
+.status-active{
   background: #fff;
 }
 .inactive {
