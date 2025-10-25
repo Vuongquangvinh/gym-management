@@ -32,5 +32,18 @@ service cloud.firestore {
       allow write: if true; // Chỉ admin mới được tạo/sửa/xóa gói
       // Production: allow write: if request.auth != null && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // Employees collection
+    match /employees/{employeeId} {
+      allow read, write: if true;
+      // Production: allow read, write: if request.auth != null;
+    }
+    
+    // PT Packages collection - Gói dịch vụ PT
+    match /ptPackages/{packageId} {
+      allow read: if true; // Cho phép đọc gói PT (cho app và admin)
+      allow write: if true; // Cho phép tạo/sửa/xóa gói PT
+      // Production: allow write: if request.auth != null;
+    }
   }
 }
