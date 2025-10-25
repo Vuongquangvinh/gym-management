@@ -156,38 +156,38 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
 
       if (onSubmit) {
         await onSubmit(userData);
+        // Không cần set success message ở đây vì sẽ redirect ngay
       } else {
         await SpendingUserModel.create(userData);
+        setSuccessMessage("✅ Hội viên đã được tạo thành công!");
+        
+        setTimeout(() => {
+          setForm({
+            full_name: "",
+            phone_number: "",
+            email: "",
+            avatar_url: "",
+            date_of_birth: "",
+            gender: "other",
+            membership_status: "Active",
+            current_package_id: "",
+            package_name: "",
+            package_price: "",
+            package_duration: "",
+            package_end_date: "",
+            join_date: new Date().toISOString().split('T')[0],
+            assigned_staff_id: "",
+            fitness_goal: "",
+            medical_conditions: "",
+            weight: "",
+            height: "",
+            lead_source: "",
+          });
+          setSelectedPackage(null);
+          setSuccessMessage("");
+          onClose();
+        }, 1500);
       }
-
-      setSuccessMessage("Dang chuyen den trang thanh toan...");
-      
-      setTimeout(() => {
-        setForm({
-          full_name: "",
-          phone_number: "",
-          email: "",
-          avatar_url: "",
-          date_of_birth: "",
-          gender: "other",
-          membership_status: "Active",
-          current_package_id: "",
-          package_name: "",
-          package_price: "",
-          package_duration: "",
-          package_end_date: "",
-          join_date: new Date().toISOString().split('T')[0],
-          assigned_staff_id: "",
-          fitness_goal: "",
-          medical_conditions: "",
-          weight: "",
-          height: "",
-          lead_source: "",
-        });
-        setSelectedPackage(null);
-        setSuccessMessage("");
-        onClose();
-      }, 1500);
 
     } catch (err) {
       console.error("Loi tao nguoi dung:", err);

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/colors.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import '../../model/user.model.dart';
+import 'package:logger/logger.dart';
+
+final logger = Logger();
 
 class MemberCardWidget extends StatelessWidget {
   final String memberName;
@@ -19,21 +22,57 @@ class MemberCardWidget extends StatelessWidget {
     required this.onScanQR,
   });
 
+  Future<void> _navigateToPackageDetail(BuildContext context) async {
+    try {
+      // Hiển thị loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Gọi method từ UserModel để lấy thông tin user kèm package
+      final userPackageInfo = await UserModel.getCurrentUserWithPackage();
+
+      Navigator.pop(context); // Đóng loading
+
+      if (userPackageInfo == null) {
+        _showError(context, 'Không tìm thấy thông tin người dùng');
+        return;
+      }
+
+      if (userPackageInfo.package == null) {
+        _showError(context, 'Bạn chưa đăng ký gói tập nào');
+        return;
+      }
+
+      // Navigate với userId
+      Navigator.pushNamed(
+        context,
+        '/packageMember',
+        arguments: {'userId': userPackageInfo.user.id},
+      );
+    } catch (e) {
+      Navigator.pop(context); // Đóng loading nếu có
+      logger.e('Lỗi khi lấy thông tin package: $e');
+      _showError(context, 'Có lỗi xảy ra: ${e.toString()}');
+    }
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/packageMember',
-          arguments: {
-            'memberName': memberName,
-            'cardType': cardType,
-            'expiryDate': expiryDate,
-            'isActive': isActive,
-          },
-        );
-      },
+      onTap: () => _navigateToPackageDetail(context),
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -105,59 +144,40 @@ class MemberCardWidget extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isActive
-                                ? AppColors.success
-                                : AppColors.error,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Text(
-                          isActive ? 'Hoạt động' : 'Hết hạn',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 11,
-                            color: isActive
-                                ? AppColors.success
-                                : AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(
+                      //     horizontal: 10,
+                      //     vertical: 4,
+                      //   ),
+                      //   decoration: BoxDecoration(
+                      //     color: isActive
+                      //         ? Colors.white
+                      //         : Colors.white.withOpacity(0.9),
+                      //     borderRadius: BorderRadius.circular(12),
+                      //     border: Border.all(
+                      //       color: isActive
+                      //           ? AppColors.success
+                      //           : AppColors.error,
+                      //       width: 1.5,
+                      //     ),
+                      //   ),
+                      //   child: Text(
+                      //     isActive ? 'Hoạt động' : 'Hết hạn',
+                      //     style: GoogleFonts.montserrat(
+                      //       fontSize: 11,
+                      //       color: isActive
+                      //           ? AppColors.success
+                      //           : AppColors.error,
+                      //       fontWeight: FontWeight.w700,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 16),
-            Container(
-              // Không viền, không boxShadow, chỉ QR nổi bật
-              color: Colors.transparent,
-              child: QrImageView(
-                data: memberName, // hoặc dữ liệu bạn muốn mã hóa
-                version: QrVersions.auto,
-                size: 120, // Tăng kích thước QR
-                gapless: false,
-                backgroundColor: Colors.transparent,
-                eyeStyle: const QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: Color.fromARGB(255, 255, 255, 255), // màu chủ đạo
-                ),
-                dataModuleStyle: const QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: Color.fromARGB(255, 246, 246, 247), // màu chủ đạo
-                ),
-              ),
-            ),
           ],
         ),
       ),

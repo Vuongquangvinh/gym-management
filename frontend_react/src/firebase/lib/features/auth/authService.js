@@ -101,6 +101,20 @@ export class AuthService {
   }
 
   /**
+   * Xóa spending user (dùng khi payment fail)
+   * @param {string} userId - ID của spending user
+   */
+  static async deleteSpendingUser(userId) {
+    try {
+      await SpendingUserModel.delete(userId);
+      console.log("✅ Đã xóa spending user:", userId);
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa spending user:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Lấy thông tin user từ cả hai collection
    * @param {string} phoneNumber - Số điện thoại
    * @returns {Object|null} thông tin user hoặc null

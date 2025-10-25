@@ -12,8 +12,11 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/map_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
-import 'features/package/screens/package_screen.dart';
+import 'features/package/utils/navigation_helper.dart';
+import 'features/qr_checkin/screens/qr_screen.dart';
+import 'features/qr_checkin/screens/checkin_history_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import "features/profile/screens/setting_screen.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,12 +52,28 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginScreen(),
             '/home': (context) => const HomeScreen(),
             '/map': (context) => const MapScreen(),
-            '/packageMember': (context) => PackageScreen(
-              memberName: 'Tên thành viên',
-              cardType: 'Loại thẻ',
-              expiryDate: '2025-12-31',
-              isActive: true,
-            ),
+            '/qr': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>?;
+              return QRScreen(
+                qrData: args?['qrData'] ?? 'DEFAULT_QR_CODE',
+                userId: args?['userId'],
+                fullName: args?['fullName'],
+                email: args?['email'],
+                phoneNumber: args?['phoneNumber'],
+                packageName: args?['packageName'],
+                hasActivePackage: args?['hasActivePackage'],
+              );
+            },
+            '/packageMember': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>?;
+              return PackageScreenWithProvider(userId: args?['userId'] ?? '');
+            },
+            '/checkin-history': (context) => const CheckInHistoryScreen(),
+            '/settings': (context) => const SettingScreen(),
           },
         );
       },

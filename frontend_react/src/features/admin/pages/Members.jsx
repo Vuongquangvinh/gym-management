@@ -8,47 +8,50 @@ export default function Members() {
   useEffect(() => {
     // Kiểm tra xem có payment status trong URL không
     const urlParams = new URLSearchParams(window.location.search);
-    const payment = urlParams.get('payment');
+    
+    // PayOS trả về với format: ?code=00&status=PAID&orderCode=xxx
+    const paymentStatus = urlParams.get('status');
+    const orderCode = urlParams.get('orderCode');
+    const cancelFlag = urlParams.get('cancel');
+    const cancelled = urlParams.get('cancelled');
+    const userId = urlParams.get('userId');
+    
+    console.log('🔍 URL params:', {
+      paymentStatus,
+      orderCode,
+      cancelFlag,
+      cancelled,
+      userId,
+      allParams: Object.fromEntries(urlParams)
+    });
 
-    if (payment === 'success') {
-      handlePaymentSuccess();
-    } else if (payment === 'cancel') {
-      handlePaymentCancel();
+    // Kiểm tra thanh toán thành công: status=PAID hoặc payment=success
+    if (paymentStatus === 'PAID' || urlParams.get('payment') === 'success') {
+      console.log('✅ Phát hiện thanh toán thành công!');
+      handlePaymentSuccess(userId, orderCode);
+    } else if (cancelled === 'true' || cancelFlag === 'true' || urlParams.get('payment') === 'cancel') {
+      console.log('❌ Thanh toán bị hủy, đang xóa user...');
+      handlePaymentCancel(userId);
+    } else {
+      console.log('ℹ️ Không có params thanh toán trong URL');
     }
   }, []);
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (userId, orderCode) => {
     try {
-      // Lấy thông tin user đang chờ từ localStorage
-      const pendingUserDataStr = localStorage.getItem('pendingUserData');
+      console.log('💰 Xử lý thanh toán thành công cho userId:', userId);
+      console.log('📝 OrderCode:', orderCode);
       
-      if (!pendingUserDataStr) {
-        console.error('Không tìm thấy thông tin user đang chờ');
-        setPaymentStatus({ success: false, message: 'Không tìm thấy thông tin thanh toán' });
-        return;
-      }
-
-      const pendingUserData = JSON.parse(pendingUserDataStr);
-      
-      // Loại bỏ các trường không thuộc schema của SpendingUser
-      const {
-        package_name: _package_name,
-        package_price: _package_price,
-        package_duration: _package_duration,
-        orderCode: _orderCode,
-        paymentLinkId: _paymentLinkId,
-        ...validUserData
-      } = pendingUserData;
-      
-      // Tạo user trong database với dữ liệu hợp lệ
-      const newUser = await AuthService.createUserByAdmin(validUserData);
-      console.log('✅ User đã được tạo sau thanh toán thành công:', newUser);
-      
-      // Xóa dữ liệu tạm khỏi localStorage
-      localStorage.removeItem('pendingUserData');
+      // User đã được tạo trước khi thanh toán rồi, chỉ cần xóa localStorage
+      localStorage.removeItem('pendingPaymentUserId');
+      localStorage.removeItem('pendingPaymentOrderCode');
+      localStorage.removeItem('pendingUserData'); // Xóa dữ liệu cũ nếu có
       
       // Hiển thị thông báo thành công
-      setPaymentStatus({ success: true, message: 'Thanh toán thành công! Hội viên đã được tạo.' });
+      setPaymentStatus({ 
+        success: true, 
+        message: '✅ Thanh toán thành công! Hội viên đã được tạo trong hệ thống.' 
+      });
       
       // Xóa query params khỏi URL
       window.history.replaceState({}, '', '/admin/members');
@@ -59,18 +62,46 @@ export default function Members() {
       }, 2000);
       
     } catch (error) {
-      console.error('Lỗi khi tạo user sau thanh toán:', error);
-      setPaymentStatus({ success: false, message: 'Thanh toán thành công nhưng có lỗi khi tạo hội viên: ' + error.message });
+      console.error('❌ Lỗi khi xử lý thanh toán:', error);
+      setPaymentStatus({ 
+        success: false, 
+        message: '⚠️ Đã có lỗi xảy ra: ' + error.message 
+      });
     }
   };
 
-  const handlePaymentCancel = () => {
-    // Xóa dữ liệu tạm
-    localStorage.removeItem('pendingUserData');
-    setPaymentStatus({ success: false, message: 'Thanh toán đã bị hủy' });
-    
-    // Xóa query params
-    window.history.replaceState({}, '', '/admin/members');
+  const handlePaymentCancel = async (userId) => {
+    try {
+      console.log('🗑️ Xử lý hủy thanh toán, đang xóa user:', userId);
+      
+      // Lấy userId từ localStorage nếu không có trong URL
+      const userIdToDelete = userId || localStorage.getItem('pendingPaymentUserId');
+      
+      if (userIdToDelete) {
+        // Xóa user đã tạo vì payment bị cancel
+        await AuthService.deleteSpendingUser(userIdToDelete);
+        console.log('✅ Đã xóa spending user:', userIdToDelete);
+      }
+      
+      // Xóa dữ liệu tạm
+      localStorage.removeItem('pendingPaymentUserId');
+      localStorage.removeItem('pendingPaymentOrderCode');
+      localStorage.removeItem('pendingUserData'); // Xóa dữ liệu cũ nếu có
+      
+      setPaymentStatus({ 
+        success: false, 
+        message: '❌ Thanh toán đã bị hủy. Thông tin hội viên đã được xóa.' 
+      });
+      
+      // Xóa query params
+      window.history.replaceState({}, '', '/admin/members');
+    } catch (error) {
+      console.error('❌ Lỗi khi xử lý cancel:', error);
+      setPaymentStatus({ 
+        success: false, 
+        message: '⚠️ Lỗi khi xóa thông tin: ' + error.message 
+      });
+    }
   };
 
   // Dummy handlers for now
