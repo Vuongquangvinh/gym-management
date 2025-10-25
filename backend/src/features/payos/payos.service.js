@@ -80,6 +80,8 @@ export async function createGymPackagePayment({
       paymentLinkId: result.paymentLinkId,
       orderCode: result.orderCode,
       qrCode: result.qrCode,
+      amount: amount, // Thêm amount
+      description: description, // Thêm description
       metadata: {
         ...metadata,
         createdAt: new Date().toISOString(),

@@ -43,7 +43,13 @@ export async function createGymPayment(req, res) {
     const orderCode = Date.now();
 
     // Tạo description (max 25 ký tự theo quy định PayOS)
-    const description = `Goi tap ${packageId}`;
+    // Cắt packageId nếu quá dài để đảm bảo tổng không quá 25 ký tự
+    const maxIdLength = 16; // "Goi tap " = 8 ký tự, còn 17 ký tự cho ID
+    const shortPackageId =
+      packageId.length > maxIdLength
+        ? packageId.substring(0, maxIdLength)
+        : packageId;
+    const description = `Goi tap ${shortPackageId}`.substring(0, 25);
 
     // Tạo return URL mặc định nếu không có
     const defaultReturnUrl = `${

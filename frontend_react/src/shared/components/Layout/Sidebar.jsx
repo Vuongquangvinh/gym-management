@@ -30,7 +30,23 @@ export default function Sidebar() {
     console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData);
     
     try {
-      // Bước 1: Tạo link thanh toán PayOS
+      // Bước 1: Kiểm tra số điện thoại và TẠO USER TRƯỚC
+      console.log('🔍 Bước 1: Kiểm tra và tạo user trong spending_users...');
+      
+      // Loại bỏ các trường không thuộc schema của SpendingUser
+      const {
+        package_name: _package_name,
+        package_price: _package_price,
+        package_duration: _package_duration,
+        ...validUserData
+      } = userData;
+      
+      // Tạo user trong spending_users (sẽ kiểm tra duplicate phone number)
+      const newUser = await AuthService.createUserByAdmin(validUserData);
+      console.log('✅ User đã được tạo trong spending_users:', newUser);
+      
+      // Bước 2: Tạo link thanh toán PayOS
+      console.log('💳 Bước 2: Tạo payment link...');
       const res = await fetch('/api/payos/create-gym-payment', {
         method: 'POST',
         headers: {
@@ -41,33 +57,34 @@ export default function Sidebar() {
           packageName: userData.package_name,
           packagePrice: userData.package_price,
           packageDuration: userData.package_duration,
-          userId: userData.phone_number, // Dùng phone làm userId tạm thời
+          userId: newUser._id, // Dùng user ID thực tế
           userName: userData.full_name,
           userEmail: userData.email,
           userPhone: userData.phone_number,
-          returnUrl: `${window.location.origin}/admin/members`,
-          cancelUrl: `${window.location.origin}/admin/members`,
+          returnUrl: `${window.location.origin}/admin/members?userId=${newUser._id}`,
+          cancelUrl: `${window.location.origin}/admin/members?userId=${newUser._id}&cancelled=true`,
         }),
       });
 
       const paymentData = await res.json();
       
       if (paymentData.success && paymentData.data && paymentData.data.checkoutUrl) {
-        // Bước 2: Lưu thông tin userData vào localStorage để tạo user sau khi thanh toán
-        localStorage.setItem('pendingUserData', JSON.stringify({
-          ...userData,
-          orderCode: paymentData.data.orderCode,
-          paymentLinkId: paymentData.data.paymentLinkId,
-        }));
+        // Bước 3: Lưu userId để xử lý sau khi thanh toán
+        localStorage.setItem('pendingPaymentUserId', newUser._id);
+        localStorage.setItem('pendingPaymentOrderCode', paymentData.data.orderCode);
         
-        // Bước 3: Chuyển hướng đến trang thanh toán PayOS
+        console.log('🔗 Bước 3: Chuyển hướng đến trang thanh toán...');
+        // Chuyển hướng đến trang thanh toán PayOS
         window.location.href = paymentData.data.checkoutUrl;
       } else {
+        // Nếu không tạo được payment link, xóa user đã tạo
+        console.error('❌ Không thể tạo payment link, đang xóa user...');
+        await AuthService.deleteSpendingUser(newUser._id);
         alert('Không thể tạo link thanh toán: ' + (paymentData.message || 'Lỗi không xác định'));
       }
     } catch (error) {
-      console.error("🚀 ~ handleSubmitAddUser ~ error:", error);
-      alert('Có lỗi xảy ra khi tạo thanh toán: ' + error.message);
+      console.error("❌ Lỗi trong handleSubmitAddUser:", error);
+      alert('Có lỗi xảy ra: ' + error.message);
     }
   };
 

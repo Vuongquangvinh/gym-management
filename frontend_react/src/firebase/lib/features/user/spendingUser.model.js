@@ -165,6 +165,11 @@ export class SpendingUserModel {
   // Tạo spending user mới (admin tạo trước khi user đăng nhập)
   static async create(userData) {
     try {
+      console.log(
+        "🔵 SpendingUserModel.create() - userData nhận được:",
+        userData
+      );
+
       // 1. Kiểm tra xem số điện thoại đã tồn tại trong spending_users chưa
       const existingSpendingUserQuery = query(
         collection(db, "spending_users"),
@@ -175,6 +180,7 @@ export class SpendingUserModel {
       );
 
       if (!existingSpendingUserSnapshot.empty) {
+        console.log("❌ Số điện thoại đã tồn tại trong spending_users");
         throw new Error("Số điện thoại này đã được tạo trong hệ thống.");
       }
 
@@ -186,6 +192,7 @@ export class SpendingUserModel {
       const existingUserSnapshot = await getDocs(existingUserQuery);
 
       if (!existingUserSnapshot.empty) {
+        console.log("❌ Số điện thoại đã tồn tại trong users");
         throw new Error(
           "Số điện thoại này đã được sử dụng bởi người dùng khác."
         );
@@ -193,6 +200,7 @@ export class SpendingUserModel {
 
       // 3. Tạo ID tự động cho spending user
       const spendingUserId = doc(collection(db, "spending_users")).id;
+      console.log("🆔 Generated spendingUserId:", spendingUserId);
 
       // 4. Gán _id và validate dữ liệu
       const dataToSave = {
@@ -201,7 +209,10 @@ export class SpendingUserModel {
         isTransferred: false,
       };
 
+      console.log("📝 dataToSave trước khi validate:", dataToSave);
+
       const validatedData = SpendingUserModel.validate(dataToSave);
+      console.log("✅ Validation thành công, validatedData:", validatedData);
 
       // 5. Tạo instance và lưu vào Firestore
       const newSpendingUser = new SpendingUserModel({
@@ -213,13 +224,21 @@ export class SpendingUserModel {
       const docRef = doc(db, "spending_users", spendingUserId);
       const firestoreData = newSpendingUser.toFirestore();
 
+      console.log("💾 firestoreData sẽ được lưu:", firestoreData);
+      console.log(
+        "📍 Đang lưu vào Firestore collection: spending_users, doc:",
+        spendingUserId
+      );
+
       await setDoc(docRef, firestoreData);
+      console.log("✅ Đã lưu thành công vào Firestore!");
 
       // 6. Trả về instance đã tạo
       newSpendingUser._id = spendingUserId;
       return newSpendingUser;
     } catch (error) {
-      console.error("Lỗi khi tạo spending user:", error);
+      console.error("❌ Lỗi khi tạo spending user:", error);
+      console.error("❌ Error stack:", error.stack);
       throw new Error(`Không thể tạo thông tin người dùng: ${error.message}`);
     }
   }

@@ -3,13 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../theme/colors.dart';
 import '../../../providers/theme_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../widgets/health_summary_widget.dart';
 import '../widgets/goals_progress_widget.dart';
 import '../widgets/recent_workouts_widget.dart';
 import '../widgets/member_card_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Đặt ở đầu file
 import "package:logger/logger.dart";
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../model/user.model.dart';
 
 final logger = Logger();
 
@@ -22,6 +22,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _fullName;
+  UserPackageInfo? _userPackageInfo;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -30,21 +32,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId');
+    try {
+      setState(() {
+        _isLoading = true;
+      });
 
-    logger.d('UserId: $userId');
-    if (userId != null) {
-      // Lấy thông tin user từ Firestore
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      if (userDoc.exists) {
+      // Sử dụng UserModel để lấy thông tin user kèm package
+      final userPackageInfo = await UserModel.getCurrentUserWithPackage();
+
+      if (userPackageInfo != null) {
         setState(() {
-          _fullName = userDoc.data()?['full_name'] ?? '';
+          _fullName = userPackageInfo.user.fullName;
+          _userPackageInfo = userPackageInfo;
+          _isLoading = false;
         });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        logger.w('Không tìm thấy thông tin user');
       }
+    } catch (e) {
+      logger.e('Lỗi khi lấy thông tin user: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -63,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
       curve: Curves.easeInOut,
     );
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -158,51 +172,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: context.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '251kcal',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 13,
-                                          color: AppColors.calories,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        'Năng lượng',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 10,
-                                          color: context.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  // const SizedBox(height: 2),
+                                  // Row(
+                                  //   children: [
+                                  //     Text(
+                                  //       '251kcal',
+                                  //       style: GoogleFonts.montserrat(
+                                  //         fontSize: 13,
+                                  //         color: AppColors.calories,
+                                  //         fontWeight: FontWeight.w600,
+                                  //       ),
+                                  //     ),
+                                  //     const SizedBox(width: 12),
+                                  //     Text(
+                                  //       'Năng lượng',
+                                  //       style: GoogleFonts.montserrat(
+                                  //         fontSize: 10,
+                                  //         color: context.textSecondary,
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // ),
                                 ],
                               ),
                             ),
+
                             // Theme Toggle Button
-                            GestureDetector(
-                              onTap: () => themeProvider.toggleTheme(),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.2),
-                                  ),
-                                ),
-                                child: Icon(
-                                  isDarkMode
-                                      ? Icons.light_mode
-                                      : Icons.dark_mode,
-                                  color: AppColors.primary,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -235,6 +230,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            // Nút đăng xuất
+                            // GestureDetector(
+                            //   onTap: () => _showLogoutDialog(context),
+                            //   child: Container(
+                            //     padding: const EdgeInsets.all(12),
+                            //     decoration: BoxDecoration(
+                            //       color: AppColors.error.withOpacity(0.1),
+                            //       borderRadius: BorderRadius.circular(16),
+                            //       border: Border.all(
+                            //         color: AppColors.error.withOpacity(0.2),
+                            //       ),
+                            //     ),
+                            //     child: Icon(
+                            //       Icons.logout,
+                            //       color: AppColors.error,
+                            //       size: 24,
+                            //     ),
+                            //   ),
+                            // ),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -317,13 +332,54 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 18),
-                  MemberCardWidget(
-                    memberName: 'Eren Yeager',
-                    cardType: 'Thẻ tập Gym Premium',
-                    expiryDate: '31/12/2025',
-                    isActive: true,
-                    onScanQR: () {},
-                  ),
+                  // Hiển thị loading hoặc dữ liệu thực
+                  _isLoading
+                      ? Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryLight,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      : _userPackageInfo != null
+                      ? MemberCardWidget(
+                          memberName: _userPackageInfo!.user.fullName,
+                          cardType: _userPackageInfo!.getPackageName(),
+                          expiryDate: _userPackageInfo!.getFormattedEndDate(),
+                          isActive: _userPackageInfo!.hasActivePackage(),
+                          onScanQR: () {},
+                        )
+                      : Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Không tìm thấy thông tin thẻ tập',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: context.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                   const SizedBox(height: 18),
                   HealthSummaryWidget(),
                   const SizedBox(height: 18),
@@ -348,7 +404,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         currentIndex: 0,
         onTap: (index) {
-          // TODO: Chuyển tab
+          if (index == 1) {
+            // Truyền userId và thông tin user khi navigate đến màn hình QR
+            if (_userPackageInfo != null) {
+              Navigator.pushNamed(
+                context,
+                '/qr',
+                arguments: {
+                  'qrData': _userPackageInfo!.user.id,
+                  'userId': _userPackageInfo!.user.id,
+                  'fullName': _userPackageInfo!.user.fullName,
+                  'email': _userPackageInfo!.user.email,
+                  'phoneNumber': _userPackageInfo!.user.phoneNumber,
+                  'packageName': _userPackageInfo!.getPackageName(),
+                  'hasActivePackage': _userPackageInfo!.hasActivePackage(),
+                },
+              );
+            } else {
+              // Nếu chưa có thông tin user, hiển thị thông báo
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Vui lòng đợi tải thông tin người dùng'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          } else if (index == 2) {
+            Navigator.pushNamed(context, '/settings');
+          }
         },
       ),
     );

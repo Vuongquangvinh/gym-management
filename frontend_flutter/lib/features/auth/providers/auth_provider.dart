@@ -144,9 +144,34 @@ class AuthProvider with ChangeNotifier {
         final userId = userQuery.docs.first.id;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', userId);
-        await prefs.setBool('isLoggedIn', true); 
+        await prefs.setBool('isLoggedIn', true);
       }
       return null; // Thành công
     }
+  }
+
+  // Đăng xuất
+  Future<void> logout() async {
+    try {
+      // Đăng xuất Firebase
+      await _auth.signOut();
+
+      // Xóa thông tin đăng nhập trong SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userId');
+      await prefs.setBool('isLoggedIn', false);
+
+      notifyListeners();
+      logger.i('Đăng xuất thành công');
+    } catch (e) {
+      logger.e('Lỗi khi đăng xuất: $e');
+      rethrow;
+    }
+  }
+
+  // Kiểm tra trạng thái đăng nhập
+  Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
   }
 }
