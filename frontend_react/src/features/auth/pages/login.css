@@ -1,0 +1,126 @@
+/* Login page styles for Gym Management */
+:root {
+  /* fallback in case JS doesn't inject variables */
+  --color-primary: #0D47A1;
+  --color-primaryVariant: #08316A;
+  --color-secondary: #00897B;
+  --color-accent: #FFB300;
+  --color-background: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-textPrimary: #0B2545;
+  --color-textSecondary: #546E7A;
+  --color-border: #E0E0E0;
+  --color-qrScan: #1976D2;
+  --color-overlay: rgba(11,37,69,0.6);
+}
+
+* { box-sizing: border-box; }
+body, html, #root { height: 100%; }
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--color-background) 0%, #eef3f9 100%);
+  position: relative;
+  padding: 32px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.bg-shapes { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.bg-shapes .shape { position: absolute; filter: blur(36px); opacity: 0.18; transform: translateZ(0); }
+.bg-shapes .s1 { width: 360px; height: 360px; background: var(--color-primary); left: -60px; top: -80px; border-radius: 48px; }
+.bg-shapes .s2 { width: 420px; height: 420px; background: var(--color-accent); right: -140px; top: -60px; border-radius: 60px; }
+.bg-shapes .s3 { width: 260px; height: 420px; background: var(--color-secondary); left: 20%; bottom: -120px; border-radius: 72px; }
+
+.login-card {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+  box-shadow: 0 10px 30px rgba(11,37,69,0.12);
+  border-radius: 16px;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+.brand {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+}
+.logo {
+  width: 84px; height: 84px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primaryVariant));
+  color: var(--color-surface);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 28px; letter-spacing: 1px;
+  box-shadow: 0 8px 18px rgba(13,71,161,0.18);
+}
+.brand-text h1 { margin: 0; color: var(--color-textPrimary); font-size: 20px; }
+.brand-text p { margin: 2px 0 0; color: var(--color-textSecondary); font-size: 13px; }
+
+.login-form { padding: 18px 4px; }
+.field { display: block; margin-bottom: 14px; }
+.field span { display:block; margin-bottom:6px; color: var(--color-textSecondary); font-size: 13px; }
+
+.field input[type="email"],
+.field input[type="password"],
+.field input[type="text"],
+.field input[type="tel"],
+.field input[type="date"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(180deg,#fff,#fbfdff);
+  color: var(--color-textPrimary);
+  transition: box-shadow .18s ease, transform .12s ease, border-color .12s ease;
+}
+.field input[type="date"]::-webkit-input-placeholder { color: var(--color-textSecondary); }
+.field input[type="date"]::-moz-placeholder { color: var(--color-textSecondary); }
+.field input[type="date"]:-ms-input-placeholder { color: var(--color-textSecondary); }
+.field input[type="date"]::placeholder { color: var(--color-textSecondary); }
+.field input:focus {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(13,71,161,0.12);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.row.between { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
+.remember { display:flex; align-items:center; gap:8px; color: var(--color-textSecondary); font-size: 14px; }
+.text-link { color: var(--color-primary); text-decoration:none; font-size: 14px; }
+.text-link:hover { text-decoration: underline; }
+
+.btn { display:inline-flex; align-items:center; justify-content:center; width:100%; padding: 12px 14px; border-radius: 12px; font-weight:600; cursor:pointer; border: none; }
+.btn.primary { background: linear-gradient(90deg,var(--color-primary),var(--color-primaryVariant)); color: var(--color-surface); }
+.btn.primary:active { transform: translateY(1px); }
+.btn.outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-textPrimary); }
+
+.spinner { width:18px; height:18px; border-radius:50%; border:3px solid rgba(255,255,255,0.18); border-top-color: rgba(255,255,255,0.92); animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.or { text-align:center; color: var(--color-textSecondary); margin: 12px 0; font-size: 13px; }
+.form-error { background: #fff4f4; border: 1px solid #ffd6d6; color: #8a1f1f; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+
+.card-foot { padding-top: 12px; text-align:center; color: var(--color-textSecondary); }
+
+/* Responsive: stack columns on small screens */
+@media (max-width: 860px) {
+  .login-card { grid-template-columns: 1fr; padding: 18px; }
+  .logo { width: 60px; height: 60px; font-size: 20px; }
+  .brand { padding: 12px 6px; }
+}
+
+@media (max-width: 420px) {
+  .login-page { padding: 18px; }
+  .bg-shapes .s1, .bg-shapes .s2, .bg-shapes .s3 { display:none; }
+}

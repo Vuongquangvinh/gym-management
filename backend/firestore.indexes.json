@@ -1,0 +1,29 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "checkins",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "memberName", "mode": "ASCENDING" },
+        { "fieldPath": "checkedAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkins", 
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "searchTokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "checkedAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "checkins",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "memberId", "mode": "ASCENDING" },
+        { "fieldPath": "checkedAt", "mode": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

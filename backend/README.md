@@ -1,0 +1,1 @@
+npm i nodemon qrcode cors mongoose dotenv jsonwebtoken bcryptjs nodemailer multer socket.io winston eslint
