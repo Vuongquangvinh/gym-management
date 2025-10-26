@@ -80,7 +80,7 @@ export class PTPackageModel {
       }),
       originalPrice: Joi.number().min(0).optional(),
       discount: Joi.number().min(0).max(100).optional(),
-      description: Joi.string().max(500).optional(),
+      description: Joi.string().max(500).allow('').optional(),
       features: Joi.array().items(Joi.string().max(100)).max(10).optional(),
       isActive: Joi.boolean().optional(),
       isPopular: Joi.boolean().optional(),
@@ -112,6 +112,9 @@ export class PTPackageModel {
       maxClientsPerSlot: Joi.number().min(1).max(10).optional(),
       requiresAdvanceBooking: Joi.boolean().optional(),
       advanceBookingHours: Joi.number().min(1).max(168).optional()
+    }).options({ 
+      allowUnknown: false, // Không cho phép field không được định nghĩa trong schema
+      stripUnknown: true   // Tự động loại bỏ field không được định nghĩa
     });
   }
 
@@ -120,9 +123,15 @@ export class PTPackageModel {
    */
   validate() {
     const schema = PTPackageModel.getValidationSchema();
-    const { error, value } = schema.validate(this.toObject(), { abortEarly: false });
+    const dataToValidate = this.toObject();
+    
+    // Debug log để kiểm tra data structure
+    console.log('🔍 PTPackageModel: Data to validate:', JSON.stringify(dataToValidate, null, 2));
+    
+    const { error, value } = schema.validate(dataToValidate, { abortEarly: false });
     
     if (error) {
+      console.log('❌ PTPackageModel: Validation errors:', error.details);
       const errors = {};
       error.details.forEach(detail => {
         errors[detail.path[0]] = detail.message;

@@ -56,7 +56,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     discountPercent: 0,
     validityDays: 90,
     availableTimeSlots: [],
-    customTimeSlots: [],
     advanceBookingDays: 1,
     allowSameDayBooking: true
   });
@@ -144,7 +143,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           discountPercent: selectedPackage.discount || 0,
           validityDays: selectedPackage.validityDays || 90,
           availableTimeSlots: convertDbToTimeSlotFormat(selectedPackage.availableTimeSlots || []),
-          customTimeSlots: selectedPackage.customTimeSlots || [],
           advanceBookingDays: selectedPackage.advanceBookingDays || 1,
           allowSameDayBooking: selectedPackage.allowSameDayBooking !== false
         });
@@ -169,7 +167,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           discountPercent: 0,
           validityDays: 90,
           availableTimeSlots: [],
-          customTimeSlots: [],
           advanceBookingDays: 1,
           allowSameDayBooking: true
         });
@@ -270,8 +267,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     
     setFormData(prev => ({
       ...prev,
-      availableTimeSlots: timeSlots.availableTimeSlots,
-      customTimeSlots: timeSlots.customTimeSlots
+      availableTimeSlots: timeSlots.availableTimeSlots
     }));
   }, [isLoadingFormData]);
 
@@ -342,23 +338,33 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     setIsSubmitting(true);
     
     try {
+      // Map packageType từ frontend sang backend schema
+      const packageTypeMapping = {
+        'online_single': 'single',
+        'offline_single': 'single', 
+        'weekly': 'weekly',
+        'monthly': 'monthly',
+        'package': 'package'
+      };
+
       const packageData = {
         name: formData.name,
-        packageType: formData.type,
+        packageType: packageTypeMapping[formData.type] || 'single', // Map type to packageType
         price: parseFloat(formData.price),
-        sessions: formData.sessions,
-        duration: formData.duration,
-        description: formData.description,
-        features: formData.benefits, // Map benefits to features for model compatibility
-        isPopular: formData.isPopular,
-        isActive: formData.isActive,
-        maxParticipants: formData.maxParticipants,
-        discount: formData.discountPercent,
-        validityDays: formData.validityDays,
-        availableTimeSlots: formData.availableTimeSlots,
-        customTimeSlots: formData.customTimeSlots,
-        advanceBookingDays: formData.advanceBookingDays,
-        allowSameDayBooking: formData.allowSameDayBooking
+        sessions: parseInt(formData.sessions),
+        duration: parseInt(formData.duration),
+        description: formData.description || '',
+        features: formData.benefits || [], // Map benefits to features for model compatibility
+        isPopular: formData.isPopular || false,
+        isActive: formData.isActive !== undefined ? formData.isActive : true,
+        maxClientsPerSlot: parseInt(formData.maxParticipants) || 1, // Map maxParticipants to maxClientsPerSlot
+        discount: parseFloat(formData.discountPercent) || 0,
+        originalPrice: parseFloat(formData.originalPrice) || parseFloat(formData.price),
+        availableTimeSlots: formData.availableTimeSlots || [], // Map availableTimeSlots correctly
+        customTimeSlots: [], // No longer support custom time slots
+        sessionDuration: parseInt(formData.sessionDuration) || 60, // Use dedicated sessionDuration field
+        requiresAdvanceBooking: formData.advanceBookingDays > 0,
+        advanceBookingHours: parseInt(formData.advanceBookingDays) * 24 || 24
         // Don't include ptId here, it will be passed as separate parameter
       };
 
@@ -1027,7 +1033,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
               </h3>
               <TimeSlotManager
                 availableTimeSlots={formData.availableTimeSlots}
-                customTimeSlots={formData.customTimeSlots}
                 sessionDuration={formData.duration}
                 onTimeSlotsChange={handleTimeSlotsChange}
               />
