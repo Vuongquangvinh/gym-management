@@ -10,12 +10,36 @@ const serviceAccountPath = path.resolve(
   __dirname,
   "../../gym-managment-aa0a1-firebase-adminsdk-fbsvc-66a43312d0.json"
 );
-const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
+
+console.log("📍 Service account path:", serviceAccountPath);
+
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
+  console.log("✅ Service account loaded successfully");
+  console.log("Project ID:", serviceAccount.project_id);
+} catch (error) {
+  console.error("❌ Error loading service account:", error.message);
+  throw error;
+}
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`,
+    });
+    console.log("✅ Firebase Admin SDK initialized successfully");
+    console.log(
+      "Database URL:",
+      `https://${serviceAccount.project_id}.firebaseio.com`
+    );
+  } catch (error) {
+    console.error("❌ Error initializing Firebase Admin SDK:", error);
+    throw error;
+  }
+} else {
+  console.log("⚠️ Firebase Admin SDK already initialized");
 }
 
 const {
@@ -49,3 +73,6 @@ export const initializeFirebaseApp = () => {
 };
 
 export const getFirebaseApp = () => app;
+
+// Export admin SDK
+export default admin;

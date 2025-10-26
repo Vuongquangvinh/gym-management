@@ -42,21 +42,52 @@ export default function Members() {
       console.log('💰 Xử lý thanh toán thành công cho userId:', userId);
       console.log('📝 OrderCode:', orderCode);
       
-      // User đã được tạo trước khi thanh toán rồi, chỉ cần xóa localStorage
+      // 🔥 BƯỚC 1: Gọi API để xác nhận thanh toán và cập nhật users collection
+      if (!orderCode) {
+        // Lấy từ localStorage nếu không có trong URL
+        orderCode = localStorage.getItem('pendingPaymentOrderCode');
+      }
+      
+      if (orderCode) {
+        console.log('🔄 Đang gọi API xác nhận thanh toán thủ công...');
+        
+        const response = await fetch('/api/payos/confirm-payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderCode: Number(orderCode)
+          })
+        });
+        
+        const result = await response.json();
+        console.log('📦 Kết quả xác nhận thanh toán:', result);
+        
+        if (!result.success) {
+          throw new Error(result.message || 'Không thể xác nhận thanh toán');
+        }
+        
+        console.log('✅ Đã cập nhật thông tin gói tập cho user trong collection users!');
+      } else {
+        console.warn('⚠️ Không tìm thấy orderCode để xác nhận thanh toán');
+      }
+      
+      // BƯỚC 2: Xóa dữ liệu tạm
       localStorage.removeItem('pendingPaymentUserId');
       localStorage.removeItem('pendingPaymentOrderCode');
-      localStorage.removeItem('pendingUserData'); // Xóa dữ liệu cũ nếu có
+      localStorage.removeItem('pendingUserData');
       
-      // Hiển thị thông báo thành công
+      // BƯỚC 3: Hiển thị thông báo thành công
       setPaymentStatus({ 
         success: true, 
-        message: '✅ Thanh toán thành công! Hội viên đã được tạo trong hệ thống.' 
+        message: '✅ Thanh toán thành công! Gói tập đã được kích hoạt cho hội viên.' 
       });
       
       // Xóa query params khỏi URL
       window.history.replaceState({}, '', '/admin/members');
       
-      // Reload trang sau 2 giây để hiển thị user mới
+      // Reload trang sau 2 giây để hiển thị user mới với gói tập
       setTimeout(() => {
         window.location.reload();
       }, 2000);

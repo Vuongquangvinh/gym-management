@@ -151,14 +151,18 @@ export default function DetailMember({ user, isOpen, onClose, onUpdate }) {
           userName: user.full_name,
           userEmail: user.email,
           userPhone: user.phone_number,
-          returnUrl: `${window.location.origin}/admin`,
-          cancelUrl: `${window.location.origin}/admin`,
+          returnUrl: `${window.location.origin}/admin/members?userId=${user.id || user._id}`,
+          cancelUrl: `${window.location.origin}/admin/members?userId=${user.id || user._id}&cancelled=true`,
         }),
       });
 
       const data = await res.json();
       
       if (data.success && data.data && data.data.checkoutUrl) {
+        // Lưu orderCode để xác nhận sau
+        localStorage.setItem('pendingPaymentUserId', user.id || user._id);
+        localStorage.setItem('pendingPaymentOrderCode', data.data.orderCode);
+        
         // Redirect to PayOS checkout page
         window.location.href = data.data.checkoutUrl;
       } else {

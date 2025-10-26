@@ -4,6 +4,7 @@ import {
   handlePaymentWebhook,
   getPaymentStatus,
   cancelGymPayment,
+  confirmPaymentManual,
 } from "./payos.controller.js";
 
 const router = Router();
@@ -48,5 +49,14 @@ router.get("/payment/:orderCode", getPaymentStatus);
  * @body    { reason: string }
  */
 router.post("/cancel/:orderCode", cancelGymPayment);
+
+/**
+ * @route   POST /api/payos/confirm-payment
+ * @desc    Xác nhận thanh toán thành công (LOCAL DEVELOPMENT ONLY)
+ * @desc    Gọi sau khi user hoàn thành thanh toán để update package
+ * @access  Public
+ * @body    { orderCode: number }
+ */
+router.post("/confirm-payment", confirmPaymentManual);
 
 export default router;

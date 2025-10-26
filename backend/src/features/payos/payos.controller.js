@@ -3,7 +3,11 @@ import {
   verifyPaymentWebhook,
   getPaymentInfo,
   cancelPayment,
+  verifyWebhookData,
+  getOrderByCode,
+  updateOrderStatus,
 } from "./payos.service.js";
+import admin from "../../config/firebase.js";
 
 /**
  * Controller: Tạo payment link cho gói tập gym
@@ -105,33 +109,272 @@ export async function createGymPayment(req, res) {
  */
 export async function handlePaymentWebhook(req, res) {
   try {
+    console.log("📨 Webhook received from PayOS");
+    console.log("Webhook body:", JSON.stringify(req.body, null, 2));
+
     const webhookData = req.body;
 
-    // Verify webhook
-    const result = await verifyPaymentWebhook(webhookData);
+    // ✅ 1. Verify webhook signature
+    const verifiedData = verifyWebhookData(webhookData);
 
-    if (result.success) {
-      // TODO: Xử lý cập nhật database khi thanh toán thành công
-      // - Cập nhật trạng thái gói tập của user
-      // - Gửi email xác nhận
-      // - Tạo invoice
-      console.log("✅ Payment webhook verified:", result.data);
-
-      res.json({
-        success: true,
-        message: "Webhook processed successfully",
-      });
-    } else {
-      res.status(400).json({
+    if (!verifiedData) {
+      console.error("❌ Invalid webhook signature");
+      return res.status(400).json({
         success: false,
-        message: "Invalid webhook data",
+        message: "Invalid webhook signature",
       });
     }
+
+    const { code, data, desc } = verifiedData;
+
+    // ✅ 2. Check if payment was successful
+    if (code !== "00") {
+      console.log("❌ Payment failed with code:", code, desc);
+      return res.json({
+        success: false,
+        message: "Payment not successful",
+        code,
+        description: desc,
+      });
+    }
+
+    // ✅ 3. Extract payment info
+    const {
+      orderCode,
+      amount,
+      description,
+      accountNumber,
+      reference,
+      transactionDateTime,
+    } = data;
+
+    console.log("💰 Payment successful for order:", orderCode);
+
+    // ✅ 4. Get order details from Firestore
+    let orderInfo = await getOrderByCode(orderCode);
+
+    if (!orderInfo) {
+      console.log(
+        "⚠️ Order not found in database, will extract from payment description"
+      );
+
+      // Try to parse package info from description
+      // Description format: "Goi tap PKG001" or "Thanh toan goi tap ..."
+      // We need to get full payment info from PayOS API
+      try {
+        const paymentInfo = await getPaymentInfo(orderCode);
+        console.log("📋 Payment info from PayOS:", paymentInfo);
+
+        // Since we don't have order in DB, we cannot update user
+        // Return success but log warning
+        console.error(
+          "❌ Cannot update user: Order info not found in database"
+        );
+        console.error(
+          "This means Firebase Admin SDK failed when creating payment"
+        );
+        console.error("Please fix Firebase authentication and try again");
+
+        return res.json({
+          success: true,
+          message:
+            "Payment received but cannot update user (order not in database)",
+          warning: "Firebase Admin SDK authentication failed",
+          orderCode: orderCode,
+        });
+      } catch (getPaymentError) {
+        console.error("❌ Error getting payment info:", getPaymentError);
+        return res.status(404).json({
+          success: false,
+          message: "Order not found and cannot retrieve payment info",
+        });
+      }
+    }
+
+    console.log("📦 Order info:", orderInfo);
+
+    // ✅ 5. Check if already processed (prevent duplicate)
+    if (orderInfo.status === "PAID") {
+      console.log("⚠️ Order already processed, skipping update");
+      return res.json({
+        success: true,
+        message: "Order already processed",
+      });
+    }
+
+    // 🔥 6. UPDATE USER PACKAGE INFO IN FIRESTORE
+    const { userId, packageId, packageDuration } = orderInfo;
+
+    console.log("🔄 Updating user package:", {
+      userId,
+      packageId,
+      packageDuration,
+    });
+
+    // Get package details to retrieve NumberOfSession
+    const db = admin.firestore();
+    const packageQuery = await db
+      .collection("packages")
+      .where("PackageId", "==", packageId)
+      .limit(1)
+      .get();
+
+    let packageDetails = null;
+    if (!packageQuery.empty) {
+      packageDetails = packageQuery.docs[0].data();
+      console.log("📦 Package details:", packageDetails);
+    }
+
+    // ✅ 7. Get user first to calculate extension dates
+    const userQuery = await db
+      .collection("users")
+      .where("_id", "==", userId)
+      .limit(1)
+      .get();
+
+    if (userQuery.empty) {
+      console.error("❌ User not found in database:", userId);
+      return res.status(404).json({
+        success: false,
+        message: "User not found in database",
+      });
+    }
+
+    const userDocId = userQuery.docs[0].id;
+    const currentUserData = userQuery.docs[0].data();
+
+    console.log("📋 Current user data BEFORE update (webhook):", {
+      _id: currentUserData._id,
+      current_package_id: currentUserData.current_package_id,
+      package_end_date: currentUserData.package_end_date,
+      membership_status: currentUserData.membership_status,
+    });
+
+    // 🔥 CALCULATE NEW END DATE - GIA HẠN từ ngày hết hạn cũ
+    let startDate, endDate;
+
+    if (currentUserData.package_end_date) {
+      // Có gói cũ → Gia hạn từ ngày hết hạn cũ
+      const currentEndDate = currentUserData.package_end_date.toDate();
+      const now = new Date();
+
+      if (currentEndDate > now) {
+        // Gói cũ còn hạn → Gia hạn từ ngày hết hạn cũ
+        startDate = currentEndDate;
+        endDate = new Date(currentEndDate);
+        endDate.setDate(endDate.getDate() + packageDuration);
+        console.log("📅 Gia hạn từ ngày hết hạn cũ (gói còn hạn)");
+      } else {
+        // Gói cũ hết hạn → Tính từ hôm nay
+        startDate = now;
+        endDate = new Date(now);
+        endDate.setDate(endDate.getDate() + packageDuration);
+        console.log("📅 Gói cũ đã hết hạn, tính từ hôm nay");
+      }
+    } else {
+      // Chưa có gói → Tính từ hôm nay
+      startDate = new Date();
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + packageDuration);
+      console.log("📅 Gói mới, tính từ hôm nay");
+    }
+
+    console.log("📅 Package calculation:", {
+      old_end_date:
+        currentUserData.package_end_date?.toDate()?.toISOString() || "none",
+      new_start_date: startDate.toISOString(),
+      new_end_date: endDate.toISOString(),
+      duration: packageDuration,
+      total_days_added: Math.floor(
+        (endDate - (currentUserData.package_end_date?.toDate() || new Date())) /
+          (1000 * 60 * 60 * 24)
+      ),
+    });
+
+    // Prepare update data
+    const userUpdateData = {
+      current_package_id: packageId,
+      membership_status: "Active",
+      package_start_date: admin.firestore.Timestamp.fromDate(startDate),
+      package_end_date: admin.firestore.Timestamp.fromDate(endDate),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Add remaining_sessions
+    if (packageDetails && packageDetails.NumberOfSession) {
+      // Nếu gia hạn cùng gói → Cộng thêm sessions
+      if (
+        currentUserData.current_package_id === packageId &&
+        currentUserData.remaining_sessions
+      ) {
+        userUpdateData.remaining_sessions =
+          currentUserData.remaining_sessions + packageDetails.NumberOfSession;
+        console.log("🔢 Cộng thêm sessions:", {
+          old: currentUserData.remaining_sessions,
+          new: packageDetails.NumberOfSession,
+          total: userUpdateData.remaining_sessions,
+        });
+      } else {
+        // Đổi gói khác → Set lại sessions
+        userUpdateData.remaining_sessions = packageDetails.NumberOfSession;
+        console.log("🔢 Set sessions mới:", packageDetails.NumberOfSession);
+      }
+    } else {
+      userUpdateData.remaining_sessions = null;
+    }
+
+    console.log("📝 Applying update:", userUpdateData);
+
+    await db.collection("users").doc(userDocId).update(userUpdateData);
+
+    // Verify update
+    const updatedUserDoc = await db.collection("users").doc(userDocId).get();
+    const updatedUserData = updatedUserDoc.data();
+
+    console.log("📋 User data AFTER update (webhook):", {
+      _id: updatedUserData._id,
+      current_package_id: updatedUserData.current_package_id,
+      package_end_date: updatedUserData.package_end_date,
+      package_start_date: updatedUserData.package_start_date,
+      remaining_sessions: updatedUserData.remaining_sessions,
+      membership_status: updatedUserData.membership_status,
+    });
+
+    console.log("✅ User package updated successfully:", {
+      userId,
+      docId: userDocId,
+      packageId,
+      endDate: endDate.toISOString(),
+    });
+
+    // ✅ 8. Update order status to PAID
+    await updateOrderStatus(orderCode, {
+      status: "PAID",
+      paymentTime: transactionDateTime,
+      transactionId: reference,
+      amount: amount,
+      accountNumber: accountNumber,
+    });
+
+    console.log("✅ Order status updated to PAID:", orderCode);
+    console.log("🎉 Payment webhook processed successfully!");
+
+    // ✅ 9. Send success response to PayOS
+    return res.json({
+      success: true,
+      message: "Payment processed and user package updated successfully",
+      data: {
+        orderCode,
+        userId,
+        packageId,
+        transactionId: reference,
+      },
+    });
   } catch (error) {
-    console.error("Error handling webhook:", error);
-    res.status(500).json({
+    console.error("❌ Webhook error:", error);
+    return res.status(500).json({
       success: false,
-      message: "Error processing webhook",
+      message: "Internal server error",
       error: error.message,
     });
   }
@@ -196,6 +439,219 @@ export async function cancelGymPayment(req, res) {
     res.status(500).json({
       success: false,
       message: error.message || "Không thể hủy thanh toán",
+    });
+  }
+}
+
+export async function confirmPaymentManual(req, res) {
+  try {
+    const { orderCode } = req.body;
+
+    console.log("🔔 Manual payment confirmation requested");
+    console.log("Order code:", orderCode);
+
+    if (!orderCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing orderCode",
+      });
+    }
+
+    // ✅ 1. Get order from Firestore
+    const orderInfo = await getOrderByCode(orderCode);
+
+    if (!orderInfo) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found in database",
+      });
+    }
+
+    console.log("📦 Order info:", orderInfo);
+
+    // ✅ 2. Check if already processed
+    if (orderInfo.status === "PAID") {
+      console.log("⚠️ Order already processed");
+      return res.json({
+        success: true,
+        message: "Order already processed",
+        alreadyProcessed: true,
+      });
+    }
+
+    // ✅ 3. Verify payment with PayOS API (OPTIONAL - Skip for local dev)
+    console.log("🔍 Verifying payment with PayOS...");
+
+    let paymentInfo = null;
+    try {
+      paymentInfo = await getPaymentInfo(orderCode);
+      console.log("💳 Payment info from PayOS:", paymentInfo);
+
+      // Check payment status - but don't block if not PAID yet (PayOS delay)
+      if (paymentInfo.status !== "PAID") {
+        console.log("⚠️ PayOS status not PAID yet:", paymentInfo.status);
+        console.log(
+          "⚠️ But proceeding anyway (LOCAL DEV MODE - user confirmed payment)"
+        );
+      } else {
+        console.log("✅ Payment verified as PAID");
+      }
+    } catch (verifyError) {
+      console.log("⚠️ Could not verify with PayOS:", verifyError.message);
+      console.log("⚠️ Proceeding anyway (LOCAL DEV MODE)");
+    }
+
+    // ✅ 4. Update user package
+    const { userId, packageId, packageDuration } = orderInfo;
+
+    console.log("🔄 Updating user package:", {
+      userId,
+      packageId,
+      packageDuration,
+    });
+
+    const db = admin.firestore();
+
+    // Get package details
+    const packageQuery = await db
+      .collection("packages")
+      .where("PackageId", "==", packageId)
+      .limit(1)
+      .get();
+
+    let packageDetails = null;
+    if (!packageQuery.empty) {
+      packageDetails = packageQuery.docs[0].data();
+      console.log("📦 Package details:", packageDetails);
+    }
+
+    // Get user first
+    const userQuery = await db
+      .collection("users")
+      .where("_id", "==", userId)
+      .limit(1)
+      .get();
+
+    if (userQuery.empty) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found in database",
+      });
+    }
+
+    const userDocId = userQuery.docs[0].id;
+    const currentUserData = userQuery.docs[0].data();
+
+    console.log("📋 Current user data BEFORE update:", {
+      _id: currentUserData._id,
+      current_package_id: currentUserData.current_package_id,
+      package_end_date: currentUserData.package_end_date,
+      membership_status: currentUserData.membership_status,
+    });
+
+    // 🔥 CALCULATE NEW END DATE - GIA HẠN
+    let startDate, endDate;
+
+    if (currentUserData.package_end_date) {
+      const currentEndDate = currentUserData.package_end_date.toDate();
+      const now = new Date();
+
+      if (currentEndDate > now) {
+        startDate = currentEndDate;
+        endDate = new Date(currentEndDate);
+        endDate.setDate(endDate.getDate() + packageDuration);
+        console.log("📅 Gia hạn từ ngày hết hạn cũ");
+      } else {
+        startDate = now;
+        endDate = new Date(now);
+        endDate.setDate(endDate.getDate() + packageDuration);
+        console.log("📅 Gói hết hạn, tính từ hôm nay");
+      }
+    } else {
+      startDate = new Date();
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + packageDuration);
+      console.log("📅 Gói mới");
+    }
+
+    console.log("📅 Calculation:", {
+      old_end:
+        currentUserData.package_end_date?.toDate()?.toISOString() || "none",
+      new_start: startDate.toISOString(),
+      new_end: endDate.toISOString(),
+      added_days: packageDuration,
+    });
+
+    const userUpdateData = {
+      current_package_id: packageId,
+      membership_status: "Active",
+      package_start_date: admin.firestore.Timestamp.fromDate(startDate),
+      package_end_date: admin.firestore.Timestamp.fromDate(endDate),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (packageDetails && packageDetails.NumberOfSession) {
+      if (
+        currentUserData.current_package_id === packageId &&
+        currentUserData.remaining_sessions
+      ) {
+        userUpdateData.remaining_sessions =
+          currentUserData.remaining_sessions + packageDetails.NumberOfSession;
+      } else {
+        userUpdateData.remaining_sessions = packageDetails.NumberOfSession;
+      }
+    } else {
+      userUpdateData.remaining_sessions = null;
+    }
+
+    console.log("📝 Update data:", userUpdateData);
+
+    // Update user
+    await db.collection("users").doc(userDocId).update(userUpdateData);
+
+    // Verify update
+    const updatedUserDoc = await db.collection("users").doc(userDocId).get();
+    const updatedUserData = updatedUserDoc.data();
+
+    console.log("📋 User data AFTER update:", {
+      _id: updatedUserData._id,
+      current_package_id: updatedUserData.current_package_id,
+      package_end_date: updatedUserData.package_end_date,
+      package_start_date: updatedUserData.package_start_date,
+      remaining_sessions: updatedUserData.remaining_sessions,
+      membership_status: updatedUserData.membership_status,
+    });
+
+    console.log("✅ User package updated successfully");
+
+    // ✅ 5. Update order status
+    await updateOrderStatus(orderCode, {
+      status: "PAID",
+      paymentTime: paymentInfo?.createdAt || new Date().toISOString(),
+      transactionId: paymentInfo?.reference || `MANUAL_${orderCode}`,
+      amount: paymentInfo?.amount || orderInfo.amount,
+      confirmedManually: true,
+      verifiedWithPayOS: !!paymentInfo && paymentInfo.status === "PAID",
+    });
+
+    console.log("✅ Order status updated to PAID");
+    console.log("🎉 Manual confirmation completed!");
+
+    return res.json({
+      success: true,
+      message: "Payment confirmed and user package updated successfully",
+      data: {
+        orderCode,
+        userId,
+        packageId,
+        packageEndDate: endDate.toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error in manual confirmation:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to confirm payment",
     });
   }
 }
