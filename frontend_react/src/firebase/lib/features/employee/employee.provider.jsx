@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { collection, query, where, orderBy, limit as fsLimit, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '../../config/firebase.js';
 import EmployeeModel from './employee.model.js';
 
 export const EmployeeContext = createContext({
@@ -192,10 +194,63 @@ export function EmployeeProvider({ children }) {
     }
   };
 
-  // Initial load and filter changes effect
+  // Real-time updates with onSnapshot
   useEffect(() => {
-    fetchEmployees(false);
-  }, [fetchEmployees]);
+    // Setup real-time listener with onSnapshot
+    const employeesRef = collection(db, 'employees');
+    const queryConstraints = [];
+    
+    // Add filters if any
+    if (filters.status) {
+      queryConstraints.push(where('status', '==', filters.status));
+    }
+    if (filters.position) {
+      queryConstraints.push(where('position', '==', filters.position));
+    }
+    if (filters.role) {
+      queryConstraints.push(where('role', '==', filters.role));
+    }
+    
+    // Add orderBy for sorting
+    queryConstraints.push(orderBy('createdAt', 'desc'));
+    
+    // Limit to avoid loading too much data
+    queryConstraints.push(fsLimit(100));
+    
+    const q = query(employeesRef, ...queryConstraints);
+    
+    // Subscribe to real-time updates
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        console.log('🔄 Real-time update received for employees');
+        const employeesList = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          
+          // Convert Timestamps to dates
+          Object.keys(data).forEach(field => {
+            if (data[field] instanceof Date) {
+              data[field] = data[field].toDate?.() || data[field];
+            } else if (data[field]?.toDate) {
+              data[field] = data[field].toDate();
+            }
+          });
+          
+          return new EmployeeModel({ _id: docSnap.id, ...data });
+        });
+        
+        setEmployees(employeesList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('❌ onSnapshot error:', error);
+        setError(error.message);
+        setLoading(false);
+      }
+    );
+    
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [filters]);
 
   // Load stats on mount
   useEffect(() => {

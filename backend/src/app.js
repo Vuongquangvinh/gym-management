@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRoutes from "./features/auth/auth.routes.js";
 import payosRoutes from "./features/payos/payos.routes.js";
 import uploadRoutes from "./features/upload/upload.routes.js";
+import faceRoutes from "./features/face/face.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
@@ -27,6 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../../frontend_react/pu
 app.use("/api/auth", authRoutes);
 app.use("/api/payos", payosRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/face", faceRoutes);
 
 // Serve PayOS test page
 app.get("/payos-test", (req, res) => {

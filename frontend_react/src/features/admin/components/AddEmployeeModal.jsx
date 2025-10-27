@@ -175,7 +175,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         startDate: new Date(formData.startDate),
         salary: parseFloat(formData.salary),
         commissionRate: parseFloat(formData.commissionRate),
-        totalClients: 0
+        totalClients: 0,
+        faceRegistered: false // Default face registration status
       };
 
       await addEmployee(employeeData);
@@ -426,16 +427,13 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     className={errors.shift ? 'error' : ''}
                   >
                     <option value="">Chọn ca làm việc</option>
-                    <option value="morning">Ca sáng (6:00-14:00)</option>
-                    <option value="afternoon">Ca chiều (14:00-22:00)</option>
-                    <option value="evening">Ca tối (18:00-22:00)</option>
-                    <option value="full-time">Full-time (8:00-17:00)</option>
+                    <option value="full-time">Full-time (7:00-20:00)</option>
                     <option value="part-time">Part-time</option>
                   </select>
                   {errors.shift && <span className="error-message">{errors.shift}</span>}
                 </div>
               </div>
-
+ 
               <div className="form-row">
                 <div className="form-group">
                   <label>Trạng Thái</label>

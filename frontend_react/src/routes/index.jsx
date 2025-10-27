@@ -14,6 +14,7 @@ const Employees = React.lazy(() => import('../features/admin/pages/Employees'));
 const PTPricing = React.lazy(() => import('../features/admin/components/pt/PTPricingPage'));
 const Checkins = React.lazy(() => import('../features/admin/pages/Checkins'));
 const Packages = React.lazy(() => import('../features/admin/pages/Packages'));
+const FaceCheckinPage = React.lazy(() => import('../features/admin/pages/FaceCheckinPage'));
 const Reports = React.lazy(() => import('../features/admin/pages/Reports'));
 const Settings = React.lazy(() => import('../features/admin/pages/Settings'));
 const AppRouter = () => {
@@ -39,6 +40,7 @@ const AppRouter = () => {
               <Route path="checkins" element={<Checkins />} />
               <Route path="checkin-stats" element={<CheckinDashboard />} />
               <Route path="packages" element={<Packages />} />
+              <Route path="face-checkin" element={<FaceCheckinPage />} />
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
             </Route>

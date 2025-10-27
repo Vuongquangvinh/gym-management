@@ -40,7 +40,8 @@ export class EmployeeModel {
     avatarUrl = '',
     idCard = '',
     notes = '',
-    ptInfo = null
+    ptInfo = null,
+    faceRegistered = false
   } = {}) {
     this._id = _id;
     this.fullName = fullName;
@@ -63,6 +64,7 @@ export class EmployeeModel {
     this.avatarUrl = avatarUrl;
     this.idCard = idCard;
     this.notes = notes;
+    this.faceRegistered = faceRegistered;
     
     // PT-specific information (only for PT position)
     this.ptInfo = ptInfo || (position === 'PT' ? {
@@ -133,6 +135,7 @@ export class EmployeeModel {
       'string.max': 'Ghi chú không được quá 500 ký tự'
     }),
     uid: Joi.string().allow(null).optional(),
+    faceRegistered: Joi.boolean().default(false).optional(),
     
     // PT Info validation (chỉ validate khi position = 'PT')
     ptInfo: Joi.when('position', {
@@ -263,7 +266,8 @@ export class EmployeeModel {
       totalClients: this.totalClients,
       avatarUrl: this.avatarUrl || '',
       idCard: this.idCard || '',
-      notes: this.notes || ''
+      notes: this.notes || '',
+      faceRegistered: this.faceRegistered || false
     };
 
     // Chỉ thêm ptInfo nếu là PT
