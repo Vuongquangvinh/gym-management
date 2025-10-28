@@ -1,4 +1,5 @@
 import express from "express";
+import "./config/firebase.js"; // 🔥 Import để khởi tạo Firebase Admin SDK
 import { initializeFirebaseApp } from "./config/firebase.js";
 import dotenv from "dotenv";
 import authRoutes from "./features/auth/auth.routes.js";

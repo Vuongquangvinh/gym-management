@@ -6,6 +6,7 @@ import ChangePassword from "../features/auth/pages/ChangePasswordPage.jsx";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPassword.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import AdminLayout from '../features/admin/AdminLayout';
+import PaymentSuccess from '../features/payment/PaymentSuccess.jsx';
 import React from 'react';
 const Dashboard = React.lazy(() => import('../features/admin/Dashboard'));
 const CheckinDashboard = React.lazy(() => import('../features/admin/components/CheckinDashboard'));
@@ -25,6 +26,7 @@ const AppRouter = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
 
           {/* Các route được bảo vệ */}
           {/* <Route element={<ProtectedRoute />}> */}
