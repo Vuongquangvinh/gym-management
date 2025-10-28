@@ -65,15 +65,22 @@ class _PackageScreenContentState extends State<_PackageScreenContent> {
   void _renewPackage(String packageId) async {
     // Lấy thông tin gói tập từ provider
     final packageProvider = context.read<PackageProvider>();
+
+    // 🔥 Tìm package theo packageId (field "PackageId") thay vì document ID
     final selectedPackage = packageProvider.packages.firstWhere(
-      (p) => p.id == packageId,
+      (p) => p.packageId == packageId, // Đổi từ p.id thành p.packageId
+      orElse: () =>
+          throw Exception('Không tìm thấy package với PackageId: $packageId'),
     );
 
     logger.i('=== GIA HẠN GÓI TẬP ===');
-    logger.i('Package ID: $packageId');
+    logger.i('Package ID (PackageId field): $packageId');
     logger.i('Package Name: ${selectedPackage.packageName}');
     logger.i('Price: ${selectedPackage.price}');
     logger.i('Duration: ${selectedPackage.duration} ngày');
+    logger.i('User ID (widget.userId): ${widget.userId}');
+    logger.i('User ID type: ${widget.userId.runtimeType}');
+    logger.i('User ID length: ${widget.userId.length}');
 
     // Hiển thị loading
     showDialog(
@@ -124,29 +131,56 @@ class _PackageScreenContentState extends State<_PackageScreenContent> {
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
         logger.i('Tạo payment link thành công!');
-        logger.i('Response data: $data');
-        logger.i('Order Code: ${data['orderCode']}');
-        logger.i('Checkout URL: ${data['checkoutUrl']}');
+        logger.i('📦 Response data structure:');
+        logger.i('  - Keys: ${data.keys.toList()}');
+        logger.i('  - Order Code: ${data['orderCode']}');
+        logger.i('  - Checkout URL: ${data['checkoutUrl']}');
+        logger.i('  - QR Code: ${data['qrCode']}');
+        logger.i('  - QR Code type: ${data['qrCode'].runtimeType}');
         logger.i(
-          'Amount: ${data['amount']} (type: ${data['amount'].runtimeType})',
+          '  - QR Code length: ${data['qrCode']?.toString().length ?? 0}',
         );
-        logger.i('QR Code: ${data['qrCode']}');
+        logger.i(
+          '  - Amount: ${data['amount']} (type: ${data['amount'].runtimeType})',
+        );
+        logger.i('  - Description: ${data['description']}');
 
         // Validate dữ liệu trước khi hiển thị
-        if (data['qrCode'] == null || data['checkoutUrl'] == null) {
+        final qrCode = data['qrCode']?.toString() ?? '';
+        final checkoutUrl = data['checkoutUrl']?.toString() ?? '';
+
+        if (qrCode.isEmpty || checkoutUrl.isEmpty) {
+          logger.e('❌ QR Code hoặc Checkout URL bị rỗng!');
+          logger.e('  - qrCode isEmpty: ${qrCode.isEmpty}');
+          logger.e('  - checkoutUrl isEmpty: ${checkoutUrl.isEmpty}');
           throw Exception('Thiếu thông tin QR code hoặc checkout URL');
         }
 
+        logger.i('✅ Validation passed. Showing payment dialog...');
+
         // Hiển thị dialog QR thanh toán
         if (mounted) {
-          PaymentQRDialog.show(
+          await PaymentQRDialog.show(
             context,
-            qrCodeData:
-                data['qrCode'] ?? '', // Đổi từ qrCodeUrl thành qrCodeData
-            checkoutUrl: data['checkoutUrl'] ?? '',
+            qrCodeData: qrCode,
+            checkoutUrl: checkoutUrl,
             amount: (data['amount'] ?? selectedPackage.price).toInt(),
             description: data['description'] ?? 'Thanh toán gói tập',
             orderCode: data['orderCode']?.toString() ?? '',
+            onPaymentSuccess: () {
+              // Reload thông tin gói tập sau khi thanh toán thành công
+              logger.i('🔄 Reloading package info after successful payment...');
+
+              // Reload membership provider để cập nhật UI
+              final membershipProvider = context.read<MembershipProvider>();
+              membershipProvider.loadMembershipData(widget.userId);
+
+              // Reload package provider
+              final packageProvider = context.read<PackageProvider>();
+              packageProvider.loadAllPackage();
+
+              logger.i('✅ Package info reloaded successfully');
+            },
           );
         }
       } else {
@@ -297,7 +331,8 @@ class _PackageScreenContentState extends State<_PackageScreenContent> {
     final packages = packageProvider.packages
         .map(
           (p) => {
-            'id': p.id,
+            'id': p
+                .packageId, // 🔥 Sử dụng packageId (field "PackageId") thay vì document ID
             'name': p.packageName,
             'price': p.price,
             'duration': p.duration,

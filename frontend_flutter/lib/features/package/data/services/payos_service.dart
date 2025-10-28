@@ -64,6 +64,17 @@ class PayOSService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         logger.i('Tạo payment link thành công!');
+        logger.d('📦 Full response data: ${jsonEncode(data)}');
+        logger.d('  - success: ${data['success']}');
+        logger.d('  - data: ${data['data']}');
+
+        if (data['data'] != null) {
+          logger.d('  - checkoutUrl: ${data['data']['checkoutUrl']}');
+          logger.d('  - qrCode: ${data['data']['qrCode']}');
+          logger.d('  - orderCode: ${data['data']['orderCode']}');
+          logger.d('  - amount: ${data['data']['amount']}');
+        }
+
         return data;
       } else {
         final error = jsonDecode(response.body);
@@ -137,6 +148,35 @@ class PayOSService {
       }
     } catch (e) {
       logger.e('Lỗi khi hủy thanh toán: $e');
+      rethrow;
+    }
+  }
+
+  /// Xác nhận thanh toán thủ công (sau khi chuyển khoản)
+  static Future<Map<String, dynamic>> confirmPayment(String orderCode) async {
+    try {
+      logger.i('🔄 Đang xác nhận thanh toán: $orderCode');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/confirm-payment'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'orderCode': int.parse(orderCode)}),
+      );
+
+      logger.d('📡 Response status: ${response.statusCode}');
+      logger.d('📦 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        logger.i('✅ Xác nhận thanh toán thành công');
+        return data;
+      } else {
+        final error = jsonDecode(response.body);
+        logger.e('❌ Lỗi xác nhận: ${error['message']}');
+        throw Exception(error['message'] ?? 'Không thể xác nhận thanh toán');
+      }
+    } catch (e) {
+      logger.e('💥 Lỗi khi xác nhận thanh toán: $e');
       rethrow;
     }
   }

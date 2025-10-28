@@ -8,7 +8,7 @@ class ApiConfig {
   // - Production: https://your-domain.com
 
   // Dùng IP thực của máy tính để cả emulator và thiết bị thật đều kết nối được
-  static const String baseUrl = 'http://192.168.1.71:3000';
+  static const String baseUrl = 'http://192.168.3.151:3000';
 
   // API endpoints
   static const String payosApi = '$baseUrl/api/payos';
