@@ -1,5 +1,8 @@
 import { PayOS } from "@payos/node";
 import dotenv from "dotenv";
+import crypto from "crypto";
+import admin from "../../config/firebase.js";
+
 dotenv.config();
 
 // Khởi tạo PayOS với cú pháp mới (v2.0.3)
@@ -73,20 +76,67 @@ export async function createGymPackagePayment({
 
     console.log("✅ Payment link created successfully:", result);
 
+    // 🔥 SAVE ORDER INFO TO FIRESTORE
+    try {
+      await saveOrderInfo({
+        orderCode: Number(orderCode),
+        userId: metadata.userId,
+        userName: buyerInfo.name,
+        userEmail: buyerInfo.email,
+        packageId: metadata.packageId,
+        packageName: metadata.packageName,
+        packageDuration: metadata.packageDuration,
+        amount: amount,
+        status: "PENDING",
+      });
+    } catch (saveError) {
+      console.error(
+        "⚠️ Warning: Failed to save order to Firestore:",
+        saveError.message
+      );
+      console.error(
+        "Payment link created but order not saved. Webhook will still work."
+      );
+      // Don't throw error - payment link is still valid
+    }
+
+    // 🔍 LOG QR CODE INFORMATION
+    console.log("🔍 Checking QR Code data:");
+    console.log("  - result.qrCode:", result.qrCode);
+    console.log("  - Has qrCode:", !!result.qrCode);
+
+    // Tạo QR code URL từ VietQR
+    const qrCodeUrl =
+      result.qrCode ||
+      `https://img.vietqr.io/image/970436-113366668888-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(
+        description
+      )}`;
+
+    console.log("  - Final qrCode URL:", qrCodeUrl);
+
     // Trả về thông tin payment
-    return {
+    const responseData = {
       success: true,
       checkoutUrl: result.checkoutUrl,
       paymentLinkId: result.paymentLinkId,
       orderCode: result.orderCode,
-      qrCode: result.qrCode,
-      amount: amount, // Thêm amount
-      description: description, // Thêm description
+      qrCode: qrCodeUrl,
+      amount: amount,
+      description: description,
+      // Thêm thông tin để Flutter tự tạo QR nếu cần
+      bankCode: "970436", // Mã ngân hàng (ví dụ: Vietcombank)
+      accountNumber: "113366668888", // Số tài khoản nhận tiền
+      accountName: "GYM MANAGEMENT", // Tên tài khoản
       metadata: {
         ...metadata,
         createdAt: new Date().toISOString(),
       },
     };
+
+    console.log("📤 Returning response data:");
+    console.log(JSON.stringify(responseData, null, 2));
+
+    return responseData;
   } catch (error) {
     console.error("❌ Error creating PayOS payment link:", error);
     throw {
@@ -157,5 +207,159 @@ export async function cancelPayment(orderCode, cancellationReason) {
       message: "Không thể hủy thanh toán",
       error: error.message,
     };
+  }
+}
+
+/**
+ * 🔐 Verify webhook signature from PayOS
+ */
+export function verifyWebhookData(webhookBody) {
+  try {
+    const { data, signature } = webhookBody;
+
+    if (!data || !signature) {
+      console.error("❌ Missing data or signature in webhook");
+      return null;
+    }
+
+    // Sort data keys and create signature string
+    const sortedDataStr = sortObjDataByKey(data);
+
+    // Create HMAC signature using checksum key
+    const checksumKey =
+      process.env.PAYOS_CHECKSUM_KEY ||
+      "58375fd73a9c560b9f599de64c5341c68f41cc5e7193aa4272baea14133a2fcf";
+
+    const calculatedSignature = crypto
+      .createHmac("sha256", checksumKey)
+      .update(sortedDataStr)
+      .digest("hex");
+
+    // Verify signature
+    if (calculatedSignature !== signature) {
+      console.error("❌ Invalid webhook signature");
+      console.error("Expected:", calculatedSignature);
+      console.error("Received:", signature);
+      return null;
+    }
+
+    console.log("✅ Webhook signature verified");
+    return webhookBody;
+  } catch (error) {
+    console.error("❌ Verify webhook error:", error);
+    return null;
+  }
+}
+
+/**
+ * 📝 Sort object keys recursively for signature verification
+ */
+function sortObjDataByKey(object) {
+  const orderedObject = Object.keys(object)
+    .sort()
+    .reduce((obj, key) => {
+      obj[key] = object[key];
+      return obj;
+    }, {});
+  return JSON.stringify(orderedObject);
+}
+
+/**
+ * 💾 Save order info to Firestore
+ */
+export async function saveOrderInfo(orderData) {
+  try {
+    console.log(
+      "📝 Attempting to save order to Firestore:",
+      orderData.orderCode
+    );
+
+    // Check if admin is initialized
+    if (!admin.apps || admin.apps.length === 0) {
+      throw new Error("Firebase Admin SDK is not initialized");
+    }
+
+    const db = admin.firestore();
+    console.log("✅ Firestore instance obtained");
+
+    const orderRef = db
+      .collection("payment_orders")
+      .doc(orderData.orderCode.toString());
+
+    // 🔥 Loại bỏ các field undefined trước khi lưu vào Firestore
+    const cleanOrderData = {};
+    Object.keys(orderData).forEach((key) => {
+      if (orderData[key] !== undefined) {
+        cleanOrderData[key] = orderData[key];
+      }
+    });
+
+    await orderRef.set({
+      ...cleanOrderData,
+      status: "PENDING",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(
+      "✅ Order saved to Firestore successfully:",
+      orderData.orderCode
+    );
+    return true;
+  } catch (error) {
+    console.error("❌ Save order error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+    throw error;
+  }
+}
+
+/**
+ * 🔍 Get order by order code from Firestore
+ */
+export async function getOrderByCode(orderCode) {
+  try {
+    const db = admin.firestore();
+    const orderDoc = await db
+      .collection("payment_orders")
+      .doc(orderCode.toString())
+      .get();
+
+    if (!orderDoc.exists) {
+      console.log("❌ Order not found:", orderCode);
+      return null;
+    }
+
+    const data = orderDoc.data();
+    console.log("✅ Order found:", orderCode);
+    return { id: orderDoc.id, ...data };
+  } catch (error) {
+    console.error("❌ Get order error:", error);
+    throw error;
+  }
+}
+
+/**
+ * 🔄 Update order status in Firestore
+ */
+export async function updateOrderStatus(orderCode, updateData) {
+  try {
+    const db = admin.firestore();
+    await db
+      .collection("payment_orders")
+      .doc(orderCode.toString())
+      .update({
+        ...updateData,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+    console.log("✅ Order status updated:", orderCode, updateData.status);
+    return true;
+  } catch (error) {
+    console.error("❌ Update order error:", error);
+    throw error;
   }
 }

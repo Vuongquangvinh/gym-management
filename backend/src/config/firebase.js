@@ -49,3 +49,7 @@ export const initializeFirebaseApp = () => {
 };
 
 export const getFirebaseApp = () => app;
+
+// Export admin for use in other modules
+export { admin };
+export default admin;
