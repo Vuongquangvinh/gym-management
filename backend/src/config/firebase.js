@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const serviceAccountPath = path.resolve(
   __dirname,
-  "../../gym-managment-aa0a1-firebase-adminsdk-fbsvc-2241cac4bf.json"
+  "../../gym-managment-aa0a1-firebase-adminsdk-fbsvc-5689d59345.json"
 );
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
 
@@ -50,14 +50,8 @@ export const initializeFirebaseApp = () => {
 
 export const getFirebaseApp = () => app;
 
-<<<<<<< HEAD
-// Export admin for use in other modules
-export { admin };
-export default admin;
-=======
 // Export Firestore database instance
 export const db = admin.firestore();
 
 // Export admin for direct use
 export { admin };
->>>>>>> 28/10-tach-nhanh

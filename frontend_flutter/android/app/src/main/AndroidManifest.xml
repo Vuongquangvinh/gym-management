@@ -8,12 +8,8 @@
     
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
-<<<<<<< HEAD
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-=======
-    
->>>>>>> 28/10-tach-nhanh
     <application
         android:label="frontend_flutter"
         android:name="${applicationName}"

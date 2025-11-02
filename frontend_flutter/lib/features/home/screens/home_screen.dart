@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
 import '../../../theme/colors.dart';
 import '../widgets/member_card_widget.dart';
 import '../widgets/quick_actions_widget.dart';
 import '../widgets/package_status_widget.dart';
 import '../widgets/checkin_stats_widget.dart';
-=======
-import 'package:provider/provider.dart';
-import '../../../theme/colors.dart';
-import '../../../providers/theme_provider.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../widgets/health_summary_widget.dart';
-import '../widgets/goals_progress_widget.dart';
-import '../widgets/recent_workouts_widget.dart';
-import '../widgets/member_card_widget.dart';
->>>>>>> 28/10-tach-nhanh
 import "package:logger/logger.dart";
 import '../../model/user.model.dart';
 
@@ -30,10 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _fullName;
-<<<<<<< HEAD
   String? _avatarUrl;
-=======
->>>>>>> 28/10-tach-nhanh
   UserPackageInfo? _userPackageInfo;
   bool _isLoading = true;
 
@@ -55,10 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (userPackageInfo != null) {
         setState(() {
           _fullName = userPackageInfo.user.fullName;
-<<<<<<< HEAD
           _avatarUrl = userPackageInfo.user.avatarUrl;
-=======
->>>>>>> 28/10-tach-nhanh
           _userPackageInfo = userPackageInfo;
           _isLoading = false;
         });
@@ -92,21 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-<<<<<<< HEAD
-=======
-  
-
->>>>>>> 28/10-tach-nhanh
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dateString =
         '${now.day.toString().padLeft(2, '0')} Tháng ${now.month}, ${now.year}';
     final isDarkMode = context.isDarkMode;
-<<<<<<< HEAD
-=======
-    final themeProvider = Provider.of<ThemeProvider>(context);
->>>>>>> 28/10-tach-nhanh
 
     return Scaffold(
       backgroundColor: context.background,
@@ -114,10 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
         controller: _scrollController,
         slivers: [
           SliverAppBar(
-<<<<<<< HEAD
             automaticallyImplyLeading: false,
-=======
->>>>>>> 28/10-tach-nhanh
             expandedHeight: 200,
             floating: false,
             pinned: true,
@@ -172,12 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: CircleAvatar(
                                 radius: 25,
                                 backgroundImage: NetworkImage(
-<<<<<<< HEAD
                                   _avatarUrl ??
                                       'https://www.gravatar.com/avatar/placeholder',
-=======
-                                  'https://i.pravatar.cc/150?img=3',
->>>>>>> 28/10-tach-nhanh
                                 ),
                               ),
                             ),
@@ -411,7 +378,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-<<<<<<< HEAD
                   const SizedBox(height: 20),
 
                   // Package Status Widget
@@ -440,14 +406,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   //     Navigator.pushNamed(context, '/qr');
                   //   },
                   // ),
-=======
-                  const SizedBox(height: 18),
-                  HealthSummaryWidget(),
-                  const SizedBox(height: 18),
-                  GoalsProgressWidget(),
-                  const SizedBox(height: 18),
-                  RecentWorkoutsWidget(),
->>>>>>> 28/10-tach-nhanh
                   const SizedBox(height: 24),
                 ],
               ),
