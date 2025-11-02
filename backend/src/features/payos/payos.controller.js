@@ -7,7 +7,7 @@ import {
   getOrderByCode,
   updateOrderStatus,
 } from "./payos.service.js";
-import admin from "../../config/firebase.js";
+import { admin } from "../../config/firebase.js";
 
 /**
  * Controller: Tạo payment link cho gói tập gym

@@ -1,7 +1,7 @@
 import { PayOS } from "@payos/node";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import admin from "../../config/firebase.js";
+import { admin } from "../../config/firebase.js";
 
 dotenv.config();
 
