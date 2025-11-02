@@ -1,0 +1,82 @@
+/* Revenue Chart Styles - Enhanced for professional dashboard */
+
+.revenue-chart-container {
+  width: 100%;
+  min-height: 450px;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+  border-radius: 12px;
+}
+
+/* Recharts custom styling */
+.recharts-wrapper {
+  margin: 0 auto;
+}
+
+.recharts-surface {
+  overflow: visible;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+/* Custom tooltip styling */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(13, 71, 161, 0.1) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Legend styling */
+.recharts-legend-wrapper {
+  padding-top: 16px;
+}
+
+.recharts-legend-item-text {
+  color: #546E7A !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+}
+
+/* Grid styling */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke-opacity: 0.3;
+}
+
+/* Axis styling */
+.recharts-xAxis .recharts-text,
+.recharts-yAxis .recharts-text {
+  fill: #546E7A;
+  font-weight: 500;
+}
+
+/* Bar animation */
+.recharts-bar-rectangle {
+  transition: all 0.3s ease;
+}
+
+/* Area chart gradient enhancement */
+.recharts-area {
+  filter: drop-shadow(0 2px 8px rgba(25, 118, 210, 0.2));
+}
+
+/* Line chart enhancement */
+.recharts-line {
+  filter: drop-shadow(0 2px 6px rgba(25, 118, 210, 0.3));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .revenue-chart-container {
+    min-height: 350px;
+    padding: 4px;
+  }
+  
+  .recharts-legend-item-text {
+    font-size: 12px !important;
+  }
+}

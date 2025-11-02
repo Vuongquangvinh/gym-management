@@ -34,7 +34,7 @@ class SupportDialog extends StatelessWidget {
               Icon(Icons.phone, color: AppColors.primary, size: 20),
               const SizedBox(width: 12),
               Text(
-                '1900-xxxx',
+                '0988744271',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: context.textPrimary,
@@ -48,7 +48,7 @@ class SupportDialog extends StatelessWidget {
               Icon(Icons.email, color: AppColors.primary, size: 20),
               const SizedBox(width: 12),
               Text(
-                'support@gym.com',
+                'reps.support@gym.com',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: context.textPrimary,

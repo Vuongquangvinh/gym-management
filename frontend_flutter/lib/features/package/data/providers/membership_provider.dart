@@ -143,6 +143,81 @@ class MembershipProvider extends ChangeNotifier {
     }
   }
 
+  /// Lấy ra lịch sử thanh toán gói tập của user hiện tại
+  /// Trả về danh sách các đơn hàng đã được enrich với thông tin package chi tiết
+  /// @param userId: Document ID của user trong collection users
+  Future<List<Map<String, dynamic>>> getPaymentHistory(String userId) async {
+    try {
+      logger.i("Lấy lịch sử thanh toán cho userId (document ID): $userId");
+
+      // Bước 1: Lấy field _id từ document user
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+
+      if (!userDoc.exists) {
+        throw Exception('Không tìm thấy user với document ID: $userId');
+      }
+
+      final userData = userDoc.data();
+      final userIdField = userData?['_id']?.toString();
+
+      if (userIdField == null || userIdField.isEmpty) {
+        throw Exception('User không có field _id');
+      }
+
+      logger.i("Đã lấy được _id field: $userIdField");
+
+      // Bước 2: Lấy tất cả payment orders của user bằng _id field
+      final querySnapshot = await _firestore
+          .collection('payment_orders')
+          .where('userId', isEqualTo: userIdField)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      logger.i("Lấy được ${querySnapshot.docs.length} bản ghi payment_orders");
+
+      // Bước 3: Enrich data với thông tin package chi tiết
+      final paymentHistory = <Map<String, dynamic>>[];
+
+      for (var doc in querySnapshot.docs) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+
+        // Nếu có packageId, lấy thêm thông tin chi tiết từ packages collection
+        if (data['packageId'] != null &&
+            data['packageId'].toString().isNotEmpty) {
+          try {
+            final packageDoc = await _firestore
+                .collection('packages')
+                .doc(data['packageId'].toString())
+                .get();
+
+            if (packageDoc.exists) {
+              final packageData = packageDoc.data();
+              // Thêm thông tin package vào data
+              data['packageDetails'] = packageData;
+              logger.d(
+                "Đã lấy thông tin package: ${packageData?['packageName']}",
+              );
+            }
+          } catch (e) {
+            logger.w(
+              "Không thể lấy thông tin package ${data['packageId']}: $e",
+            );
+            // Không throw error, tiếp tục với data hiện tại
+          }
+        }
+
+        paymentHistory.add(data);
+      }
+
+      logger.i("Đã enrich ${paymentHistory.length} bản ghi lịch sử thanh toán");
+      return paymentHistory;
+    } catch (e) {
+      logger.e("Lỗi khi lấy lịch sử thanh toán: $e");
+      throw Exception('Không thể tải lịch sử thanh toán: ${e.toString()}');
+    }
+  }
+
   /// Refresh membership data
   Future<void> refresh(String userId) async {
     await loadMembershipData(userId);

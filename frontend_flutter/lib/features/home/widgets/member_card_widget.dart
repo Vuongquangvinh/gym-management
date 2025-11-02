@@ -181,6 +181,6 @@ class MemberCardWidget extends StatelessWidget {
           ],
         ),
       ),
-    );
+    );  
   }
 }

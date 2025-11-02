@@ -17,6 +17,7 @@ const Checkins = React.lazy(() => import('../features/admin/pages/Checkins'));
 const Packages = React.lazy(() => import('../features/admin/pages/Packages'));
 const Reports = React.lazy(() => import('../features/admin/pages/Reports'));
 const Settings = React.lazy(() => import('../features/admin/pages/Settings'));
+const PaymentHistory = React.lazy(() => import('../features/payment/paymentHistory'));
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -43,6 +44,7 @@ const AppRouter = () => {
               <Route path="packages" element={<Packages />} />
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="payment-history" element={<PaymentHistory />} />
             </Route>
           {/* </Route> */}
           {/* Route cho trang không tồn tại */}

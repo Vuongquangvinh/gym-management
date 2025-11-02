@@ -23,11 +23,16 @@ class PackageProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      final querySnapshot = await _firestore.collection('packages').get();
+      final querySnapshot = await _firestore
+          .collection('packages')
+          .where('Status', isEqualTo: 'active')
+          .get();
       final packages = querySnapshot.docs
           .map((doc) => PackageModel.fromFirestore(doc))
           .toList();
-      logger.i('Lấy tất cả package thành công: ${packages.length} packages');
+      logger.i(
+        'Lấy tất cả package active thành công: ${packages.length} packages',
+      );
 
       _packages = packages;
       _isLoading = false;

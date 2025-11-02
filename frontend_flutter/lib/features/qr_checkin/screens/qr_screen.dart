@@ -149,7 +149,7 @@ class _QRScreenState extends State<QRScreen>
                       const SizedBox(height: 20),
 
                       // Zoom hint
-                      QRZoomHint(fadeAnimation: _fadeAnimation),
+                      // QRZoomHint(fadeAnimation: _fadeAnimation),
                       const SizedBox(height: 32),
                     ],
                   ),

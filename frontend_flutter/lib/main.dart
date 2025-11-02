@@ -17,6 +17,10 @@ import 'features/qr_checkin/screens/qr_screen.dart';
 import 'features/qr_checkin/screens/checkin_history_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import "features/profile/screens/setting_screen.dart";
+import "features/package/screens/payment_history_screen.dart";
+import 'features/personal_PT/screen/my_contracts_screen.dart';
+import 'features/personal_PT/screen/contract_detail_screen.dart';
+import 'features/personal_PT/provider/contract_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +31,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ContractProvider()),
+        ChangeNotifierProvider(create: (_) => ContractDetailProvider()),
       ],
       child: MyApp(),
     ),
@@ -44,6 +50,7 @@ class MyApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
           home: const SplashScreen(),
+          debugShowCheckedModeBanner: false,
           routes: {
             '/welcome': (context) => const WelcomeScreen(),
             '/onboarding1': (context) => const Onboarding1Screen(),
@@ -74,6 +81,19 @@ class MyApp extends StatelessWidget {
             },
             '/checkin-history': (context) => const CheckInHistoryScreen(),
             '/settings': (context) => const SettingScreen(),
+            '/payment-history': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>?;
+              return PaymentHistoryScreen(userId: args?['userId']);
+            },
+            '/my-contracts': (context) => const MyContractsScreen(),
+            '/contract-detail': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>;
+              return ContractDetailScreen(contract: args['contract']);
+            },
           },
         );
       },

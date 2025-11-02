@@ -45,5 +45,32 @@ service cloud.firestore {
       allow write: if true; // Cho phép tạo/sửa/xóa gói PT
       // Production: allow write: if request.auth != null;
     }
+    
+    // Payment Orders collection - Lịch sử thanh toán
+    match /payment_orders/{orderCode} {
+      // Cho phép đọc tất cả (vì đã có protected route)
+      // User sẽ tự filter ở frontend, Admin xem tất cả
+      allow read: if true;
+      
+      // Cho phép tạo/sửa (backend webhook và admin manual confirm)
+      allow create, update: if true;
+      
+      // Cho phép xóa (admin)
+      allow delete: if true;
+    }
+    
+    // Contracts collection - Hợp đồng giữa Member và PT
+    match /contracts/{contractId} {
+      allow read: if true; // Cho phép đọc (member xem hợp đồng của mình, PT xem của học viên)
+      allow create: if true; // Cho phép member tạo hợp đồng mới
+      allow update: if true; // Cho phép PT và member cập nhật trạng thái
+      allow delete: if true; // Cho phép admin xóa nếu cần
+      // Production: 
+      // allow read: if request.auth != null && 
+      //   (resource.data.userId == request.auth.uid || resource.data.ptId == request.auth.uid);
+      // allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // allow update: if request.auth != null && 
+      //   (resource.data.userId == request.auth.uid || resource.data.ptId == request.auth.uid);
+    }
   }
 }

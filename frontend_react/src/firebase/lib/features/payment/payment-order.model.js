@@ -5,15 +5,11 @@ import {
   getDoc,
   getDocs,
   setDoc,
-  updateDoc,
-  deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   Timestamp,
   limit as fsLimit,
-  startAfter as fsStartAfter,
 } from "firebase/firestore";
 import { db } from "../../config/firebase.js";
 
@@ -254,32 +250,50 @@ export class PaymentOrderModel {
 
   /**
    * 📋 Get all payment orders by user ID
+   * Temporary: Load all and filter client-side while index is building
    */
   static async getByUserId(userId, options = {}) {
     try {
-      const {
-        limit = 50,
-        orderByField = "createdAt",
-        orderDirection = "desc",
-      } = options;
+      const { limit = 50 } = options;
 
+      console.log("🔍 getByUserId called with:", { userId, limit });
+      console.log("⏳ Using temporary client-side filter (no index needed)...");
+
+      // Load all orders (no orderBy to avoid index requirement)
       const q = query(
         PaymentOrderModel.collectionRef(),
         where("userId", "==", userId),
-        orderBy(orderByField, orderDirection),
-        fsLimit(limit)
+        fsLimit(limit * 2) // Get more to ensure we have enough after sorting
       );
 
+      console.log("📡 Executing Firestore query...");
       const querySnapshot = await getDocs(q);
+      console.log("📦 Query returned", querySnapshot.size, "documents");
+
       const orders = [];
 
       querySnapshot.forEach((doc) => {
+        console.log("📄 Processing document:", doc.id, doc.data());
         const order = PaymentOrderModel.fromFirestore(doc);
         if (order) orders.push(order);
       });
 
-      console.log(`✅ Found ${orders.length} orders for user:`, userId);
-      return orders;
+      console.log("🔄 Sorting", orders.length, "orders...");
+      // Sort client-side by createdAt descending
+      orders.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(0);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(0);
+        return dateB - dateA;
+      });
+
+      // Limit results
+      const limitedOrders = orders.slice(0, limit);
+
+      console.log(
+        `✅ Returning ${limitedOrders.length} orders for user:`,
+        userId
+      );
+      return limitedOrders;
     } catch (error) {
       console.error("❌ Get orders by user error:", error);
       throw error;
@@ -288,20 +302,18 @@ export class PaymentOrderModel {
 
   /**
    * 📋 Get all payment orders by status
+   * Temporary: Client-side sort while index is building
    */
   static async getByStatus(status, options = {}) {
     try {
-      const {
-        limit = 100,
-        orderByField = "createdAt",
-        orderDirection = "desc",
-      } = options;
+      const { limit = 100 } = options;
+
+      console.log("⏳ Using temporary client-side filter for status query...");
 
       const q = query(
         PaymentOrderModel.collectionRef(),
         where("status", "==", status),
-        orderBy(orderByField, orderDirection),
-        fsLimit(limit)
+        fsLimit(limit * 2)
       );
 
       const querySnapshot = await getDocs(q);
@@ -312,8 +324,20 @@ export class PaymentOrderModel {
         if (order) orders.push(order);
       });
 
-      console.log(`✅ Found ${orders.length} orders with status:`, status);
-      return orders;
+      // Sort client-side
+      orders.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(0);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(0);
+        return dateB - dateA;
+      });
+
+      const limitedOrders = orders.slice(0, limit);
+
+      console.log(
+        `✅ Found ${limitedOrders.length} orders with status:`,
+        status
+      );
+      return limitedOrders;
     } catch (error) {
       console.error("❌ Get orders by status error:", error);
       throw error;
@@ -322,167 +346,47 @@ export class PaymentOrderModel {
 
   /**
    * 📋 Get all payment orders (with pagination)
+   * Temporary: Client-side sort while index is building
    */
   static async getAll(options = {}) {
     try {
-      const {
-        limit = 50,
-        orderByField = "createdAt",
-        orderDirection = "desc",
-        startAfterDoc = null,
-      } = options;
+      const { limit = 50 } = options;
 
-      let q = query(
-        PaymentOrderModel.collectionRef(),
-        orderBy(orderByField, orderDirection),
-        fsLimit(limit)
-      );
+      console.log("🔍 getAll called with limit:", limit);
+      console.log("⏳ Using temporary client-side sort (no index needed)...");
 
-      if (startAfterDoc) {
-        q = query(q, fsStartAfter(startAfterDoc));
-      }
+      const q = query(PaymentOrderModel.collectionRef(), fsLimit(limit * 2));
 
+      console.log("📡 Executing Firestore query for all orders...");
       const querySnapshot = await getDocs(q);
+      console.log("📦 Query returned", querySnapshot.size, "documents");
+
       const orders = [];
 
       querySnapshot.forEach((doc) => {
+        console.log("📄 Processing document:", doc.id);
         const order = PaymentOrderModel.fromFirestore(doc);
         if (order) orders.push(order);
       });
 
-      console.log(`✅ Found ${orders.length} payment orders`);
+      console.log("🔄 Sorting", orders.length, "orders...");
+      // Sort client-side
+      orders.sort((a, b) => {
+        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(0);
+        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(0);
+        return dateB - dateA;
+      });
+
+      const limitedOrders = orders.slice(0, limit);
+
+      console.log(`✅ Returning ${limitedOrders.length} payment orders`);
       return {
-        orders,
+        orders: limitedOrders,
         lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1],
         hasMore: querySnapshot.docs.length === limit,
       };
     } catch (error) {
       console.error("❌ Get all orders error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * 🔄 Update payment order status
-   */
-  async updateStatus(newStatus, additionalData = {}) {
-    try {
-      if (!Object.values(PAYMENT_STATUS).includes(newStatus)) {
-        throw new Error(`Invalid status: ${newStatus}`);
-      }
-
-      const orderRef = PaymentOrderModel.docRef(this.orderCode);
-      const updateData = {
-        status: newStatus,
-        updatedAt: serverTimestamp(),
-        ...additionalData,
-      };
-
-      // Add timestamp for specific statuses
-      if (newStatus === PAYMENT_STATUS.PAID && !this.paidAt) {
-        updateData.paidAt = serverTimestamp();
-      }
-      if (newStatus === PAYMENT_STATUS.PAID && !this.paymentTime) {
-        updateData.paymentTime = new Date().toISOString();
-      }
-      if (newStatus === PAYMENT_STATUS.CANCELLED && !this.cancelledAt) {
-        updateData.cancelledAt = serverTimestamp();
-      }
-
-      await updateDoc(orderRef, updateData);
-
-      // Update local instance
-      this.status = newStatus;
-      this.updatedAt = new Date();
-      Object.assign(this, additionalData);
-
-      console.log("✅ Order status updated:", this.orderCode, newStatus);
-      return this;
-    } catch (error) {
-      console.error("❌ Update order status error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * 🔄 Update payment order
-   */
-  async update(updateData) {
-    try {
-      const orderRef = PaymentOrderModel.docRef(this.orderCode);
-
-      const data = {
-        ...updateData,
-        updatedAt: serverTimestamp(),
-      };
-
-      // Remove undefined fields
-      Object.keys(data).forEach((key) => {
-        if (data[key] === undefined) {
-          delete data[key];
-        }
-      });
-
-      await updateDoc(orderRef, data);
-
-      // Update local instance
-      Object.assign(this, updateData);
-      this.updatedAt = new Date();
-
-      console.log("✅ Order updated:", this.orderCode);
-      return this;
-    } catch (error) {
-      console.error("❌ Update order error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * ✅ Confirm payment manually (for admin)
-   */
-  async confirmManually(transactionId = null) {
-    try {
-      const updateData = {
-        status: PAYMENT_STATUS.PAID,
-        confirmedManually: true,
-        verifiedWithPayOS: false,
-        paymentTime: new Date().toISOString(),
-        updatedAt: serverTimestamp(),
-      };
-
-      if (transactionId) {
-        updateData.transactionId = transactionId;
-      } else {
-        updateData.transactionId = `MANUAL_${this.orderCode}`;
-      }
-
-      const orderRef = PaymentOrderModel.docRef(this.orderCode);
-      await updateDoc(orderRef, updateData);
-
-      // Update local instance
-      Object.assign(this, updateData);
-      this.updatedAt = new Date();
-
-      console.log("✅ Order confirmed manually:", this.orderCode);
-      return this;
-    } catch (error) {
-      console.error("❌ Confirm order manually error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * 🗑️ Delete payment order
-   */
-  async delete() {
-    try {
-      const orderRef = PaymentOrderModel.docRef(this.orderCode);
-      await deleteDoc(orderRef);
-
-      console.log("✅ Order deleted:", this.orderCode);
-      return true;
-    } catch (error) {
-      console.error("❌ Delete order error:", error);
       throw error;
     }
   }
@@ -633,6 +537,256 @@ export class PaymentOrderModel {
       }).format(date);
     } catch {
       return this.paymentTime;
+    }
+  }
+
+  /**
+   * 📊 Instance method: Check if this order contributes to revenue on a specific date
+   */
+  getRevenueByDate(date) {
+    if (!this.isPaid()) {
+      return 0;
+    }
+    const paidDate = this.paidAt instanceof Date ? this.paidAt : new Date(0);
+    if (
+      paidDate.getFullYear() === date.getFullYear() &&
+      paidDate.getMonth() === date.getMonth() &&
+      paidDate.getDate() === date.getDate()
+    ) {
+      return this.amount;
+    }
+    return 0;
+  }
+
+  /**
+   * 📈 Static method: Get revenue data for chart (by day)
+   * @param {Date} startDate - Ngày bắt đầu
+   * @param {Date} endDate - Ngày kết thúc
+   * @returns {Array} - [{date: "2025-10-01", revenue: 1000000, orders: 3}, ...]
+   */
+  static async getRevenueByDay(startDate, endDate) {
+    try {
+      // Load all orders
+      const result = await PaymentOrderModel.getAll({ limit: 1000 });
+      const allOrders = result.orders;
+
+      // Tạo map để nhóm theo ngày
+      const revenueMap = new Map();
+
+      // Duyệt qua tất cả orders
+      allOrders.forEach((order) => {
+        if (!order.isPaid()) return;
+
+        // SỬA: Dùng createdAt thay vì paidAt vì field paidAt không tồn tại
+        const orderDate =
+          order.createdAt instanceof Date
+            ? order.createdAt
+            : new Date(order.createdAt);
+
+        // Check nếu trong khoảng thời gian
+        if (orderDate >= startDate && orderDate <= endDate) {
+          // Format ngày: YYYY-MM-DD
+          const dateKey = orderDate.toISOString().split("T")[0];
+
+          if (!revenueMap.has(dateKey)) {
+            revenueMap.set(dateKey, { date: dateKey, revenue: 0, orders: 0 });
+          }
+
+          const dayData = revenueMap.get(dateKey);
+          dayData.revenue += order.amount;
+          dayData.orders += 1;
+        }
+      });
+
+      // Chuyển Map thành Array và sort theo ngày
+      const revenueData = Array.from(revenueMap.values()).sort((a, b) =>
+        a.date.localeCompare(b.date)
+      );
+
+      console.log(`✅ Revenue data: ${revenueData.length} days`);
+      return revenueData;
+    } catch (error) {
+      console.error("❌ Get revenue by day error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 📈 Static method: Get revenue data by month
+   * @param {number} year - Năm
+   * @returns {Array} - [{month: "2025-01", revenue: 10000000, orders: 30}, ...]
+   */
+  static async getRevenueByMonth(year) {
+    try {
+      const result = await PaymentOrderModel.getAll({ limit: 1000 });
+      const allOrders = result.orders;
+
+      const revenueMap = new Map();
+
+      allOrders.forEach((order) => {
+        if (!order.isPaid()) return;
+
+        // SỬA: Dùng createdAt thay vì paidAt
+        const orderDate =
+          order.createdAt instanceof Date
+            ? order.createdAt
+            : new Date(order.createdAt);
+
+        if (orderDate.getFullYear() === year) {
+          // Format: YYYY-MM
+          const monthKey = `${orderDate.getFullYear()}-${String(
+            orderDate.getMonth() + 1
+          ).padStart(2, "0")}`;
+
+          if (!revenueMap.has(monthKey)) {
+            revenueMap.set(monthKey, {
+              month: monthKey,
+              revenue: 0,
+              orders: 0,
+            });
+          }
+
+          const monthData = revenueMap.get(monthKey);
+          monthData.revenue += order.amount;
+          monthData.orders += 1;
+        }
+      });
+
+      const revenueData = Array.from(revenueMap.values()).sort((a, b) =>
+        a.month.localeCompare(b.month)
+      );
+
+      console.log(`✅ Revenue data: ${revenueData.length} months`);
+      return revenueData;
+    } catch (error) {
+      console.error("❌ Get revenue by month error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 👥 Static method: Get revenue by each user
+   * Lấy danh sách người dùng kèm theo tổng doanh thu của họ
+   * @returns {Array} - [{userId, userName, userEmail, userPhone, avatar_url, revenue, orders, packages}, ...]
+   */
+  static async getRevenueByEachUser() {
+    try {
+      console.log("🔍 Getting revenue by each user...");
+
+      const result = await PaymentOrderModel.getAll({ limit: 1000 });
+      const allOrders = result.orders;
+
+      console.log(`📦 Processing ${allOrders.length} orders...`);
+
+      // Tạo map để nhóm theo userId
+      const revenueMap = new Map();
+
+      allOrders.forEach((order) => {
+        // Chỉ tính các đơn đã thanh toán
+        if (!order.isPaid()) return;
+
+        const userId = order.userId;
+
+        if (!revenueMap.has(userId)) {
+          // Khởi tạo dữ liệu người dùng tạm thời (sẽ được cập nhật sau)
+          revenueMap.set(userId, {
+            userId: userId,
+            userName: order.userName || "Unknown User",
+            userEmail: order.userEmail || "",
+            userPhone: "",
+            avatar_url: "",
+            membership_status: "",
+            current_package_id: "",
+            revenue: 0,
+            orders: 0,
+            packages: [], // Danh sách các gói đã mua
+          });
+        }
+
+        const userData = revenueMap.get(userId);
+        userData.revenue += order.amount;
+        userData.orders += 1;
+
+        // Thêm thông tin gói vào danh sách (tránh trùng lặp)
+        if (!userData.packages.includes(order.packageName)) {
+          userData.packages.push(order.packageName);
+        }
+      });
+
+      console.log(
+        `📊 Found ${revenueMap.size} unique users, fetching full user data...`
+      );
+
+      // Lấy thông tin đầy đủ từ collection users
+      const usersCollectionRef = collection(db, "users");
+      const revenueData = [];
+
+      for (const [userId, revenueInfo] of revenueMap.entries()) {
+        try {
+          // Query user từ collection users bằng _id
+          const userQuery = query(
+            usersCollectionRef,
+            where("_id", "==", userId)
+          );
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userDoc = userSnapshot.docs[0];
+            const userData = userDoc.data();
+
+            // Merge thông tin user từ users collection với revenue data
+            revenueData.push({
+              userId: userId,
+              userName: userData.full_name || revenueInfo.userName,
+              userEmail: userData.email || revenueInfo.userEmail,
+              userPhone: userData.phone_number || "",
+              avatar_url: userData.avatar_url || "",
+              membership_status: userData.membership_status || "",
+              current_package_id: userData.current_package_id || "",
+              package_end_date: userData.package_end_date
+                ? userData.package_end_date instanceof Timestamp
+                  ? userData.package_end_date.toDate()
+                  : userData.package_end_date
+                : null,
+              revenue: revenueInfo.revenue,
+              orders: revenueInfo.orders,
+              packages: revenueInfo.packages,
+            });
+
+            console.log(`✅ Fetched user data for: ${userData.full_name}`);
+          } else {
+            // Nếu không tìm thấy user trong collection users, dùng dữ liệu từ payment_orders
+            console.warn(
+              `⚠️ User ${userId} not found in users collection, using order data`
+            );
+            revenueData.push(revenueInfo);
+          }
+        } catch (userError) {
+          console.error(`❌ Error fetching user ${userId}:`, userError);
+          // Fallback: dùng dữ liệu từ payment_orders
+          revenueData.push(revenueInfo);
+        }
+      }
+
+      // Sắp xếp theo doanh thu giảm dần
+      revenueData.sort((a, b) => b.revenue - a.revenue);
+
+      console.log(
+        `✅ Completed! Total users with revenue: ${revenueData.length}`
+      );
+      console.log(
+        "📊 Top 3 users:",
+        revenueData.slice(0, 3).map((u) => ({
+          name: u.userName,
+          revenue: u.revenue,
+          orders: u.orders,
+        }))
+      );
+
+      return revenueData;
+    } catch (error) {
+      console.error("❌ Get revenue by each user error:", error);
+      throw error;
     }
   }
 }

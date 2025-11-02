@@ -153,6 +153,7 @@ export default function Sidebar() {
           <NavLink to="/admin/packages" className={({isActive})=> isActive? 'active':''}><Icon name="packages"/> Packages</NavLink>
           <NavLink to="/admin/reports" className={({isActive})=> isActive? 'active':''}><Icon name="reports"/> Reports</NavLink>
           <NavLink to="/admin/settings" className={({isActive})=> isActive? 'active':''}><Icon name="settings"/> Settings</NavLink>
+          <NavLink to="/admin/payment-history" className={({isActive})=> isActive? 'active':''}><Icon name="pt"/> Lịch sử thanh toán</NavLink>
         </nav>
 
         <div className="side-cta"> 

@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 
 import '../../../model/employee.model.dart';
 import '../../../../theme/colors.dart';
+import 'pt_packages_screen.dart';
 
 final _logger = Logger();
 
@@ -767,76 +768,96 @@ class DetailPTScreen extends StatelessWidget {
 
                   // Accepting New Clients Status
                   if (ptInfo != null)
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: ptInfo.isAcceptingNewClients
-                              ? [
-                                  AppColors.success.withOpacity(0.1),
-                                  AppColors.accent.withOpacity(0.1),
-                                ]
-                              : [
-                                  AppColors.error.withOpacity(0.1),
-                                  AppColors.warning.withOpacity(0.1),
+                    InkWell(
+                      onTap: ptInfo.isAcceptingNewClients
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PTPackagesScreen(pt: pt),
+                                ),
+                              );
+                            }
+                          : null,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: ptInfo.isAcceptingNewClients
+                                ? [
+                                    AppColors.success.withOpacity(0.1),
+                                    AppColors.accent.withOpacity(0.1),
+                                  ]
+                                : [
+                                    AppColors.error.withOpacity(0.1),
+                                    AppColors.warning.withOpacity(0.1),
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: ptInfo.isAcceptingNewClients
+                                ? AppColors.success.withOpacity(0.3)
+                                : AppColors.error.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: ptInfo.isAcceptingNewClients
+                                    ? AppColors.success
+                                    : AppColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                ptInfo.isAcceptingNewClients
+                                    ? Icons.check_rounded
+                                    : Icons.close_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ptInfo.isAcceptingNewClients
+                                        ? 'Đang nhận khách mới'
+                                        : 'Không nhận khách mới',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: ptInfo.isAcceptingNewClients
+                                          ? AppColors.success
+                                          : AppColors.error,
+                                    ),
+                                  ),
+                                  Text(
+                                    ptInfo.isAcceptingNewClients
+                                        ? 'Bạn có thể đăng ký lịch tập ngay'
+                                        : 'Hiện tại không tiếp nhận thêm',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: context.textSecondary,
+                                    ),
+                                  ),
                                 ],
+                              ),
+                            ),
+                            if (ptInfo.isAcceptingNewClients)
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 18,
+                                color: AppColors.success,
+                              ),
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: ptInfo.isAcceptingNewClients
-                              ? AppColors.success.withOpacity(0.3)
-                              : AppColors.error.withOpacity(0.3),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: ptInfo.isAcceptingNewClients
-                                  ? AppColors.success
-                                  : AppColors.error,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              ptInfo.isAcceptingNewClients
-                                  ? Icons.check_rounded
-                                  : Icons.close_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ptInfo.isAcceptingNewClients
-                                      ? 'Đang nhận khách mới'
-                                      : 'Không nhận khách mới',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: ptInfo.isAcceptingNewClients
-                                        ? AppColors.success
-                                        : AppColors.error,
-                                  ),
-                                ),
-                                Text(
-                                  ptInfo.isAcceptingNewClients
-                                      ? 'Bạn có thể đăng ký lịch tập ngay'
-                                      : 'Hiện tại không tiếp nhận thêm',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: context.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   const SizedBox(height: 32),

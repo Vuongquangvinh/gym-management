@@ -5,7 +5,7 @@ import 'action_card.dart';
 class ActionCardsSection extends StatelessWidget {
   final VoidCallback onPackagesTap;
   final VoidCallback onPTTap;
-  final VoidCallback onHistoryTap;
+  // final VoidCallback onHistoryTap;
   final VoidCallback onPaymentTap;
   final VoidCallback onSupportTap;
 
@@ -13,7 +13,7 @@ class ActionCardsSection extends StatelessWidget {
     super.key,
     required this.onPackagesTap,
     required this.onPTTap,
-    required this.onHistoryTap,
+    // required this.onHistoryTap,
     required this.onPaymentTap,
     required this.onSupportTap,
   });
@@ -37,14 +37,14 @@ class ActionCardsSection extends StatelessWidget {
           color: AppColors.accent,
           onTap: onPTTap,
         ),
-        const SizedBox(height: 12),
-        ActionCard(
-          icon: Icons.history,
-          title: 'Lịch Sử Tập Luyện',
-          subtitle: 'Xem thống kê và lịch sử tập luyện',
-          color: AppColors.secondary,
-          onTap: onHistoryTap,
-        ),
+        // const SizedBox(height: 12),
+        // ActionCard(
+        //   icon: Icons.history,
+        //   title: 'Lịch Sử Tập Luyện',
+        //   subtitle: 'Xem thống kê và lịch sử tập luyện',
+        //   color: AppColors.secondary,
+        //   onTap: onHistoryTap,
+        // ),
         const SizedBox(height: 12),
         ActionCard(
           icon: Icons.payment,

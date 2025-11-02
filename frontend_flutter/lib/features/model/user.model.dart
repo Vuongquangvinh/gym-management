@@ -190,6 +190,43 @@ class UserModel {
     }
   }
 
+  static Future<String?> getMemberId() async {
+    try {
+      // Lấy userId (document ID) từ SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final userDocId = prefs.getString('userId');
+
+      if (userDocId == null || userDocId.isEmpty) {
+        logger.w('Không tìm thấy userId trong SharedPreferences');
+        return null;
+      }
+
+      // Truy vấn collection users để lấy field _id
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userDocId)
+          .get();
+
+      if (!userDoc.exists) {
+        logger.w('Không tìm thấy user document với ID: $userDocId');
+        return null;
+      }
+
+      final userData = userDoc.data();
+      final memberId = userData?['_id'] as String?;
+
+      if (memberId == null || memberId.isEmpty) {
+        logger.w('Không tìm thấy field _id trong user document');
+        return null;
+      }
+
+      return memberId;
+    } catch (e) {
+      logger.e('Lỗi khi lấy memberId: $e');
+      return null;
+    }
+  }
+
   /// Lấy danh sách user với filter và phân trang
   static Future<UserListResult> getAll({
     Map<String, dynamic>? filters,
@@ -641,6 +678,11 @@ class UserPackageInfo {
   /// Lấy số ngày còn lại
   int getDaysRemaining() {
     return user.getDaysRemaining();
+  }
+
+  /// Lấy số ngày còn lại (alias cho getDaysLeft)
+  int getDaysLeft() {
+    return getDaysRemaining();
   }
 
   /// Format ngày hết hạn

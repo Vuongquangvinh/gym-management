@@ -372,6 +372,14 @@ class _PackageScreenContentState extends State<_PackageScreenContent> {
     );
   }
 
+  void _showPaymentHistoryDialog() {
+    Navigator.pushNamed(
+      context,
+      '/payment-history',
+      arguments: {'userId': widget.userId},
+    );
+  }
+
   void _showPTDialog() {
     PTListBottomSheet.show(context, onSelectPT: _handleSelectPT);
   }
@@ -403,8 +411,8 @@ class _PackageScreenContentState extends State<_PackageScreenContent> {
               ActionCardsSection(
                 onPackagesTap: () => _showPackagesDialog(),
                 onPTTap: () => _showPTDialog(),
-                onHistoryTap: () => _showHistoryDialog(),
-                onPaymentTap: () => PaymentDialog.show(context),
+                // onHistoryTap: () => _showHistoryDialog(),
+                onPaymentTap: () => _showPaymentHistoryDialog(),
                 onSupportTap: () => SupportDialog.show(context),
               ),
             ],

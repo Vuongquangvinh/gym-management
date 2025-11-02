@@ -31,7 +31,7 @@ class HistoryListItem extends StatelessWidget {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
         decoration: BoxDecoration(
           color: isDark ? AppColors.cardDark : AppColors.cardLight,
           borderRadius: BorderRadius.circular(16),
@@ -48,7 +48,7 @@ class HistoryListItem extends StatelessWidget {
           children: [
             // Left Icon
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: checkin.source == 'QR'
                     ? AppColors.primary
@@ -64,7 +64,7 @@ class HistoryListItem extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
 
             // Content
             Expanded(
@@ -80,14 +80,17 @@ class HistoryListItem extends StatelessWidget {
                         color: AppColors.primary,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        checkin.getFormattedDate(),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
+                      Expanded(
+                        child: Text(
+                          checkin.getFormattedDate(),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -104,46 +107,31 @@ class HistoryListItem extends StatelessWidget {
                             : AppColors.textSecondaryLight,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        checkin.getFormattedTime(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          checkin.getFormattedTime(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '•',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        checkin.getFormattedCheckinTime(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
+                      const SizedBox(width: 4),
                     ],
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
 
             // Source Badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: checkin.source == 'QR'
                     ? AppColors.primary.withOpacity(0.1)
