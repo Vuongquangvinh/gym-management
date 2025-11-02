@@ -27,7 +27,6 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
 
   const startCamera = async () => {
     try {
-      console.log('📷 Starting camera...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: 640, 
@@ -39,13 +38,10 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      console.log('✅ Camera started');
       setIsScanning(true);
       isScanningRef.current = true;
-      console.log('🔄 Starting face detection...');
       startFaceDetection();
     } catch (err) {
-      console.error('Error accessing camera:', err);
       setError('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
     }
   };
@@ -62,13 +58,9 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
   };
 
   const startFaceDetection = () => {
-    console.log('🎯 Starting face detection interval...');
     // Simulate face detection every 2 seconds
     scanIntervalRef.current = setInterval(async () => {
-      console.log('🔍 Interval running, isScanning:', isScanningRef.current, 'isProcessing:', isProcessingRef.current);
-      
       if (!isScanningRef.current || isProcessingRef.current) {
-        console.log('⏸️ Skipping scan (isScanning or isProcessing is false)');
         return;
       }
 
@@ -87,7 +79,6 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
 
         // Use the correct API URL
         const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        console.log('🔍 Scanning for faces...');
 
         // Call face recognition API
         const response = await fetch(`${API_BASE_URL}/api/face/recognize`, {
@@ -102,22 +93,15 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
 
         if (response.ok) {
           const result = await response.json();
-          console.log('📥 Recognition result:', result);
           
           if (result.success && result.employee) {
-            console.log('✅ Face recognized:', result.employee.fullName);
             setDetectedEmployee(result.employee);
             setIsScanning(false);
             isScanningRef.current = false;
             stopCamera();
-          } else {
-            console.log('❌ No face recognized');
           }
-        } else {
-          console.error('❌ Recognition failed:', response.status);
         }
       } catch (err) {
-        console.error('Face detection error:', err);
         // Continue scanning on error
       }
     }, 2000);
@@ -132,14 +116,6 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const actionText = checkinType === 'checkin' ? 'check-in' : 'checkout';
-      console.log(`📤 Processing ${actionText} for:`, detectedEmployee.fullName);
-      console.log('📤 API URL:', `${API_BASE_URL}/api/face/checkin`);
-      console.log('📤 Request data:', {
-        employeeId: detectedEmployee._id,
-        checkinType: checkinType,
-        timestamp: new Date().toISOString()
-      });
       
       const response = await fetch(`${API_BASE_URL}/api/face/checkin`, {
         method: 'POST',
@@ -153,12 +129,8 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
         })
       });
 
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response ok:', response.ok);
-
       if (response.ok) {
         const result = await response.json();
-        console.log('📥 Response data:', result);
         setCheckinResult(result);
         setSuccess(true);
         
@@ -169,11 +141,15 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData?.detail || errorData?.message || 'Thất bại';
-        console.error('❌ Check-in failed:', response.status, errorMessage);
-        setError(errorMessage);
+        
+        // Special handling for schedule-related errors
+        if (errorMessage.includes('không có lịch làm việc') || errorMessage.includes('lịch làm việc')) {
+          setError(`❌ ${errorMessage}\n\n💡 Vui lòng liên hệ quản lý để được xếp lịch làm việc.`);
+        } else {
+          setError(errorMessage);
+        }
       }
     } catch (err) {
-      console.error('Checkin error:', err);
       setError('Có lỗi xảy ra khi thực hiện. Vui lòng thử lại.');
     } finally {
       setIsProcessing(false);

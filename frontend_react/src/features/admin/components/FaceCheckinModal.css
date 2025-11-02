@@ -421,6 +421,8 @@
   border-radius: 8px;
   margin-top: 16px;
   border: 1px solid #f5c6cb;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .success-message {

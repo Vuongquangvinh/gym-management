@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import './FaceRegistrationModal.css';
 
 const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSuccess }) => {
@@ -36,7 +37,6 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      console.error('Error accessing camera:', err);
       setError('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
     }
   };
@@ -77,12 +77,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
   };
 
   const processRegistration = async () => {
-    console.log('🔘 processRegistration called!');
-    console.log('capturedImage:', capturedImage);
-    console.log('employee:', employee);
-    
     if (!capturedImage || !employee) {
-      console.error('❌ Missing capturedImage or employee!');
       return;
     }
 
@@ -99,8 +94,6 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
         reader.readAsDataURL(blob);
       });
 
-      console.log('📤 Sending face registration request...');
-      
       // Use the correct API URL
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       
@@ -117,37 +110,49 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
         })
       });
 
-      console.log('📥 Response status:', result.status);
-      
       const data = await result.json();
-      console.log('📥 Response data:', data);
 
       if (result.ok && data.success) {
-        setSuccess(true);
-        console.log('✅ Registration successful!');
+        // Close modal first
+        onClose();
+        // Reset modal state
+        setStep(1);
+        setCapturedImage(null);
+        setSuccess(false);
+        setError(null);
         
-        // Call success callback to refresh data
+        // Call success callback to refresh data after modal closes
         if (onRegistrationSuccess) {
-          onRegistrationSuccess();
+          setTimeout(() => {
+            onRegistrationSuccess();
+          }, 100);
         }
         
-        // Update employee data in local state if needed
-        setTimeout(() => {
-          onClose();
-          // Reset modal state
-          setStep(1);
-          setCapturedImage(null);
-          setSuccess(false);
-          setError(null);
-        }, 2000);
+        // Show success message with SweetAlert2
+        Swal.fire({
+          icon: 'success',
+          title: 'Thành công',
+          text: 'Đăng ký Face ID thành công!',
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#1976d2',
+          timer: 2000,
+          timerProgressBar: true
+        });
       } else {
         const errorMsg = data?.message || 'Đăng ký thất bại';
-        console.error('❌ Registration failed:', errorMsg);
         throw new Error(errorMsg);
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      setError('Có lỗi xảy ra khi đăng ký khuôn mặt. Vui lòng thử lại.');
+      // Show error with SweetAlert2
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: err.message || 'Có lỗi xảy ra khi đăng ký khuôn mặt. Vui lòng thử lại.',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#1976d2'
+      });
+      
+      setError(err.message || 'Có lỗi xảy ra khi đăng ký khuôn mặt. Vui lòng thử lại.');
     } finally {
       setIsProcessing(false);
     }
@@ -277,21 +282,14 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
               <div className="preview-actions">
                 <button 
                   className="btn-retake"
-                  onClick={() => {
-                    console.log('🔄 Retake button clicked');
-                    retakePhoto();
-                  }}
+                  onClick={retakePhoto}
                   disabled={isProcessing}
                 >
                   🔄 Chụp lại
                 </button>
                 <button 
                   className="btn-confirm"
-                  onClick={(e) => {
-                    console.log('✅ Confirm button clicked!', e);
-                    console.log('Button disabled?', isProcessing);
-                    processRegistration();
-                  }}
+                  onClick={processRegistration}
                   disabled={isProcessing}
                 >
                   {isProcessing ? '⏳ Đang xử lý...' : '✅ Xác nhận đăng ký'}
@@ -304,11 +302,6 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
                 </div>
               )}
 
-              {success && (
-                <div className="success-message">
-                  ✅ Đăng ký Face ID thành công!
-                </div>
-              )}
             </div>
           )}
         </div>

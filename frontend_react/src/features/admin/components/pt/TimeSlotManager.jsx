@@ -61,7 +61,6 @@ export default function TimeSlotManager({
     // Only sync from props if user hasn't started interacting
     // This allows initial load of saved data but prevents overriding user changes
     if (availableTimeSlots && availableTimeSlots.length > 0 && !hasUserInteracted) {
-      console.log('🔄 Syncing from props (saved data):', availableTimeSlots);
       setIsSyncingFromProps(true);
       setRegularSlots(availableTimeSlots || []);
       setIsInitialized(true);
@@ -89,6 +88,7 @@ export default function TimeSlotManager({
             startTime: fixedSlot.startTime,
             endTime: fixedSlot.endTime,
             isActive: true,
+            isChoosen: false,
             note: `Khung cố định ${fixedSlot.duration} phút`
           });
         });
@@ -106,14 +106,12 @@ export default function TimeSlotManager({
   // Helper function to notify parent - only call when user makes changes
   const notifyParent = useCallback((newRegularSlots = null) => {
     if (isSyncingFromProps) {
-      console.log('⏸️ Blocked notification - syncing from props');
       return;
     }
     
     if (onTimeSlotsChangeRef.current) {
       const slotsToUse = newRegularSlots || regularSlots;
       const currentSlots = convertToModelFormat(slotsToUse);
-      console.log('📢 Notifying parent with slots:', currentSlots.length, 'from state:', slotsToUse);
       onTimeSlotsChangeRef.current({
         availableTimeSlots: currentSlots,
         customTimeSlots: []
@@ -123,35 +121,27 @@ export default function TimeSlotManager({
 
   // Handle fixed time slot toggle (khung giờ cố định)
   const handleFixedSlotToggle = (day, fixedSlot) => {
-    console.log('🎯 Click:', day, fixedSlot.id);
-    console.log('📊 Current regularSlots before update:', regularSlots);
-    
     // Mark that user has started interacting
     setHasUserInteracted(true);
     
     let updatedState = null;
     
     setRegularSlots(prev => {
-      console.log('📊 Previous state in setter:', prev);
       const daySlots = prev.find(slot => slot.day === day);
-      console.log('📊 Found daySlots for', day, ':', daySlots);
       
       if (daySlots) {
         const slotExists = daySlots.fixedSlots?.some(slot => slot.id === fixedSlot.id);
-        console.log('📊 Slot exists check:', slotExists);
         
         if (slotExists) {
           // Remove fixed slot
           const newFixedSlots = (daySlots.fixedSlots || []).filter(slot => slot.id !== fixedSlot.id);
           if (newFixedSlots.length === 0) {
             updatedState = prev.filter(slot => slot.day !== day);
-            console.log('✅ Removed day:', day, 'New state length:', updatedState.length);
             return updatedState;
           }
           updatedState = prev.map(slot => 
             slot.day === day ? { ...slot, fixedSlots: newFixedSlots } : slot
           );
-          console.log('✅ Removed slot:', fixedSlot.id, 'from', day);
           return updatedState;
         } else {
           // Add fixed slot
@@ -160,13 +150,11 @@ export default function TimeSlotManager({
               ? { ...slot, fixedSlots: [...(slot.fixedSlots || []), fixedSlot] }
               : slot
           );
-          console.log('✅ Added slot:', fixedSlot.id, 'to', day);
           return updatedState;
         }
       } else {
         // Create new day slot with fixed slot
         updatedState = [...prev, { day, fixedSlots: [fixedSlot] }];
-        console.log('✅ Created new day:', day, 'with slot:', fixedSlot.id);
         return updatedState;
       }
     });
@@ -175,11 +163,6 @@ export default function TimeSlotManager({
     setTimeout(() => {
       notifyParent(updatedState);
     }, 0);
-    
-    // Verify state was actually updated
-    setTimeout(() => {
-      console.log('🔄 State after update:', regularSlots.length, 'items');
-    }, 100);
   };
 
   const isFixedSlotSelected = useCallback((day, fixedSlotId) => {

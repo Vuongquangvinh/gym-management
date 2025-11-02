@@ -3,6 +3,7 @@ import { usePT } from '../../../../firebase/lib/features/pt/pt.provider.jsx';
 import PTPackageModel from '../../../../firebase/lib/features/pt/pt-package.model.js';
 import TimeSlotManager from './TimeSlotManager.jsx';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import './PTPricingModal.css';
 
 const PACKAGE_TYPES = [
@@ -21,6 +22,7 @@ const DURATION_OPTIONS = [
 ];
 
 const SESSION_COUNT_OPTIONS = [1, 4, 8, 12, 16, 20, 24, 32];
+const MONTH_OPTIONS = [1, 3, 6, 9, 12];
 
 const FIXED_TIME_SLOTS = [
   { id: 'slot1', startTime: '06:00', endTime: '08:00', duration: 120, label: '6:00 - 8:00 (2h)' },
@@ -57,21 +59,19 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     validityDays: 90,
     availableTimeSlots: [],
     advanceBookingDays: 1,
-    allowSameDayBooking: true
+    allowSameDayBooking: true,
+    billingType: 'session',
+    months: 1
   });
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const packageToDeleteRef = useRef(null); // Use ref instead of state
-  const isDeletingRef = useRef(false); // Flag to prevent interruption during delete
   const [newBenefit, setNewBenefit] = useState('');
 
   // Local function to load packages and PT info
   const loadPackagesLocal = async (currentPtId) => {
     if (!currentPtId) return;
     
-    console.log('🔄 PTPricingModal: Loading PT packages locally for', currentPtId);
     setLocalLoading(true);
     try {
       // Use direct import to avoid provider dependency issues
@@ -94,8 +94,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
       }
       
       setLocalPackages(packages);
-      console.log('✅ PTPricingModal: Loaded PT info:', ptData?.fullName);
-      console.log('✅ PTPricingModal: Loaded', packages.length, 'packages');
     } catch (error) {
       console.error('❌ PTPricingModal: Error loading packages:', error);
     } finally {
@@ -107,17 +105,13 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
   useEffect(() => {
     if (isOpen && ptId) {
       // Modal opening - load data and reset state
-      console.log('🚀 PTPricingModal: Modal opened, loading packages...');
       setViewMode('list');
       setErrors({});
       setIsSubmitting(false);
       loadPackagesLocal(ptId);
-    } else if (!isOpen && !isDeletingRef.current) {
+    } else if (!isOpen) {
       // Modal closing - cleanup state
-      console.log('🔄 PTPricingModal: Modal closed, cleaning up...');
       setSelectedPackage(null);
-      setShowDeleteConfirm(false);
-      packageToDeleteRef.current = null;
       setPtInfo(null);
       setLocalPackages([]);
     }
@@ -125,10 +119,8 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
 
   // Initialize form when editing package or creating new
   useEffect(() => {
-    console.log('🔄 PTPricingModal: viewMode/selectedPackage changed:', viewMode, selectedPackage);
     if (viewMode === 'form') {
       if (selectedPackage) {
-        console.log('📝 Setting form data for editing, selectedPackage:', selectedPackage);
         setFormData({
           name: selectedPackage.name || '',
           type: selectedPackage.packageType || 'single',
@@ -144,12 +136,12 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           validityDays: selectedPackage.validityDays || 90,
           availableTimeSlots: convertDbToTimeSlotFormat(selectedPackage.availableTimeSlots || []),
           advanceBookingDays: selectedPackage.advanceBookingDays || 1,
-          allowSameDayBooking: selectedPackage.allowSameDayBooking !== false
+          allowSameDayBooking: selectedPackage.allowSameDayBooking !== false,
+          billingType: selectedPackage.billingType || 'session',
+          months: selectedPackage.months || 1
         });
-        console.log('🎯 FormData set with converted slots:', convertDbToTimeSlotFormat(selectedPackage.availableTimeSlots || []));
         // Clear loading flag after a brief delay to allow TimeSlotManager to receive new props
         setTimeout(() => {
-          console.log('⏰ Clearing loading flag after timeout');
           setIsLoadingFormData(false);
         }, 200);
       } else {
@@ -168,11 +160,12 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           validityDays: 90,
           availableTimeSlots: [],
           advanceBookingDays: 1,
-          allowSameDayBooking: true
+          allowSameDayBooking: true,
+          billingType: 'session',
+          months: 1
         });
         // Clear loading flag for new package creation
         setTimeout(() => {
-          console.log('⏰ Clearing loading flag for new package');
           setIsLoadingFormData(false);
         }, 200);
       }
@@ -221,7 +214,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
 
   // Convert database format to TimeSlotManager format
   const convertDbToTimeSlotFormat = useCallback((dbTimeSlots) => {
-    console.log('🔄 Converting DB time slots:', dbTimeSlots);
     if (!dbTimeSlots || !Array.isArray(dbTimeSlots)) return [];
     
     // Group by day
@@ -255,8 +247,40 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
       fixedSlots
     }));
     
-    console.log('✅ Converted to TimeSlotManager format:', JSON.stringify(result, null, 2));
     return result;
+  }, []);
+
+  // Convert TimeSlotManager format back to Firestore format
+  const convertToFirestoreFormat = useCallback((timeSlotManagerFormat) => {
+    // Check if already in Firestore format (has dayOfWeek property)
+    if (timeSlotManagerFormat && timeSlotManagerFormat.length > 0 && timeSlotManagerFormat[0].dayOfWeek !== undefined) {
+      return timeSlotManagerFormat;
+    }
+    
+    // Convert from TimeSlotManager format to Firestore format
+    const firestoreSlots = [];
+    const dayMap = {
+      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+      'thursday': 4, 'friday': 5, 'saturday': 6
+    };
+    
+    timeSlotManagerFormat.forEach(daySlot => {
+      if (daySlot.fixedSlots) {
+        daySlot.fixedSlots.forEach(fixedSlot => {
+          firestoreSlots.push({
+            id: `${daySlot.day}_${fixedSlot.id}`,
+            dayOfWeek: dayMap[daySlot.day],
+            startTime: fixedSlot.startTime,
+            endTime: fixedSlot.endTime,
+            isActive: true,
+            isChoosen: false,
+            note: `Khung cố định ${fixedSlot.duration} phút`
+          });
+        });
+      }
+    });
+    
+    return firestoreSlots;
   }, []);
 
   const handleTimeSlotsChange = useCallback((timeSlots) => {
@@ -347,6 +371,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
         'package': 'package'
       };
 
+      // Convert availableTimeSlots to Firestore format if needed
+      const firestoreTimeSlots = convertToFirestoreFormat(formData.availableTimeSlots || []);
+
       const packageData = {
         name: formData.name,
         packageType: packageTypeMapping[formData.type] || 'single', // Map type to packageType
@@ -360,16 +387,16 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
         maxClientsPerSlot: parseInt(formData.maxParticipants) || 1, // Map maxParticipants to maxClientsPerSlot
         discount: parseFloat(formData.discountPercent) || 0,
         originalPrice: parseFloat(formData.originalPrice) || parseFloat(formData.price),
-        availableTimeSlots: formData.availableTimeSlots || [], // Map availableTimeSlots correctly
+        availableTimeSlots: firestoreTimeSlots, // Convert to Firestore format
         customTimeSlots: [], // No longer support custom time slots
         sessionDuration: parseInt(formData.sessionDuration) || 60, // Use dedicated sessionDuration field
         requiresAdvanceBooking: formData.advanceBookingDays > 0,
-        advanceBookingHours: parseInt(formData.advanceBookingDays) * 24 || 24
+        advanceBookingHours: parseInt(formData.advanceBookingDays) * 24 || 24,
+        billingType: formData.billingType || 'session',
+        months: parseInt(formData.months) || 1
         // Don't include ptId here, it will be passed as separate parameter
       };
 
-      console.log('💾 PTPricingModal: Submitting package data:', packageData);
-      console.log('💾 PTPricingModal: ptId:', ptId);
 
       if (selectedPackage) {
         await updatePTPackage(selectedPackage.id, packageData);
@@ -415,40 +442,36 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     }
   };
 
-  const handleDelete = async () => {
-    console.log('🗑️ handleDelete called');
-    console.log('🗑️ packageToDeleteRef.current at start:', packageToDeleteRef.current);
-    console.log('🗑️ showDeleteConfirm at start:', showDeleteConfirm);
-    
-    if (!packageToDeleteRef.current) {
-      console.log('❌ No package ID in ref for deletion - early return');
-      return;
-    }
-    
-    const packageIdToDelete = packageToDeleteRef.current; // Store in local variable to prevent ref changes
-    console.log('🗑️ Starting delete process for package ID:', packageIdToDelete);
-    
-    // Set flags to prevent interference
-    isDeletingRef.current = true;
+  const handleDeletePackage = async (packageId, packageName) => {
+    const result = await Swal.fire({
+      title: 'Xác nhận xóa gói',
+      html: `Bạn có chắc chắn muốn xóa gói dịch vụ <strong>${packageName}</strong>?`,
+      text: 'Hành động này không thể hoàn tác.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Xóa gói',
+      cancelButtonText: 'Hủy',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
     setIsSubmitting(true);
     
     try {
-      console.log('🗑️ Calling deletePTPackage with ID:', packageIdToDelete, 'and ptId:', ptId);
-      await deletePTPackage(packageIdToDelete, ptId); // Pass ptId as second parameter
-      console.log('✅ Package deleted successfully');
+      await deletePTPackage(packageId, ptId);
       
-      toast.success('Xóa gói dịch vụ thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
+      await Swal.fire({
+        icon: 'success',
+        title: 'Xóa thành công!',
+        text: 'Gói dịch vụ đã được xóa khỏi hệ thống.',
+        timer: 2000,
+        showConfirmButton: false
       });
       
-      // Reload packages first
       await loadPackagesLocal();
-      
-      // Then update UI state
       setViewMode('list');
       setSelectedPackage(null);
       
@@ -456,28 +479,20 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
         onUpdate();
       }
     } catch (error) {
-      console.error('❌ Error deleting package:', error);
-      toast.error(`Lỗi khi xóa gói dịch vụ: ${error.message || 'Vui lòng thử lại'}`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi xóa gói',
+        text: error.message || 'Vui lòng thử lại'
       });
       setErrors({ submit: error.message || 'Có lỗi xảy ra khi xóa gói dịch vụ' });
     } finally {
-      console.log('🗑️ Finally block - cleaning up');
-      isDeletingRef.current = false;
       setIsSubmitting(false);
-      setShowDeleteConfirm(false);
-      packageToDeleteRef.current = null;
     }
   };
 
   const handleDisablePackage = async (packageId) => {
     try {
       setIsSubmitting(true);
-      console.log('🚫 Disabling package:', packageId);
       
       await disablePTPackage(packageId, ptId);
       await loadPackagesLocal();
@@ -511,7 +526,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
   const handleEnablePackage = async (packageId) => {
     try {
       setIsSubmitting(true);
-      console.log('✅ Enabling package:', packageId);
       
       await enablePTPackage(packageId, ptId);
       await loadPackagesLocal();
@@ -543,15 +557,12 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
   };
 
   const handleEditPackage = (pkg) => {
-    console.log('📝 PTPricingModal: Editing package:', pkg);
-    console.log('📝 Package availableTimeSlots:', pkg.availableTimeSlots);
     setIsLoadingFormData(true); // Set loading flag IMMEDIATELY
     setSelectedPackage(pkg);
     setViewMode('form');
   };
 
   const handleCreateNew = () => {
-    console.log('🎯 PTPricingModal: Creating new package, switching to form mode');
     setIsLoadingFormData(true); // Set loading flag IMMEDIATELY
     setSelectedPackage(null);
     setViewMode('form');
@@ -629,13 +640,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             ) : (
               /* Packages list */
               <div className="packages-grid">
-                {(() => {
-                  console.log('🎨 PTPricingModal: Rendering packages grid');
-                  console.log('🎨 localPackages:', localPackages);
-                  console.log('🎨 localPackages length:', localPackages?.length);
-                  console.log('🎨 viewMode:', viewMode);
-                  return null;
-                })()}
                 {localPackages && localPackages.length > 0 ? (
                   localPackages.map((pkg) => (
                     <div key={pkg.id} className="package-card">
@@ -732,12 +736,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                         
                         <button 
                           className="btn-delete-package"
-                          onClick={() => {
-                            console.log('🗑️ Delete button clicked for package:', pkg.id);
-                            packageToDeleteRef.current = pkg.id;
-                            setShowDeleteConfirm(true);
-                            console.log('🗑️ Set packageToDeleteRef and showDeleteConfirm to true');
-                          }}
+                          onClick={() => handleDeletePackage(pkg.id, pkg.name)}
                           disabled={isSubmitting}
                           title="Xóa hoàn toàn khỏi database"
                         >
@@ -815,6 +814,51 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
 
               <div className="form-row">
                 <div className="form-group">
+                  <label>Loại tính phí *</label>
+                  <select
+                    value={formData.billingType}
+                    onChange={(e) => handleInputChange('billingType', e.target.value)}
+                  >
+                    <option value="session">Theo buổi</option>
+                    <option value="monthly">Theo tháng</option>
+                  </select>
+                </div>
+
+                {formData.billingType === 'monthly' ? (
+                  <div className="form-group">
+                    <label>Số tháng *</label>
+                    <select
+                      value={formData.months}
+                      onChange={(e) => handleInputChange('months', parseInt(e.target.value))}
+                    >
+                      {MONTH_OPTIONS.map(months => (
+                        <option key={months} value={months}>
+                          {months} tháng
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label>Số buổi tập *</label>
+                    <select
+                      value={formData.sessions}
+                      onChange={(e) => handleInputChange('sessions', parseInt(e.target.value))}
+                      className={errors.sessions ? 'error' : ''}
+                    >
+                      {SESSION_COUNT_OPTIONS.map(count => (
+                        <option key={count} value={count}>
+                          {count} buổi
+                        </option>
+                      ))}
+                    </select>
+                    {errors.sessions && <span className="error-message">{errors.sessions}</span>}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>Giá gói (VNĐ) *</label>
                   <input
                     type="number"
@@ -827,28 +871,14 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     className={errors.price ? 'error' : ''}
                   />
                   {errors.price && <span className="error-message">{errors.price}</span>}
-                  {pricePerSession > 0 && (
+                  {pricePerSession > 0 && formData.billingType === 'session' && (
                     <div className="price-info">
                       Giá mỗi buổi: {pricePerSession.toLocaleString('vi-VN')} VNĐ
                     </div>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label>Số buổi tập *</label>
-                  <select
-                    value={formData.sessions}
-                    onChange={(e) => handleInputChange('sessions', parseInt(e.target.value))}
-                    className={errors.sessions ? 'error' : ''}
-                  >
-                    {SESSION_COUNT_OPTIONS.map(count => (
-                      <option key={count} value={count}>
-                        {count} buổi
-                      </option>
-                    ))}
-                  </select>
-                  {errors.sessions && <span className="error-message">{errors.sessions}</span>}
-                </div>
+                <div className="form-group"></div>
               </div>
 
               <div className="form-row">
@@ -1085,10 +1115,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                   <button
                     type="button"
                     className="btn-delete-ptpricing"
-                    onClick={() => {
-                      packageToDeleteRef.current = selectedPackage.id;
-                      setShowDeleteConfirm(true);
-                    }}
+                    onClick={() => handleDeletePackage(selectedPackage.id, selectedPackage.name)}
                     disabled={isSubmitting}
                   >
                     <span className="icon">🗑️</span>
@@ -1127,59 +1154,6 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             </form>
           )}
 
-          {errors.submit && (
-            <div className="form-error">
-              {errors.submit}
-            </div>
-          )}
-
-        {/* Delete Confirmation */}
-        {(() => {
-          if (!showDeleteConfirm) return null;
-          
-        })()}
-        {showDeleteConfirm && (
-          <div className="delete-confirm-overlay" onClick={() => {
-            setShowDeleteConfirm(false);
-            packageToDeleteRef.current = null;
-          }}>
-            <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="delete-confirm-header">
-                <h3>Xác nhận xóa gói</h3>
-              </div>
-              
-              <div className="delete-confirm-content">
-                <p>Bạn có chắc chắn muốn xóa gói dịch vụ <strong>"{localPackages.find(p => p.id === packageToDeleteRef.current)?.name}"</strong>?</p>
-                <p className="warning">Hành động này không thể hoàn tác.</p>
-              </div>
-              
-              <div className="delete-confirm-actions">
-                <button
-                  className="btn-cancel"
-                  onClick={() => {
-                    console.log('🗑️ Cancel button clicked');
-                    setShowDeleteConfirm(false);
-                    packageToDeleteRef.current = null;
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Hủy
-                </button>
-                <button
-                  className="btn-delete-confirm-ptmanager"
-                  onClick={() => {
-                    console.log('🗑️ Delete confirm button clicked');
-                    console.log('🗑️ packageToDeleteRef.current before handleDelete:', packageToDeleteRef.current);
-                    handleDelete();
-                  }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Đang xóa...' : 'Xóa gói'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

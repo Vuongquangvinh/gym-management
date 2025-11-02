@@ -321,6 +321,25 @@ async def process_checkin(request: CheckinRequest):
         from datetime import datetime
         current_date = datetime.now().strftime("%Y-%m-%d")
         
+        # Check if employee has schedule for today
+        print(f"🔍 Checking schedule for employee {request.employeeId} on {current_date}")
+        
+        # Check if employee is fulltime (always has schedule)
+        employee_shift = emp_data.get("shift", "")
+        print(f"📋 Employee shift: {employee_shift}")
+        
+        if employee_shift != "fulltime":
+            # For parttime employees, check if they have a schedule for today
+            schedule_query = db.collection("schedule").where("employeeId", "==", request.employeeId).where("date", "==", current_date).where("status", "==", "active").limit(1).get()
+            
+            if len(schedule_query) == 0:
+                raise HTTPException(status_code=400, detail="Bạn không có lịch làm việc hôm nay! Vui lòng liên hệ quản lý để được xếp lịch.")
+            
+            schedule_data = schedule_query[0].to_dict()
+            print(f"✅ Found schedule: {schedule_data.get('startTime')} - {schedule_data.get('endTime')}")
+        else:
+            print("✅ Fulltime employee - always has schedule")
+        
         # Check if already checkin/checkout today
         checkin_query = db.collection("employee_checkins").where("employeeId", "==", request.employeeId).where("checkinType", "==", request.checkinType).where("date", "==", current_date).limit(1).get()
         

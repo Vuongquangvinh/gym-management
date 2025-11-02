@@ -4,6 +4,7 @@ import FaceRegistrationModal from '../components/FaceRegistrationModal.jsx';
 import FaceCheckinModal from '../components/FaceCheckinModal.jsx';
 import EmployeeAvatar from '../../../shared/components/EmployeeAvatar/EmployeeAvatar.jsx';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 import './FaceCheckinPage.css';
 
 function FaceCheckinContent() {
@@ -19,8 +20,6 @@ function FaceCheckinContent() {
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [faceStats, setFaceStats] = useState({
     total: 0,
     registered: 0,
@@ -70,45 +69,56 @@ function FaceCheckinContent() {
   };
 
   // Handle delete confirmation click
-  const handleDeleteClick = (employee) => {
-    setEmployeeToDelete(employee);
-    setShowDeleteConfirm(true);
-  };
+  const handleDeleteClick = async (employee) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Xác nhận xóa Face ID',
+      html: `Bạn có chắc chắn muốn xóa Face ID của <strong>${employee.fullName}</strong>?`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#d32f2f',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true
+    });
 
-  // Confirm and execute delete
-  const confirmDeleteFaceID = async () => {
-    if (!employeeToDelete) return;
-
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      
-      const response = await fetch(`${API_BASE_URL}/api/face/delete/${employeeToDelete._id}`, {
-        method: 'DELETE'
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success('Xóa Face ID thành công!', {
-          position: "top-right",
-          autoClose: 3000,
+    if (result.isConfirmed) {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        
+        const response = await fetch(`${API_BASE_URL}/api/face/delete/${employee._id}`, {
+          method: 'DELETE'
         });
-        // No need to refreshEmployees() - onSnapshot will auto-update
-      } else {
-        toast.error('Xóa Face ID thất bại: ' + result.message, {
-          position: "top-right",
-          autoClose: 3000,
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Thành công',
+            text: 'Xóa Face ID thành công!',
+            confirmButtonText: 'Đóng',
+            confirmButtonColor: '#1976d2'
+          });
+          // No need to refreshEmployees() - onSnapshot will auto-update
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Lỗi',
+            text: 'Xóa Face ID thất bại: ' + result.message,
+            confirmButtonText: 'Đóng',
+            confirmButtonColor: '#1976d2'
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi',
+          text: 'Có lỗi xảy ra khi xóa Face ID',
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#1976d2'
         });
       }
-    } catch (error) {
-      console.error('Delete face ID error:', error);
-      toast.error('Có lỗi xảy ra khi xóa Face ID', {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } finally {
-      setShowDeleteConfirm(false);
-      setEmployeeToDelete(null);
     }
   };
 
@@ -177,6 +187,15 @@ function FaceCheckinContent() {
             <span className="icon">👤</span>
             Đăng ký khuôn mặt
           </button>
+        </div>
+      </div>
+
+      {/* Info Banner */}
+      <div className="face-checkin-info-banner">
+        <div className="info-icon">ℹ️</div>
+        <div className="info-content">
+          <strong>Lưu ý quan trọng:</strong> Chỉ những nhân viên có lịch làm việc trong ngày mới có thể sử dụng Face ID để check-in/check-out. 
+          Nhân viên parttime cần được xếp lịch trước, nhân viên fulltime luôn có lịch làm việc.
         </div>
       </div>
 
@@ -329,7 +348,6 @@ function FaceCheckinContent() {
                         </div>
                         <div className="info">
                           <h4>{employee.fullName}</h4>
-                          <p className="employee-id">ID: {employee._id.slice(-6)}</p>
                         </div>
                       </div>
                     </td>
@@ -432,35 +450,6 @@ function FaceCheckinContent() {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-header">
-              <h3>⚠️ Xác nhận xóa Face ID</h3>
-            </div>
-            <div className="confirm-body">
-              <p>Bạn có chắc chắn muốn xóa Face ID của nhân viên:</p>
-              <p className="employee-name-confirm">{employeeToDelete?.fullName}</p>
-              <p className="warning-text">⚠️ Hành động này không thể hoàn tác!</p>
-            </div>
-            <div className="confirm-actions">
-              <button 
-                className="btn-cancel-delete"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                ❌ Hủy
-              </button>
-              <button 
-                className="btn-confirm-delete"
-                onClick={confirmDeleteFaceID}
-              >
-                ✅ Xác nhận xóa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

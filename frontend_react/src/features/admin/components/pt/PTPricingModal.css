@@ -571,89 +571,6 @@
   color: white;
 }
 
-/* Delete Confirmation Modal */
-.delete-confirm-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1001;
-}
-
-.delete-confirm-modal {
-  background: white;
-  border-radius: 12px;
-  padding: 0;
-  max-width: 400px;
-  width: 90vw;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-.delete-confirm-header {
-  padding: 20px 20px 0;
-}
-
-.delete-confirm-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #dc2626;
-}
-
-.delete-confirm-content {
-  padding: 16px 20px;
-}
-
-.delete-confirm-content p {
-  margin: 0 0 12px 0;
-  color: #374151;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.delete-confirm-content p:last-child {
-  margin-bottom: 0;
-}
-
-.delete-confirm-content .warning {
-  color: #dc2626;
-  font-weight: 500;
-  font-size: 13px;
-}
-
-.delete-confirm-actions {
-  padding: 0 20px 20px;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.btn-delete-confirm-ptmanager {
-  padding: 8px 16px;
-  border: none;
-  background: #dc2626;
-  color: white;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-delete-confirm:hover:not(:disabled) {
-  background: #b91c1c;
-}
-
-.btn-delete-confirm:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
 /* Error Messages */
 .error-message {
   display: block;
@@ -1129,19 +1046,6 @@
 
   .add-benefit-group {
     flex-direction: column;
-  }
-
-  .delete-confirm-modal {
-    width: 95vw;
-    margin: 20px;
-  }
-
-  .delete-confirm-actions {
-    flex-direction: column-reverse;
-  }
-
-  .delete-confirm-actions button {
-    width: 100%;
   }
 }
 

@@ -42,6 +42,10 @@ export class PTPackageModel {
     this.advanceBookingHours = data.advanceBookingHours || 24; // Số giờ phải đặt trước tối thiểu
     this.customTimeSlots = data.customTimeSlots || []; // Khung giờ custom (không theo lịch cố định)
     
+    // Loại tính phí: 'session' (theo buổi) hoặc 'monthly' (theo tháng)
+    this.billingType = data.billingType || 'session';
+    this.months = data.months || 1; // Số tháng cho gói theo tháng (1, 3, 6, 9, 12)
+    
     this.createdAt = data.createdAt || new Date();
     this.updatedAt = data.updatedAt || new Date();
   }
@@ -93,6 +97,7 @@ export class PTPackageModel {
           startTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required(), // HH:MM
           endTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required(), // HH:MM
           isActive: Joi.boolean().default(true).optional(), // Có thể tạm tắt slot
+          isChoosen: Joi.boolean().default(false).optional(), // Trạng thái được chọn
           note: Joi.string().max(100).allow('').optional() // Ghi chú cho slot
         })
       ).optional(),
@@ -111,7 +116,9 @@ export class PTPackageModel {
       sessionDuration: Joi.number().min(30).max(180).optional(),
       maxClientsPerSlot: Joi.number().min(1).max(10).optional(),
       requiresAdvanceBooking: Joi.boolean().optional(),
-      advanceBookingHours: Joi.number().min(1).max(168).optional()
+      advanceBookingHours: Joi.number().min(1).max(168).optional(),
+      billingType: Joi.string().valid('session', 'monthly').default('session').optional(),
+      months: Joi.number().valid(1, 3, 6, 9, 12).default(1).optional()
     }).options({ 
       allowUnknown: false, // Không cho phép field không được định nghĩa trong schema
       stripUnknown: true   // Tự động loại bỏ field không được định nghĩa
@@ -164,7 +171,9 @@ export class PTPackageModel {
       sessionDuration: this.sessionDuration,
       maxClientsPerSlot: this.maxClientsPerSlot,
       requiresAdvanceBooking: this.requiresAdvanceBooking,
-      advanceBookingHours: this.advanceBookingHours
+      advanceBookingHours: this.advanceBookingHours,
+      billingType: this.billingType,
+      months: this.months
     };
   }
 
@@ -191,6 +200,8 @@ export class PTPackageModel {
       maxClientsPerSlot: this.maxClientsPerSlot,
       requiresAdvanceBooking: this.requiresAdvanceBooking,
       advanceBookingHours: this.advanceBookingHours,
+      billingType: this.billingType,
+      months: this.months,
       createdAt: this.createdAt instanceof Date ? Timestamp.fromDate(this.createdAt) : this.createdAt,
       updatedAt: Timestamp.fromDate(new Date())
     };

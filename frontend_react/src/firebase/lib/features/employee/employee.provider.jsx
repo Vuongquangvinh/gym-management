@@ -25,8 +25,7 @@ export function EmployeeProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(false); 
   const [stats, setStats] = useState({ total: 0, active: 0, pt: 0, recentHires: 0 });
   const [filters, setFilters] = useState({
     status: '',
@@ -35,37 +34,6 @@ export function EmployeeProvider({ children }) {
     searchQuery: ''
   });
 
-  // Fetch employees
-  const fetchEmployees = useCallback(async (isLoadMore = false) => {
-    try {
-      if (isLoadMore) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-        setError(null);
-      }
-
-      const startAfterDoc = isLoadMore ? lastDoc : null;
-      const result = await EmployeeModel.getAll(filters, 10, startAfterDoc);
-
-      if (isLoadMore) {
-        setEmployees(prev => [...prev, ...result.employees]);
-      } else {
-        setEmployees(result.employees);
-      }
-
-      setLastDoc(result.lastDoc);
-      setHasMore(result.hasMore);
-
-    } catch (err) {
-      console.error('Error fetching employees:', err);
-      setError(err.message || 'Lỗi tải danh sách nhân viên');
-      toast.error('Có lỗi khi tải danh sách nhân viên');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [filters]); // Remove lastDoc from dependencies to prevent infinite loop
 
   // Fetch dashboard stats
   const fetchStats = useCallback(async () => {
@@ -77,18 +45,15 @@ export function EmployeeProvider({ children }) {
     }
   }, []);
 
-  // Load more employees
+  // Load more employees (disabled with onSnapshot)
   const fetchMore = async () => {
-    if (!loadingMore && hasMore) {
-      await fetchEmployees(true);
-    }
+    // No-op: onSnapshot already loads all data
+    setLoadingMore(false);
   };
 
   // Refresh employees (reload from start)
   const refreshEmployees = async () => {
-    setLastDoc(null);
-    setHasMore(true);
-    await fetchEmployees(false);
+    // onSnapshot handles real-time updates automatically
     await fetchStats();
   };
 
@@ -106,12 +71,6 @@ export function EmployeeProvider({ children }) {
       if (!hasChanges) {
         return prev;
       }
-      
-      console.log('Updating employee filters:', next);
-      
-      // Reset pagination when filters change
-      setLastDoc(null);
-      setHasMore(true);
       
       return next;
     });
@@ -222,7 +181,6 @@ export function EmployeeProvider({ children }) {
     // Subscribe to real-time updates
     const unsubscribe = onSnapshot(q, 
       (snapshot) => {
-        console.log('🔄 Real-time update received for employees');
         const employeesList = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
           

@@ -20,18 +20,22 @@
   position: relative; 
   display: flex; 
   align-items: center; 
-  gap: 8px; 
   font-weight: 600; 
+  font-size: inherit;
+  font-family: inherit;
   letter-spacing: 0.2px; 
-  width: 100%; 
+  /* width: 100%;  */
   text-align: left; 
   cursor: pointer; 
+  white-space: nowrap;
 }
 
-.nav-dropdown-trigger span { flex: 1; }
+.nav-dropdown-trigger span { flex: 1 }
 .nav-dropdown-trigger .side-icon:last-child { 
   transition: transform 0.2s ease; 
-  margin-left: auto; 
+  margin-left: auto;
+  margin-right: 0;
+  flex-shrink: 0;
 }
 .nav-dropdown-trigger.open .side-icon:last-child { 
   transform: rotate(180deg); 
