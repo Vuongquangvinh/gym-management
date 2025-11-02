@@ -50,14 +50,8 @@ export const initializeFirebaseApp = () => {
 
 export const getFirebaseApp = () => app;
 
-<<<<<<< HEAD
-// Export admin for use in other modules
-export { admin };
-export default admin;
-=======
 // Export Firestore database instance
 export const db = admin.firestore();
 
 // Export admin for direct use
 export { admin };
->>>>>>> 28/10-tach-nhanh
