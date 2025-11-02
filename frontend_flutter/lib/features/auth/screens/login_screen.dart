@@ -6,6 +6,7 @@ import '../widgets/input_widget.dart';
 import '../widgets/button_widget.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../../../feature_pt/auth_pt/screen/pt_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -375,6 +376,39 @@ class _LoginScreenState extends State<LoginScreen>
                                   style: const TextStyle(color: Colors.red),
                                 ),
                               ],
+                              const SizedBox(height: 16),
+                              // AuthButton(
+                              //   text: 'Đăng nhập với tài khoản PT',
+                              //   icon: Icons.person,
+                              //   onPressed: () {
+                              //     Navigator.of(context).push(
+                              //       MaterialPageRoute(
+                              //         builder: (_) => PtLoginScreen(),
+                              //       ),
+                              //     );
+                              //   },
+                              // ),
+                              //tạo 1 nút chuyển sang PT login, không dùng AuthButton, nằm góc bên phải gửi OTp
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => PtLoginScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Đăng nhập với tài khoản PT',
+                                    style: GoogleFonts.montserrat(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -383,39 +417,6 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 24),
 
                     // Footer
-                    FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Chưa có tài khoản? ',
-                            style: GoogleFonts.montserrat(
-                              color: context.textSecondary,
-                              fontSize: 14,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // TODO: Chuyển sang màn hình đăng ký
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                            ),
-                            child: Text(
-                              'Đăng ký ngay',
-                              style: GoogleFonts.montserrat(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 32),
                   ],
                 ),

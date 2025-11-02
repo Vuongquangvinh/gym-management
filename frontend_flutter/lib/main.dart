@@ -21,6 +21,7 @@ import "features/package/screens/payment_history_screen.dart";
 import 'features/personal_PT/screen/my_contracts_screen.dart';
 import 'features/personal_PT/screen/contract_detail_screen.dart';
 import 'features/personal_PT/provider/contract_provider.dart';
+import 'feature_pt/auth_pt/provider/pt_auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ContractProvider()),
         ChangeNotifierProvider(create: (_) => ContractDetailProvider()),
+        ChangeNotifierProvider(create: (_) => PtAuthProvider()),
       ],
       child: MyApp(),
     ),
