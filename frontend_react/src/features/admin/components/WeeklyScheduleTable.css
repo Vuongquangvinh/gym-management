@@ -1,0 +1,766 @@
+.weekly-schedule-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.weekly-schedule-table * {
+  box-sizing: border-box;
+}
+
+.schedule-legend {
+  display: flex;
+  gap: 20px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-color.fulltime {
+  background: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-left: 3px solid #4caf50;
+  border-radius: 0 2px 2px 0;
+}
+
+.legend-color.parttime {
+  background: #fff3e0;
+  border: 1px solid #ff9800;
+  border-left: 3px solid #ff9800;
+  border-radius: 0 2px 2px 0;
+}
+
+.legend-color.no-schedule {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-left: 3px solid #e0e0e0;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Removed duplicate definition - using the one below */
+
+.employee-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.add-schedule-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.add-schedule-btn:hover {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.day-name {
+  font-weight: 700;
+  color: #1976d2;
+  font-size: 16px;
+  margin-bottom: 6px;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.day-date {
+  font-size: 14px;
+  color: #495057;
+  text-align: center;
+  line-height: 1.4;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: #e3f2fd;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* Table Layout */
+.schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  table-layout: fixed;
+}
+
+/* Column widths controlled by colgroup in JSX */
+
+.schedule-table thead {
+  display: table-header-group;
+}
+
+.schedule-table tbody {
+  display: table-row-group;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.schedule-table th {
+  padding: 0;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  box-sizing: border-box;
+  background: #f5f7fa;
+  border-bottom: 2px solid #d0d7de;
+  border-right: 1px solid #d0d7de;
+  position: relative;
+}
+
+.schedule-table th > div {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-table th:last-child {
+  border-right: none;
+}
+
+/* Day columns background - removed gradient for cleaner look */
+.schedule-table th.day-column {
+  background: #f5f7fa;
+}
+
+.schedule-table td {
+  padding: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid #e5e8eb;
+  border-right: 1px solid #d0d7de;
+  vertical-align: top;
+  position: relative;
+}
+
+.schedule-table td:last-child {
+  border-right: none;
+}
+
+/* Alternating background colors for day columns - removed gradient */
+.schedule-table td:nth-child(n+2):nth-child(-n+8) {
+  background: #ffffff;
+}
+
+.employee-row:hover td {
+  background: #f8f9fa !important;
+}
+
+.employee-info {
+  padding: 0 !important;
+  display: table-cell !important;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.employee-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 12px;
+}
+
+.employee-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 2px solid #bbdefb;
+}
+
+.employee-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.employee-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.employee-name {
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.employee-position {
+  font-size: 13px;
+  color: #495057;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.employee-shift {
+  font-size: 13px;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Fulltime employee shift badge */
+.employee-shift.fulltime {
+  background: #4caf50 !important;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+/* Parttime employee shift badge */
+.employee-shift.parttime {
+  background: #ff9800 !important;
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+.day-cell {
+  padding: 16px 12px !important;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-height: 100px;
+  display: table-cell !important;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.day-cell:last-child {
+  border-right: none;
+}
+
+.day-cell:hover {
+  background: #f0f8ff;
+}
+
+.day-cell.fulltime.has-schedule {
+  background: #e8f5e8 !important;
+}
+
+.day-cell.fulltime.has-schedule::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #4caf50;
+}
+
+.day-cell.parttime.has-schedule {
+  background: #fff3e0 !important;
+}
+
+.day-cell.parttime.has-schedule::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #ff9800;
+}
+
+.day-cell.parttime.no-schedule {
+  background: #fafafa !important;
+  color: #999;
+}
+
+.day-cell.parttime.no-schedule::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #e0e0e0;
+}
+
+.schedule-info {
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px;
+  height: 100%;
+}
+
+.schedule-time {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.schedule-info.fulltime .schedule-time {
+  color: #4caf50;
+}
+
+.schedule-info.parttime .schedule-time {
+  color: #ff9800;
+}
+
+.schedule-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.status-icon {
+  margin-bottom: 2px;
+}
+
+.status-icon.completed {
+  color: #4caf50;
+}
+
+.status-icon.in-progress {
+  color: #ff9800;
+}
+
+.status-icon.not-started {
+  color: #f44336;
+}
+
+.status-text {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  line-height: 1.3;
+  width: 100%;
+  word-wrap: break-word;
+  font-weight: 500;
+}
+
+.schedule-notes {
+  margin-top: 4px;
+  padding: 2px 4px;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-radius: 3px;
+  border-left: 2px solid #ffc107;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.notes-label {
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.notes-text {
+  color: #856404;
+  font-weight: 500;
+  word-wrap: break-word;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Notes Column Styles */
+.notes-column {
+  display: block !important;
+  text-align: center;
+  padding: 16px 12px !important;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.notes-cell {
+  padding: 16px 12px !important;
+  background: #fafafa;
+  min-height: 100px;
+  display: table-cell !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.no-notes {
+  color: #999;
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.notes-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-item {
+  background: #fff3e0;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.note-date {
+  font-weight: 600;
+  color: #ff9800;
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+.note-text {
+  color: #333;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.no-schedule {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .weekly-schedule-table {
+    overflow-x: auto;
+  }
+  
+  .schedule-table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .employee-avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  .employee-name {
+    font-size: 14px;
+  }
+  
+  .employee-position {
+    font-size: 12px;
+  }
+  
+  .employee-shift {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+  
+  .day-name {
+    font-size: 14px;
+  }
+  
+  .day-date {
+    font-size: 12px;
+  }
+  
+  .schedule-time {
+    font-size: 12px;
+  }
+  
+  .status-text {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .schedule-legend {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .legend-item {
+    font-size: 13px;
+  }
+  
+  .employee-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .employee-name {
+    font-size: 13px;
+  }
+  
+  .day-name {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  .weekly-schedule-table {
+    border-radius: 8px;
+  }
+  
+  .schedule-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .legend-item {
+    font-size: 12px;
+  }
+  
+  .schedule-table th > div {
+    padding: 12px 8px;
+  }
+  
+  .day-name {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  
+  .day-date {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+  
+  .add-schedule-btn {
+    font-size: 11px;
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  
+  .add-schedule-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .employee-wrapper {
+    padding: 12px 8px;
+    gap: 8px;
+  }
+  
+  .employee-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+  
+  .employee-name {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+  
+  .employee-position {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  
+  .employee-shift {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  
+  .day-cell {
+    min-height: 80px;
+    padding: 12px 8px !important;
+  }
+  
+  .schedule-info {
+    padding: 2px;
+  }
+  
+  .schedule-time {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  
+  .schedule-status {
+    gap: 2px;
+  }
+  
+  .status-text {
+    font-size: 10px;
+  }
+  
+  .notes-cell {
+    padding: 12px 8px !important;
+    font-size: 11px;
+  }
+  
+  .notes-header {
+    font-size: 12px;
+  }
+  
+  .note-item {
+    padding: 4px;
+    margin-bottom: 4px;
+  }
+  
+  .note-date {
+    font-size: 10px;
+  }
+  
+  .note-text {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-legend {
+    padding: 10px;
+  }
+  
+  .legend-item {
+    font-size: 11px;
+    gap: 6px;
+  }
+  
+  .legend-color {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .schedule-table th > div {
+    padding: 10px 6px;
+  }
+  
+  .day-name {
+    font-size: 11px;
+  }
+  
+  .day-date {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+  
+  .add-schedule-btn {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+  
+  .add-schedule-btn span {
+    display: none;
+  }
+  
+  .employee-wrapper {
+    padding: 10px 6px;
+    gap: 6px;
+  }
+  
+  .employee-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  
+  .employee-name {
+    font-size: 11px;
+  }
+  
+  .employee-position {
+    font-size: 10px;
+  }
+  
+  .employee-shift {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  .day-cell {
+    min-height: 70px;
+    padding: 10px 6px !important;
+  }
+  
+  .schedule-time {
+    font-size: 10px;
+  }
+  
+  .status-text {
+    font-size: 9px;
+  }
+  
+  .notes-cell {
+    padding: 10px 6px !important;
+    font-size: 10px;
+  }
+  
+  .notes-header {
+    font-size: 11px;
+  }
+  
+  .note-date {
+    font-size: 9px;
+  }
+  
+  .note-text {
+    font-size: 9px;
+  }
+}

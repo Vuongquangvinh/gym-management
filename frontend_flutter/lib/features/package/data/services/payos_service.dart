@@ -64,6 +64,7 @@ class PayOSService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         logger.i('Tạo payment link thành công!');
+<<<<<<< HEAD
         logger.d('📦 Full response data: ${jsonEncode(data)}');
         logger.d('  - success: ${data['success']}');
         logger.d('  - data: ${data['data']}');
@@ -75,6 +76,8 @@ class PayOSService {
           logger.d('  - amount: ${data['data']['amount']}');
         }
 
+=======
+>>>>>>> 28/10-tach-nhanh
         return data;
       } else {
         final error = jsonDecode(response.body);
@@ -151,6 +154,7 @@ class PayOSService {
       rethrow;
     }
   }
+<<<<<<< HEAD
 
   /// Xác nhận thanh toán thủ công (sau khi chuyển khoản)
   static Future<Map<String, dynamic>> confirmPayment(String orderCode) async {
@@ -180,4 +184,6 @@ class PayOSService {
       rethrow;
     }
   }
+=======
+>>>>>>> 28/10-tach-nhanh
 }

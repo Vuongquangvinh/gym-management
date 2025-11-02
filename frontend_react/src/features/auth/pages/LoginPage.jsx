@@ -48,13 +48,39 @@ export default function LoginPage() {
               
           const result = await signIn(email,password);
           const jwtToken = result.token;
-          console.log("JWT Token:", jwtToken);
           const userData = result.user;
-          console.log("User Data:", userData);
           localStorage.setItem('token', jwtToken); // Lưu token vào localStorage
   
-  
-          navigate('/admin'); // Chuyển hướng đến trang dashboard sau khi thành công
+          // Lấy thông tin employee để check role
+          try {
+            const { db } = await import('../../../firebase/lib/config/firebase');
+            const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
+            
+            const employeesRef = collection(db, 'employees');
+            const q = query(employeesRef, where('email', '==', userData.email), limit(1));
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+              const employee = snapshot.docs[0].data();
+              
+              // Redirect dựa vào role/position
+              if (employee.role === 'pt' || employee.position === 'PT') {
+                navigate('/pt'); // PT dashboard
+              } else if (employee.role === 'admin' || employee.position === 'Manager') {
+                navigate('/admin'); // Admin dashboard
+              } else {
+                // Staff/other roles -> default to admin for now
+                navigate('/admin');
+              }
+            } else {
+              // Không tìm thấy employee -> default to admin
+              navigate('/admin');
+            }
+          } catch (roleError) {
+            console.error('Error checking role:', roleError);
+            // Nếu lỗi khi check role, redirect về admin
+            navigate('/admin');
+          }
           } catch (err) {
               // Chuyển đổi mã lỗi của Firebase thành thông báo thân thiện
               let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";

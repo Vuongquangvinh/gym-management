@@ -151,8 +151,8 @@ export default function DetailMember({ user, isOpen, onClose, onUpdate }) {
           userName: user.full_name,
           userEmail: user.email,
           userPhone: user.phone_number,
-          returnUrl: `${window.location.origin}/payment/success`,
-          cancelUrl: `${window.location.origin}/payment/success`,
+          returnUrl: `${window.location.origin}/admin`,
+          cancelUrl: `${window.location.origin}/admin`,
         }),
       });
 

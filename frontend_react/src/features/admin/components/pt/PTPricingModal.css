@@ -1130,19 +1130,6 @@
   .add-benefit-group {
     flex-direction: column;
   }
-
-  .delete-confirm-modal {
-    width: 95vw;
-    margin: 20px;
-  }
-
-  .delete-confirm-actions {
-    flex-direction: column-reverse;
-  }
-
-  .delete-confirm-actions button {
-    width: 100%;
-  }
 }
 
 @media (max-width: 480px) {

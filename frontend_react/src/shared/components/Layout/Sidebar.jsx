@@ -16,6 +16,8 @@ const Icon = ({ name }) => {
     reports: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h18v18H3z" stroke="currentColor" strokeWidth="1.2"/><path d="M7 14h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>),
     settings: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" stroke="currentColor" strokeWidth="1.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 1-1.95-.41 1.65 1.65 0 0 0-2.33 0 1.65 1.65 0 0 1-1.95.41 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 1-.41-1.95 1.65 1.65 0 0 0 0-2.33 1.65 1.65 0 0 1 .41-1.95 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 0 1 6.1 2.1l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 1 1.95.41 1.65 1.65 0 0 0 2.33 0 1.65 1.65 0 0 1 1.95-.41 1.65 1.65 0 0 0 1.82-.33l.06-.06A2 2 0 0 1 19.4 4.6l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 1 .41 1.95 1.65 1.65 0 0 0 0 2.33 1.65 1.65 0 0 1-.41 1.95z" stroke="currentColor" strokeWidth="1"/></svg>),
     pt: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.2"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="1.2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.2"/><path d="M20 8h2m-1-1v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>),
+    face: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.2"/><circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.2"/><path d="M8 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.2"/></svg>),
+    schedule: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="1.2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="1.2"/></svg>),
     chevronDown: (<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>),
   };
   return <span className="side-icon">{map[name]}</span>;
@@ -26,17 +28,21 @@ export default function Sidebar() {
   const { currentUser } = useAuth() || {};
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const checkinDropdownRef = useRef(null);
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Admin';
   const [showAddUser, setShowAddUser] = useState(false);
   const [employeeDropdownOpen, setEmployeeDropdownOpen] = useState(false);
+  const [checkinDropdownOpen, setCheckinDropdownOpen] = useState(false);
 
   const handleOpenAddUser = () => setShowAddUser(true);
   const handleCloseAddUser = () => setShowAddUser(false);
   const toggleEmployeeDropdown = () => setEmployeeDropdownOpen(!employeeDropdownOpen);
+  const toggleCheckinDropdown = () => setCheckinDropdownOpen(!checkinDropdownOpen);
 
   // Close dropdown when navigating to a new page
   useEffect(() => {
     setEmployeeDropdownOpen(false);
+    setCheckinDropdownOpen(false);
   }, [location.pathname]);
 
   // Close dropdown when clicking outside
@@ -44,6 +50,9 @@ export default function Sidebar() {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setEmployeeDropdownOpen(false);
+      }
+      if (checkinDropdownRef.current && !checkinDropdownRef.current.contains(event.target)) {
+        setCheckinDropdownOpen(false);
       }
     }
 
@@ -53,12 +62,8 @@ export default function Sidebar() {
     };
   }, []);
   const handleSubmitAddUser = async (userData) => {
-    console.log("🚀 ~ handleSubmitAddUser ~ userData:", userData);
-    
     try {
       // Bước 1: Kiểm tra số điện thoại và TẠO USER TRƯỚC
-      console.log('🔍 Bước 1: Kiểm tra và tạo user trong spending_users...');
-      
       // Loại bỏ các trường không thuộc schema của SpendingUser
       const {
         package_name: _package_name,
@@ -69,10 +74,8 @@ export default function Sidebar() {
       
       // Tạo user trong spending_users (sẽ kiểm tra duplicate phone number)
       const newUser = await AuthService.createUserByAdmin(validUserData);
-      console.log('✅ User đã được tạo trong spending_users:', newUser);
       
       // Bước 2: Tạo link thanh toán PayOS
-      console.log('💳 Bước 2: Tạo payment link...');
       const res = await fetch('/api/payos/create-gym-payment', {
         method: 'POST',
         headers: {
@@ -99,17 +102,14 @@ export default function Sidebar() {
         localStorage.setItem('pendingPaymentUserId', newUser._id);
         localStorage.setItem('pendingPaymentOrderCode', paymentData.data.orderCode);
         
-        console.log('🔗 Bước 3: Chuyển hướng đến trang thanh toán...');
         // Chuyển hướng đến trang thanh toán PayOS
         window.location.href = paymentData.data.checkoutUrl;
       } else {
         // Nếu không tạo được payment link, xóa user đã tạo
-        console.error('❌ Không thể tạo payment link, đang xóa user...');
         await AuthService.deleteSpendingUser(newUser._id);
         alert('Không thể tạo link thanh toán: ' + (paymentData.message || 'Lỗi không xác định'));
       }
     } catch (error) {
-      console.error("❌ Lỗi trong handleSubmitAddUser:", error);
       alert('Có lỗi xảy ra: ' + error.message);
     }
   };
@@ -144,16 +144,41 @@ export default function Sidebar() {
                 <NavLink to="/admin/pt-pricing" className={({isActive})=> isActive? 'active':''}> 
                   <Icon name="pt"/> Quản lý PT
                 </NavLink>
+                <NavLink to="/admin/pending-requests" className={({isActive})=> isActive? 'active':''}> 
+                  <Icon name="clock"/> Yêu cầu chờ duyệt
+                </NavLink>
               </div>
             )}
           </div>
 
-          <NavLink to="/admin/checkins" className={({isActive})=> isActive? 'active':''}><Icon name="checkins"/> Check-ins</NavLink>
-          <NavLink to="/admin/checkin-stats" className={({isActive})=> isActive? 'active':''}><Icon name="stats"/> Thống kê Check-in</NavLink>
+          {/* Check-in Dropdown */}
+          <div className="nav-dropdown" ref={checkinDropdownRef}>
+            <button 
+              className={`nav-dropdown-trigger ${checkinDropdownOpen ? 'open' : ''}`}
+              onClick={toggleCheckinDropdown}
+            >
+              <Icon name="checkins"/> 
+              <span>Check-in</span>
+              <Icon name="chevronDown"/>
+            </button>
+            
+            {checkinDropdownOpen && (
+              <div className="nav-dropdown-content">
+                <NavLink to="/admin/checkins" className={({isActive})=> isActive? 'active':''}> 
+                  <Icon name="checkins"/> Check-ins
+                </NavLink>
+                <NavLink to="/admin/checkin-stats" className={({isActive})=> isActive? 'active':''}> 
+                  <Icon name="stats"/> Thống kê Check-in
+                </NavLink>
+              </div>
+            )}
+          </div>
+
+          <NavLink to="/admin/face-checkin" className={({isActive})=> isActive? 'active':''}><Icon name="face"/> Face Checkin</NavLink>
+          <NavLink to="/admin/schedule" className={({isActive})=> isActive? 'active':''}><Icon name="schedule"/> Lịch làm việc</NavLink>
           <NavLink to="/admin/packages" className={({isActive})=> isActive? 'active':''}><Icon name="packages"/> Packages</NavLink>
           <NavLink to="/admin/reports" className={({isActive})=> isActive? 'active':''}><Icon name="reports"/> Reports</NavLink>
           <NavLink to="/admin/settings" className={({isActive})=> isActive? 'active':''}><Icon name="settings"/> Settings</NavLink>
-          <NavLink to="/admin/payment-history" className={({isActive})=> isActive? 'active':''}><Icon name="pt"/> Lịch sử thanh toán</NavLink>
         </nav>
 
         <div className="side-cta"> 

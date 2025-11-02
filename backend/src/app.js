@@ -1,10 +1,11 @@
 import express from "express";
-import "./config/firebase.js"; // 🔥 Import để khởi tạo Firebase Admin SDK
 import { initializeFirebaseApp } from "./config/firebase.js";
 import dotenv from "dotenv";
 import authRoutes from "./features/auth/auth.routes.js";
 import payosRoutes from "./features/payos/payos.routes.js";
 import uploadRoutes from "./features/upload/upload.routes.js";
+import faceRoutes from "./features/face/face.routes.js";
+import employeeRoutes from "./features/employees/employee.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
@@ -22,15 +23,14 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from frontend public directory
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "../../frontend_react/public/uploads"))
-);
+app.use('/uploads', express.static(path.join(__dirname, '../../frontend_react/public/uploads')));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/payos", payosRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/face", faceRoutes);
+app.use("/api/employees", employeeRoutes);
 
 // Serve PayOS test page
 app.get("/payos-test", (req, res) => {

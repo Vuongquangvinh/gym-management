@@ -45,9 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+<<<<<<< HEAD
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Cần quyền để lưu mã QR vào thư viện ảnh</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cần quyền để truy cập thư viện ảnh</string>
+=======
+>>>>>>> 28/10-tach-nhanh
 </dict>
 </plist>

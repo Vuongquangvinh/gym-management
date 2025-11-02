@@ -40,7 +40,8 @@ export class EmployeeModel {
     avatarUrl = '',
     idCard = '',
     notes = '',
-    ptInfo = null
+    ptInfo = null,
+    faceRegistered = false
   } = {}) {
     this._id = _id;
     this.fullName = fullName;
@@ -63,6 +64,7 @@ export class EmployeeModel {
     this.avatarUrl = avatarUrl;
     this.idCard = idCard;
     this.notes = notes;
+    this.faceRegistered = faceRegistered;
     
     // PT-specific information (only for PT position)
     this.ptInfo = ptInfo || (position === 'PT' ? {
@@ -115,7 +117,7 @@ export class EmployeeModel {
       'date.max': 'Ngày bắt đầu không được lớn hơn ngày hiện tại'
     }),
     status: Joi.string().valid('active', 'inactive', 'resigned', 'suspended').default('active'),
-    shift: Joi.string().valid('morning', 'afternoon', 'evening', 'full-time', 'part-time').required(),
+    shift: Joi.string().valid('fulltime', 'parttime').required(),
     role: Joi.string().valid('employee', 'pt', 'manager', 'admin').default('employee'),
     salary: Joi.number().min(0).required().messages({
       'number.min': 'Lương không được âm'
@@ -133,6 +135,7 @@ export class EmployeeModel {
       'string.max': 'Ghi chú không được quá 500 ký tự'
     }),
     uid: Joi.string().allow(null).optional(),
+    faceRegistered: Joi.boolean().default(false).optional(),
     
     // PT Info validation (chỉ validate khi position = 'PT')
     ptInfo: Joi.when('position', {
@@ -211,8 +214,23 @@ export class EmployeeModel {
     })
   });
 
+  // Normalize shift values to new format
+  static normalizeShift(shift) {
+    const shiftMap = {
+      'full-time': 'fulltime',
+      'part-time': 'parttime',
+      'morning': 'parttime',
+      'afternoon': 'parttime', 
+      'evening': 'parttime'
+    };
+    return shiftMap[shift] || shift;
+  }
+
   // Validate employee data
   validate() {
+    // Normalize shift before validation
+    const normalizedShift = EmployeeModel.normalizeShift(this.shift);
+    
     const { error } = EmployeeModel.validationSchema.validate({
       fullName: this.fullName,
       gender: this.gender,
@@ -223,7 +241,7 @@ export class EmployeeModel {
       position: this.position,
       startDate: this.startDate,
       status: this.status,
-      shift: this.shift,
+      shift: normalizedShift,
       role: this.role,
       salary: this.salary,
       commissionRate: this.commissionRate,
@@ -238,6 +256,9 @@ export class EmployeeModel {
     if (error) {
       throw new Error(error.details[0].message);
     }
+    
+    // Update shift to normalized value
+    this.shift = normalizedShift;
     return true;
   }
 
@@ -263,7 +284,8 @@ export class EmployeeModel {
       totalClients: this.totalClients,
       avatarUrl: this.avatarUrl || '',
       idCard: this.idCard || '',
-      notes: this.notes || ''
+      notes: this.notes || '',
+      faceRegistered: this.faceRegistered || false
     };
 
     // Chỉ thêm ptInfo nếu là PT

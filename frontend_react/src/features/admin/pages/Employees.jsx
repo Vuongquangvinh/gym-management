@@ -3,6 +3,7 @@ import { EmployeeProvider, useEmployees } from '../../../firebase/lib/features/e
 import AddEmployeeModal from '../components/AddEmployeeModal.jsx';
 import EditEmployeeModal from '../components/EditEmployeeModal.jsx';
 import EmployeeAvatar from '../../../shared/components/EmployeeAvatar/EmployeeAvatar.jsx';
+import Swal from 'sweetalert2';
 import './Employees.css';
 
 function EmployeesContent() {
@@ -22,8 +23,6 @@ function EmployeesContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -47,27 +46,42 @@ function EmployeesContent() {
 
   // Handle edit employee
   const handleEditEmployee = (employee) => {
-    console.log('🔧 Edit employee clicked:', employee);
-    console.log('🆔 Employee ID fields:', { _id: employee._id, id: employee.id });
     setSelectedEmployee(employee);
     setShowEditModal(true);
   };
 
   // Handle delete confirmation
-  const handleDeleteClick = (employee) => {
-    setEmployeeToDelete(employee);
-    setShowDeleteConfirm(true);
-  };
+  const handleDeleteClick = async (employee) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Xác nhận xóa nhân viên',
+      html: `Bạn có chắc chắn muốn xóa nhân viên <strong>${employee.fullName}</strong>?`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#d32f2f',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true
+    });
 
-  // Confirm delete employee
-  const confirmDeleteEmployee = async () => {
-    if (employeeToDelete) {
+    if (result.isConfirmed) {
       try {
-        await deleteEmployee(employeeToDelete._id);
-        setShowDeleteConfirm(false);
-        setEmployeeToDelete(null);
+        await deleteEmployee(employee._id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Thành công',
+          text: 'Xóa nhân viên thành công!',
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#1976d2'
+        });
       } catch (error) {
-        console.error('Error deleting employee:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi',
+          text: 'Có lỗi xảy ra khi xóa nhân viên',
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#1976d2'
+        });
       }
     }
   };
@@ -407,38 +421,6 @@ function EmployeesContent() {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && employeeToDelete && (
-        <div className="modal-overlay">
-          <div className="delete-confirm-modal">
-            <h3>Xác nhận xóa nhân viên</h3>
-            <p>
-              Bạn có chắc chắn muốn xóa nhân viên{' '}
-              <strong>{employeeToDelete.fullName}</strong>?
-            </p>
-            <p className="warning">
-              ⚠️ Hành động này không thể hoàn tác!
-            </p>
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setEmployeeToDelete(null);
-                }}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-confirm-delete"
-                onClick={confirmDeleteEmployee}
-              >
-                Xóa nhân viên
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { ImageUpload } from '../../../shared/components/ImageUpload';
 import { ImageModal } from '../../../shared/components/ImageModal';
 import EmployeeFileUploadService from '../../../firebase/lib/features/employee/employee-file-upload.service.js';
 import { EmployeeModel } from '../../../firebase/lib/features/employee/employee.model.js';
+import Swal from 'sweetalert2';
 import './AddEmployeeModal.css';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
@@ -35,6 +36,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   const [checkingIdCard, setCheckingIdCard] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle form input change
   const handleChange = (e) => {
@@ -166,21 +169,98 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         }
       }
 
-      // Convert string values to appropriate types
+      // Step 1: Create Firebase Auth account first
+      let uid = null;
+      let tempPassword = '';
+      
+      try {
+        const authResponse = await fetch('http://localhost:3000/api/employees/create-account', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            displayName: formData.fullName,
+            phone: formData.phone
+          })
+        });
+
+        const authResult = await authResponse.json();
+        
+        if (!authResult.success) {
+          throw new Error(authResult.error || 'Không thể tạo tài khoản đăng nhập');
+        }
+
+        uid = authResult.uid;
+        tempPassword = authResult.tempPassword;
+        
+        // Set generated password to display in modal
+        setGeneratedPassword(tempPassword);
+        
+        console.log('✅ Created Firebase Auth account:', uid);
+      } catch (authError) {
+        console.error('Error creating auth account:', authError);
+        throw new Error('Không thể tạo tài khoản đăng nhập: ' + authError.message);
+      }
+
+      // Step 2: Convert string values to appropriate types
       const employeeData = {
         ...formData,
         idCard: formData.idCard,
+        uid: uid, // Link to Firebase Auth
+        tempPassword: tempPassword, // Lưu mật khẩu tạm thời để admin có thể xem lại
         avatarUrl: avatarUrl || '',
         dateOfBirth: new Date(formData.dateOfBirth),
         startDate: new Date(formData.startDate),
         salary: parseFloat(formData.salary),
         commissionRate: parseFloat(formData.commissionRate),
-        totalClients: 0
+        totalClients: 0,
+        faceRegistered: false // Default face registration status
       };
 
+      // Step 3: Create employee record in Firestore
       await addEmployee(employeeData);
+      
       resetForm();
       onClose();
+      
+      // Step 4: Show success with password using SweetAlert2
+      await Swal.fire({
+        icon: 'success',
+        title: 'Thêm nhân viên thành công!',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p><strong>👤 Nhân viên:</strong> ${formData.fullName}</p>
+            <p><strong>📧 Email:</strong> ${formData.email}</p>
+            <hr style="margin: 15px 0;">
+            <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
+              <strong>🔑 Mật khẩu tạm thời:</strong><br>
+              <span style="font-size: 20px; font-weight: bold; color: #000;">${tempPassword}</span>
+            </p>
+            <p style="font-size: 12px; color: #6c757d;">
+              💡 Mật khẩu đã được lưu trong hệ thống và có thể xem lại trong phần chỉnh sửa nhân viên.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '📋 Copy Mật Khẩu',
+        cancelButtonText: 'Đóng',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        width: '500px'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigator.clipboard.writeText(tempPassword);
+          Swal.fire({
+            icon: 'success',
+            title: 'Đã copy!',
+            text: 'Mật khẩu đã được copy vào clipboard',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
+      });
     } catch (error) {
       console.error('Error adding employee:', error);
       setErrors({ submit: error.message || 'Có lỗi xảy ra khi thêm nhân viên' });
@@ -426,16 +506,13 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     className={errors.shift ? 'error' : ''}
                   >
                     <option value="">Chọn ca làm việc</option>
-                    <option value="morning">Ca sáng (6:00-14:00)</option>
-                    <option value="afternoon">Ca chiều (14:00-22:00)</option>
-                    <option value="evening">Ca tối (18:00-22:00)</option>
-                    <option value="full-time">Full-time (8:00-17:00)</option>
-                    <option value="part-time">Part-time</option>
+                    <option value="fulltime">Fulltime (8:00-17:00)</option>
+                    <option value="parttime">Partime</option>
                   </select>
                   {errors.shift && <span className="error-message">{errors.shift}</span>}
                 </div>
               </div>
-
+ 
               <div className="form-row">
                 <div className="form-group">
                   <label>Trạng Thái</label>
@@ -488,6 +565,87 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                   {errors.commissionRate && <span className="error-message">{errors.commissionRate}</span>}
                 </div>
               </div>
+            </div>
+
+            {/* Account Information Section */}
+            <div className="form-section">
+              <h3>Thông Tin Tài Khoản</h3>
+              
+              <div className="form-row">
+                <div className="form-group full-width">
+                  <label>Tài Khoản Đăng Nhập</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    style={{ 
+                      backgroundColor: '#f8f9fa', 
+                      color: '#6c757d',
+                      cursor: 'not-allowed'
+                    }}
+                    placeholder="Tài khoản sẽ dùng email đã nhập"
+                  />
+                  <small style={{ color: '#6c757d', fontSize: '0.85em' }}>
+                    💡 Tài khoản đăng nhập sẽ tự động tạo bằng email
+                  </small>
+                </div>
+              </div>
+
+              {generatedPassword && (
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>Mật Khẩu Tạm Thời</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={generatedPassword}
+                        disabled
+                        style={{ 
+                          flex: 1,
+                          backgroundColor: '#fff3cd', 
+                          color: '#856404',
+                          fontWeight: 'bold',
+                          border: '2px solid #ffc107'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          padding: '10px 15px',
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showPassword ? '🙈' : '👁️'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedPassword);
+                          alert('Đã copy mật khẩu!');
+                        }}
+                        style={{
+                          padding: '10px 15px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📋
+                      </button>
+                    </div>
+                    <small style={{ color: '#856404', fontSize: '0.85em' }}>
+                      ⚠️ Lưu ý: Mật khẩu này sẽ được gửi cho nhân viên để đăng nhập lần đầu
+                    </small>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Additional Information Section */}

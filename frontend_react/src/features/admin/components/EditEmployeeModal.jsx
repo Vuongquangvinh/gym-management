@@ -4,6 +4,7 @@ import { ImageUpload } from '../../../shared/components/ImageUpload';
 import { ImageModal } from '../../../shared/components/ImageModal';
 import EmployeeFileUploadService from '../../../firebase/lib/features/employee/employee-file-upload.service.js';
 import { EmployeeModel } from '../../../firebase/lib/features/employee/employee.model.js';
+import Swal from 'sweetalert2';
 import './AddEmployeeModal.css'; 
 export default function EditEmployeeModal({ isOpen, onClose, employee }) {
   const { updateEmployee } = useEmployees();
@@ -34,6 +35,9 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
   const [checkingIdCard, setCheckingIdCard] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
   // Initialize form with employee data
   useEffect(() => {
@@ -259,9 +263,116 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
     }
   };
 
+  // Handle password reset
+  const handleResetPassword = async () => {
+    if (!employee.email) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không tìm thấy email của nhân viên'
+      });
+      return;
+    }
+
+    const confirmResult = await Swal.fire({
+      icon: 'warning',
+      title: 'Xác nhận reset mật khẩu',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <p>Bạn có chắc muốn reset mật khẩu cho:</p>
+          <p style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+            <strong>👤 ${employee.fullName}</strong><br>
+            <span style="color: #6c757d;">📧 ${employee.email}</span>
+          </p>
+          <p style="font-size: 13px; color: #856404;">
+            ⚠️ Mật khẩu mới sẽ được tạo tự động và lưu vào hệ thống.
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Reset',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ffc107',
+      cancelButtonColor: '#6c757d'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    setIsResettingPassword(true);
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/employees/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: employee.email
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể reset mật khẩu');
+      }
+
+      setNewPassword(result.tempPassword);
+      
+      // Show success with password
+      await Swal.fire({
+        icon: 'success',
+        title: 'Reset mật khẩu thành công!',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p><strong>👤 Nhân viên:</strong> ${employee.fullName}</p>
+            <p><strong>📧 Email:</strong> ${employee.email}</p>
+            <hr style="margin: 15px 0;">
+            <p style="color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0;">
+              <strong>🔑 Mật khẩu mới:</strong><br>
+              <span style="font-size: 20px; font-weight: bold; color: #000;">${result.tempPassword}</span>
+            </p>
+            <p style="font-size: 12px; color: #6c757d;">
+              ${result.isNewAccount ? '✨ Đã tạo tài khoản mới' : '🔄 Đã reset mật khẩu'}<br>
+              💡 Mật khẩu đã được lưu trong hệ thống.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '📋 Copy Mật Khẩu',
+        cancelButtonText: 'Đóng',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        width: '500px'
+      }).then((copyResult) => {
+        if (copyResult.isConfirmed) {
+          navigator.clipboard.writeText(result.tempPassword);
+          Swal.fire({
+            icon: 'success',
+            title: 'Đã copy!',
+            text: 'Mật khẩu đã được copy vào clipboard',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: error.message || 'Không thể reset mật khẩu'
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   // Handle modal close
   const handleClose = () => {
     if (!isSubmitting) {
+      setNewPassword('');
+      setShowPassword(false);
       onClose();
     }
   };
@@ -468,11 +579,8 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
                     className={errors.shift ? 'error' : ''}
                   >
                     <option value="">Chọn ca làm việc</option>
-                    <option value="morning">Ca sáng (6:00-14:00)</option>
-                    <option value="afternoon">Ca chiều (14:00-22:00)</option>
-                    <option value="evening">Ca tối (18:00-22:00)</option>
-                    <option value="full-time">Full-time (8:00-17:00)</option>
-                    <option value="part-time">Part-time</option>
+                    <option value="fulltime">Fulltime (8:00-17:00)</option>
+                    <option value="parttime">Partime</option>
                   </select>
                   {errors.shift && <span className="error-message">{errors.shift}</span>}
                 </div>
@@ -531,6 +639,157 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
                   {errors.commissionRate && <span className="error-message">{errors.commissionRate}</span>}
                 </div>
               </div>
+            </div>
+
+            {/* Account Information Section */}
+            <div className="form-section">
+              <h3>Thông Tin Tài Khoản</h3>
+              
+              <div className="form-row">
+                <div className="form-group full-width">
+                  <label>Tài Khoản Đăng Nhập</label>
+                  <input
+                    type="email"
+                    value={employee.email || 'Chưa có email'}
+                    disabled
+                    style={{ 
+                      backgroundColor: '#f8f9fa', 
+                      color: '#6c757d',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                  {employee.uid && (
+                    <small style={{ color: '#28a745', fontSize: '0.85em' }}>
+                      ✅ Đã có tài khoản Firebase Auth (UID: {employee.uid.substring(0, 10)}...)
+                    </small>
+                  )}
+                </div>
+              </div>
+
+              {employee.tempPassword && (
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>Mật Khẩu Hiện Tại</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={employee.tempPassword}
+                        disabled
+                        style={{ 
+                          flex: 1,
+                          backgroundColor: '#e7f3ff', 
+                          color: '#004085',
+                          fontWeight: 'bold',
+                          border: '1px solid #b3d7ff'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(employee.tempPassword);
+                          alert('Đã copy mật khẩu!');
+                        }}
+                        style={{
+                          padding: '10px 15px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📋
+                      </button>
+                    </div>
+                    <small style={{ color: '#004085', fontSize: '0.85em' }}>
+                      💡 Mật khẩu tạm thời được lưu trong hệ thống
+                    </small>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-row">
+                <div className="form-group full-width">
+                  <label>Quản Lý Mật Khẩu</label>
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={isResettingPassword || !employee.email}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      backgroundColor: isResettingPassword ? '#6c757d' : '#ffc107',
+                      color: '#000',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: isResettingPassword || !employee.email ? 'not-allowed' : 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {isResettingPassword ? '⏳ Đang reset...' : '🔄 Reset Mật Khẩu'}
+                  </button>
+                  <small style={{ color: '#856404', fontSize: '0.85em' }}>
+                    ⚠️ Mật khẩu mới sẽ được tạo tự động và hiển thị để bạn gửi cho nhân viên
+                  </small>
+                </div>
+              </div>
+
+              {newPassword && (
+                <div className="form-row">
+                  <div className="form-group full-width">
+                    <label>Mật Khẩu Mới (Vừa Reset)</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        disabled
+                        style={{ 
+                          flex: 1,
+                          backgroundColor: '#d4edda', 
+                          color: '#155724',
+                          fontWeight: 'bold',
+                          border: '2px solid #28a745'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          padding: '10px 15px',
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {showPassword ? '🙈' : '👁️'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(newPassword);
+                          alert('Đã copy mật khẩu!');
+                        }}
+                        style={{
+                          padding: '10px 15px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📋
+                      </button>
+                    </div>
+                    <small style={{ color: '#155724', fontSize: '0.85em' }}>
+                      ✅ Hãy gửi mật khẩu này cho nhân viên ngay!
+                    </small>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Additional Information Section */}
