@@ -1,241 +1,333 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
-import PTPackageModel from '../../../firebase/lib/features/pt/pt-package.model';
 import EmployeeService from '../../../firebase/lib/features/employee/employee.service';
-import TimeSlotManager from '../../admin/components/pt/TimeSlotManager';
+import { PendingRequestService } from '../../../firebase/lib/features/pending-request/pendingRequest.service';
+import PTPricingModal from '../../admin/components/pt/PTPricingModal';
 import Swal from 'sweetalert2';
-
-const PACKAGE_TYPES = [
-  { value: 'online_single', label: 'Online một người', icon: '👤' },
-  { value: 'online_group', label: 'Online nhóm 2 người', icon: '👥' },
-  { value: 'offline_single', label: 'Offline một người', icon: '🏋️‍♂️' },
-  { value: 'offline_group', label: 'Offline nhóm 2 người', icon: '🤝' }
-];
-
-const DURATION_OPTIONS = [
-  { value: 30, label: '30 phút' },
-  { value: 45, label: '45 phút' },
-  { value: 60, label: '60 phút' },
-  { value: 90, label: '90 phút' },
-  { value: 120, label: '120 phút' }
-];
-
-const SESSION_COUNT_OPTIONS = [1, 4, 8, 12, 16, 20, 24, 32];
-const MONTH_OPTIONS = [1, 3, 6, 9, 12];
 
 export default function PTPackages() {
   const { currentUser } = useAuth();
-  const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [employeeData, setEmployeeData] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [editingPackage, setEditingPackage] = useState(null);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'online_single',
-    price: '',
-    sessions: 1,
-    duration: 60,
-    description: '',
-    benefits: [],
-    isPopular: false,
-    isActive: true,
-    maxParticipants: 1,
-    discountPercent: 0,
-    validityDays: 90,
-    availableTimeSlots: [],
-    advanceBookingDays: 1,
-    allowSameDayBooking: true,
-    billingType: 'session',
-    months: 1
-  });
-
-  const [newBenefit, setNewBenefit] = useState('');
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [expandedRequestId, setExpandedRequestId] = useState(null);
 
   useEffect(() => {
-    loadData();
+    // Only load when currentUser has email
+    if (currentUser && currentUser.email) {
+      loadData();
+    }
   }, [currentUser]);
+
+  // Real-time listener for pending requests
+  useEffect(() => {
+    if (!employeeData?._id) return;
+
+    // Subscribe to real-time updates
+    const unsubscribe = PendingRequestService.subscribeToPackagePendingRequests(
+      employeeData._id,
+      (requests) => {
+        // Update state with real-time data
+        setPendingRequests(requests);
+        setLoadingRequests(false);
+      },
+      (error) => {
+        console.error('Error in real-time pending requests:', error);
+        setLoadingRequests(false);
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [employeeData?._id]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      // Lấy employee data
-      const employees = await EmployeeService.getEmployees({ email: currentUser?.email });
       
-      if (employees && employees.length > 0) {
-        const employee = employees[0];
-        setEmployeeData(employee);
-        
-        // Lấy packages của PT
-        const ptPackages = await PTPackageModel.getPackagesByPTId(employee._id);
-        setPackages(ptPackages);
+      if (!currentUser?.email) {
+        throw new Error('Không tìm thấy thông tin người dùng');
       }
+
+      // Lấy employee data bằng EmployeeService
+      const result = await EmployeeService.getEmployeeByEmail(currentUser.email);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Không tìm thấy thông tin nhân viên');
+      }
+
+      const employee = result.data;
+      setEmployeeData(employee);
+      
+      // Pending requests will be loaded by real-time listener
     } catch (error) {
       console.error('Error loading PT packages:', error);
       Swal.fire({
         icon: 'error',
         title: 'Lỗi',
-        text: 'Không thể tải danh sách gói tập'
+        text: error.message || 'Không thể tải danh sách gói tập'
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreate = () => {
-    setEditingPackage(null);
-    setFormData({
-      name: '',
-      type: 'online_single',
-      price: '',
-      sessions: 1,
-      duration: 60,
-      description: '',
-      benefits: [],
-      isPopular: false,
-      isActive: true,
-      maxParticipants: 1,
-      discountPercent: 0,
-      validityDays: 90,
-      availableTimeSlots: [],
-      advanceBookingDays: 1,
-      allowSameDayBooking: true,
-      billingType: 'session',
-      months: 1
-    });
-    setShowModal(true);
+  const handleModalClose = () => {
+    setShowModal(false);
   };
 
-  const handleEdit = (pkg) => {
-    setEditingPackage(pkg);
-    setFormData({
-      name: pkg.name || '',
-      type: pkg.type || 'online_single',
-      price: pkg.price || '',
-      sessions: pkg.sessions || 1,
-      duration: pkg.duration || 60,
-      description: pkg.description || '',
-      benefits: pkg.benefits || [],
-      isPopular: pkg.isPopular || false,
-      isActive: pkg.isActive !== undefined ? pkg.isActive : true,
-      maxParticipants: pkg.maxParticipants || 1,
-      discountPercent: pkg.discountPercent || 0,
-      validityDays: pkg.validityDays || 90,
-      availableTimeSlots: pkg.availableTimeSlots || [],
-      advanceBookingDays: pkg.advanceBookingDays || 1,
-      allowSameDayBooking: pkg.allowSameDayBooking !== undefined ? pkg.allowSameDayBooking : true,
-      billingType: pkg.billingType || 'session',
-      months: pkg.months || 1
-    });
-    setShowModal(true);
+  const handleModalUpdate = () => {
+    // Real-time listener will automatically update
+    // No need to manually reload
   };
 
-  const handleDelete = async (pkg) => {
+  const handleCancelRequest = async (requestId) => {
     const result = await Swal.fire({
-      title: 'Xác nhận xóa',
-      text: `Bạn có chắc chắn muốn xóa gói "${pkg.name}"?`,
+      title: 'Hủy yêu cầu?',
+      text: 'Bạn có chắc chắn muốn hủy yêu cầu này?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy'
+      confirmButtonText: 'Hủy yêu cầu',
+      cancelButtonText: 'Không'
     });
 
-    if (result.isConfirmed) {
-      try {
-        await PTPackageModel.delete(pkg._id);
-        await loadData();
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Đã xóa',
-          text: 'Gói tập đã được xóa thành công',
-          timer: 2000
-        });
-      } catch (error) {
-        console.error('Error deleting package:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể xóa gói tập'
-        });
-      }
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!employeeData?._id) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi',
-        text: 'Không tìm thấy thông tin PT'
-      });
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     try {
-      const packageData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        ptId: employeeData._id,
-        ptName: employeeData.fullName,
-        ptAvatarUrl: employeeData.avatarUrl || '',
-        maxParticipants: formData.type.includes('group') ? 2 : 1
-      };
-
-      if (editingPackage) {
-        await PTPackageModel.update(editingPackage._id, packageData);
-      } else {
-        await PTPackageModel.create(packageData);
-      }
-
-      await loadData();
-      setShowModal(false);
+      const cancelResult = await PendingRequestService.cancelRequest(requestId);
       
-      Swal.fire({
-        icon: 'success',
-        title: 'Thành công',
-        text: editingPackage ? 'Đã cập nhật gói tập' : 'Đã tạo gói tập mới',
-        timer: 2000
-      });
+      if (cancelResult.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Đã hủy!',
+          text: cancelResult.message,
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Real-time listener will automatically update the list
+      } else {
+        throw new Error(cancelResult.error);
+      }
     } catch (error) {
-      console.error('Error saving package:', error);
+      console.error('Error cancelling request:', error);
       Swal.fire({
         icon: 'error',
         title: 'Lỗi',
-        text: error.message || 'Không thể lưu gói tập'
+        text: error.message || 'Không thể hủy yêu cầu. Vui lòng thử lại.'
       });
     }
-  };
-
-  const addBenefit = () => {
-    if (newBenefit.trim()) {
-      setFormData({
-        ...formData,
-        benefits: [...formData.benefits, newBenefit.trim()]
-      });
-      setNewBenefit('');
-    }
-  };
-
-  const removeBenefit = (index) => {
-    setFormData({
-      ...formData,
-      benefits: formData.benefits.filter((_, i) => i !== index)
-    });
   };
 
   if (loading) {
     return <div>Đang tải...</div>;
   }
 
+  const getRequestTypeLabel = (type) => {
+    const labels = {
+      'package_create': { icon: '➕', text: 'Tạo gói mới', color: '#28a745' },
+      'package_update': { icon: '✏️', text: 'Cập nhật gói', color: '#007bff' },
+      'package_delete': { icon: '🗑️', text: 'Xóa gói', color: '#dc3545' },
+      'package_enable': { icon: '✅', text: 'Kích hoạt gói', color: '#17a2b8' },
+      'package_disable': { icon: '🚫', text: 'Vô hiệu hóa gói', color: '#ffc107' }
+    };
+    return labels[type] || { icon: '📦', text: type, color: '#6c757d' };
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
+
+  const renderChangeDetails = (request) => {
+    if (request.type === 'package_create') {
+      const data = request.data || {};
+      return (
+        <div style={{ marginTop: '12px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', fontSize: '13px' }}>
+          <p style={{ fontWeight: 600, marginBottom: '8px', color: '#28a745' }}>📝 Thông tin gói mới:</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <div><strong>Tên gói:</strong> {data.name}</div>
+            <div><strong>Loại:</strong> {data.packageType}</div>
+            <div><strong>Giá:</strong> {formatPrice(data.price)}</div>
+            <div><strong>Số buổi:</strong> {data.sessions}</div>
+            <div><strong>Thời lượng:</strong> {data.duration} phút</div>
+            <div><strong>Trạng thái:</strong> {data.isActive ? '✅ Hoạt động' : '🚫 Tạm dừng'}</div>
+          </div>
+          {data.description && (
+            <div style={{ marginTop: '8px' }}>
+              <strong>Mô tả:</strong> {data.description}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (request.type === 'package_update') {
+      const newData = request.data || {};
+      const oldData = request.previousData || {};
+      const changes = [];
+
+      // Helper to compare values (handle undefined/null/empty)
+      const isDifferent = (oldVal, newVal) => {
+        const normalizeVal = (val) => (val === undefined || val === null || val === '') ? null : val;
+        return normalizeVal(oldVal) !== normalizeVal(newVal);
+      };
+
+      // Compare all fields
+      if (isDifferent(oldData.name, newData.name)) {
+        changes.push({ field: 'Tên gói', old: oldData.name || '(Trống)', new: newData.name || '(Trống)' });
+      }
+      
+      if (isDifferent(oldData.packageType, newData.packageType)) {
+        changes.push({ field: 'Loại', old: oldData.packageType || '(Trống)', new: newData.packageType || '(Trống)' });
+      }
+      
+      if (isDifferent(oldData.price, newData.price)) {
+        changes.push({ field: 'Giá', old: formatPrice(oldData.price || 0), new: formatPrice(newData.price || 0) });
+      }
+      
+      if (isDifferent(oldData.sessions, newData.sessions)) {
+        changes.push({ field: 'Số buổi', old: oldData.sessions || 0, new: newData.sessions || 0 });
+      }
+      
+      if (isDifferent(oldData.duration, newData.duration)) {
+        changes.push({ field: 'Thời lượng', old: `${oldData.duration || 0}p`, new: `${newData.duration || 0}p` });
+      }
+      
+      if (isDifferent(oldData.description, newData.description)) {
+        changes.push({ field: 'Mô tả', old: oldData.description || '(Trống)', new: newData.description || '(Trống)' });
+      }
+      
+      if (isDifferent(oldData.isActive, newData.isActive)) {
+        changes.push({ 
+          field: 'Trạng thái', 
+          old: oldData.isActive ? '✅ Hoạt động' : '🚫 Tạm dừng', 
+          new: newData.isActive ? '✅ Hoạt động' : '🚫 Tạm dừng' 
+        });
+      }
+
+      if (isDifferent(oldData.discount, newData.discount)) {
+        changes.push({ field: 'Giảm giá', old: `${oldData.discount || 0}%`, new: `${newData.discount || 0}%` });
+      }
+
+      if (isDifferent(oldData.billingType, newData.billingType)) {
+        const typeLabel = { session: 'Theo buổi', monthly: 'Theo tháng' };
+        changes.push({ 
+          field: 'Loại tính phí', 
+          old: typeLabel[oldData.billingType] || oldData.billingType, 
+          new: typeLabel[newData.billingType] || newData.billingType 
+        });
+      }
+
+      if (isDifferent(oldData.months, newData.months)) {
+        changes.push({ field: 'Số tháng', old: oldData.months || 1, new: newData.months || 1 });
+      }
+
+      // Compare availableTimeSlots (array comparison)
+      const oldSlots = oldData.availableTimeSlots || [];
+      const newSlots = newData.availableTimeSlots || [];
+      
+      if (JSON.stringify(oldSlots) !== JSON.stringify(newSlots)) {
+        const formatSlots = (slots) => {
+          if (!slots || slots.length === 0) return '(Trống)';
+          return slots.map(slot => {
+            if (typeof slot === 'string') return slot;
+            return `${slot.startTime || slot.start || ''}-${slot.endTime || slot.end || ''}`;
+          }).join(', ');
+        };
+        
+        changes.push({ 
+          field: 'Lịch cố định', 
+          old: formatSlots(oldSlots), 
+          new: formatSlots(newSlots) 
+        });
+      }
+
+      return (
+        <div style={{ marginTop: '12px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', fontSize: '13px' }}>
+          <p style={{ fontWeight: 600, marginBottom: '8px', color: '#007bff' }}>📝 Các thay đổi ({changes.length}):</p>
+          {changes.length === 0 ? (
+            <p style={{ color: '#6c757d', fontStyle: 'italic' }}>Không có thay đổi nào được phát hiện</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {changes.map((change, idx) => (
+                <div key={idx} style={{ padding: '8px', background: 'white', borderRadius: '6px', border: '1px solid #e0e0e0' }}>
+                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>
+                    <strong>{change.field}</strong>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#dc3545', padding: '4px 8px', background: '#ffe6e6', borderRadius: '4px', fontSize: '13px' }}>
+                      {change.old}
+                    </span>
+                    <span style={{ color: '#6c757d' }}>→</span>
+                    <span style={{ color: '#28a745', padding: '4px 8px', background: '#e6ffe6', borderRadius: '4px', fontSize: '13px', fontWeight: 600 }}>
+                      {change.new}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (request.type === 'package_delete') {
+      const oldData = request.previousData || {};
+      return (
+        <div style={{ marginTop: '12px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', fontSize: '13px' }}>
+          <p style={{ fontWeight: 600, marginBottom: '8px', color: '#dc3545' }}>🗑️ Thông tin gói sẽ bị xóa:</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', opacity: 0.7 }}>
+            <div><strong>Tên gói:</strong> {oldData.name}</div>
+            <div><strong>Loại:</strong> {oldData.packageType}</div>
+            <div><strong>Giá:</strong> {formatPrice(oldData.price)}</div>
+            <div><strong>Số buổi:</strong> {oldData.sessions}</div>
+          </div>
+        </div>
+      );
+    }
+
+    if (request.type === 'package_enable' || request.type === 'package_disable') {
+      const isEnable = request.type === 'package_enable';
+      return (
+        <div style={{ marginTop: '12px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', fontSize: '13px' }}>
+          <p style={{ fontWeight: 600, marginBottom: '4px', color: isEnable ? '#17a2b8' : '#ffc107' }}>
+            {isEnable ? '✅ Kích hoạt gói' : '🚫 Vô hiệu hóa gói'}
+          </p>
+          <p style={{ color: '#6c757d' }}>
+            Trạng thái: <span style={{ textDecoration: 'line-through', color: '#dc3545' }}>
+              {isEnable ? '🚫 Tạm dừng' : '✅ Hoạt động'}
+            </span> → <strong style={{ color: '#28a745' }}>{isEnable ? '✅ Hoạt động' : '🚫 Tạm dừng'}</strong>
+          </p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '0 0 8px 0' }}>
             Gói tập của tôi
@@ -245,7 +337,7 @@ export default function PTPackages() {
           </p>
         </div>
         <button
-          onClick={handleCreate}
+          onClick={() => setShowModal(true)}
           style={{
             padding: '12px 24px',
             borderRadius: '10px',
@@ -257,484 +349,184 @@ export default function PTPackages() {
             fontSize: '15px'
           }}
         >
-          + Tạo gói mới
+          📦 Quản lý gói tập
         </button>
       </div>
 
-      {packages.length === 0 ? (
+      {/* Warning Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
+        border: '2px solid #ffc107',
+        borderRadius: '12px',
+        padding: '14px 20px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        boxShadow: '0 2px 8px rgba(255,193,7,0.15)'
+      }}>
+        <span style={{ fontSize: '22px' }}>⚠️</span>
+        <p style={{ fontSize: '14px', color: '#856404', margin: 0, fontWeight: 600 }}>
+          Mọi thay đổi (tạo/sửa/xóa/kích hoạt/vô hiệu hóa) sẽ được gửi đến admin để duyệt trước khi áp dụng.
+        </p>
+      </div>
+
+      {/* Pending Requests Section */}
+      {pendingRequests.length > 0 && (
         <div style={{
-          background: 'var(--color-surface)',
+          background: 'linear-gradient(135deg, #cfe2ff 0%, #b6d4fe 100%)',
+          border: '2px solid #0d6efd',
           borderRadius: '14px',
-          padding: '40px',
-          textAlign: 'center',
-          boxShadow: '0 10px 30px rgba(11,37,69,0.06)'
+          padding: '24px',
+          marginBottom: '24px',
+          boxShadow: '0 4px 12px rgba(13,110,253,0.2)'
         }}>
-          <p style={{ fontSize: '16px', color: 'var(--color-textSecondary)', margin: '0 0 20px 0' }}>
-            Chưa có gói tập nào. Hãy tạo gói đầu tiên!
-          </p>
-          <button
-            onClick={handleCreate}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '10px',
-              background: 'linear-gradient(90deg, var(--color-primary), var(--color-primaryVariant))',
-              color: 'white',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '15px'
-            }}
-          >
-            + Tạo gói đầu tiên
-          </button>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-          {packages.map((pkg) => (
-            <div
-              key={pkg._id}
-              style={{
-                background: 'var(--color-surface)',
-                borderRadius: '14px',
-                padding: '24px',
-                boxShadow: '0 10px 30px rgba(11,37,69,0.06)',
-                border: '1px solid rgba(14,45,78,0.04)',
-                position: 'relative'
-              }}
-            >
-              {pkg.isPopular && (
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  background: 'linear-gradient(90deg, var(--color-primary), var(--color-primaryVariant))',
-                  color: 'white',
-                  padding: '4px 12px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontWeight: 600
-                }}>
-                  Phổ biến
-                </div>
-              )}
-              
-              <h3 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 8px 0' }}>
-                {pkg.name}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <span style={{ fontSize: '32px' }}>⏳</span>
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px 0', color: '#084298' }}>
+                Yêu cầu đang chờ duyệt ({pendingRequests.length})
               </h3>
-              
-              <p style={{ color: 'var(--color-textSecondary)', fontSize: '14px', margin: '0 0 16px 0' }}>
-                {PACKAGE_TYPES.find(t => t.value === pkg.type)?.label || pkg.type}
+              <p style={{ fontSize: '14px', color: '#084298', margin: 0 }}>
+                Các thay đổi của bạn đang được admin xem xét
               </p>
-              
-              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 4px 0' }}>
-                {pkg.price.toLocaleString('vi-VN')}₫
-              </div>
-              
-              <p style={{ fontSize: '13px', color: 'var(--color-textSecondary)', margin: '0 0 16px 0' }}>
-                {pkg.billingType === 'monthly' 
-                  ? `${pkg.months} tháng`
-                  : `${pkg.sessions} buổi / ${pkg.duration} phút`
-                }
-              </p>
-              
-              {pkg.description && (
-                <p style={{ fontSize: '14px', color: 'var(--color-textSecondary)', margin: '0 0 16px 0' }}>
-                  {pkg.description}
-                </p>
-              )}
-              
-              {pkg.benefits && pkg.benefits.length > 0 && (
-                <ul style={{ fontSize: '13px', margin: '0 0 16px 0', paddingLeft: '20px' }}>
-                  {pkg.benefits.slice(0, 3).map((benefit, index) => (
-                    <li key={index}>{benefit}</li>
-                  ))}
-                  {pkg.benefits.length > 3 && (
-                    <li>+{pkg.benefits.length - 3} lợi ích khác...</li>
-                  )}
-                </ul>
-              )}
-              
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '16px',
-                padding: '8px',
-                borderRadius: '8px',
-                background: pkg.isActive ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'
-              }}>
-                <span style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: pkg.isActive ? '#28a745' : '#dc3545'
-                }}></span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: pkg.isActive ? '#28a745' : '#dc3545' }}>
-                  {pkg.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
-                </span>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => handleEdit(pkg)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--color-border)',
-                    background: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '14px'
-                  }}
-                >
-                  Chỉnh sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(pkg)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #dc3545',
-                    background: 'white',
-                    color: '#dc3545',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '14px'
-                  }}
-                >
-                  Xóa
-                </button>
-              </div>
             </div>
-          ))}
+          </div>
+
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {pendingRequests.map(request => {
+              const typeInfo = getRequestTypeLabel(request.type);
+              const isExpanded = expandedRequestId === request.id;
+              
+              return (
+                <div
+                  key={request.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: '10px',
+                    padding: '16px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    border: `2px solid ${typeInfo.color}20`
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '20px' }}>{typeInfo.icon}</span>
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: typeInfo.color,
+                            background: `${typeInfo.color}15`,
+                            padding: '4px 12px',
+                            borderRadius: '6px'
+                          }}
+                        >
+                          {typeInfo.text}
+                        </span>
+                      </div>
+                      
+                      <p style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 4px 0', color: '#2c3e50' }}>
+                        Gói: <strong>{request.packageName || 'N/A'}</strong>
+                      </p>
+                      
+                      <p style={{ fontSize: '13px', color: '#6c757d', margin: 0 }}>
+                        📅 {formatDate(request.createdAt)}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => setExpandedRequestId(isExpanded ? null : request.id)}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          background: isExpanded ? '#6c757d' : '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {isExpanded ? '🔼 Ẩn' : '🔽 Chi tiết'}
+                      </button>
+                      
+                      <button
+                        onClick={() => handleCancelRequest(request.id)}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          background: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => e.target.style.background = '#c82333'}
+                        onMouseOut={(e) => e.target.style.background = '#dc3545'}
+                      >
+                        ❌ Hủy
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Details */}
+                  {isExpanded && renderChangeDetails(request)}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Modal */}
-      {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '14px',
-            padding: '28px',
-            maxWidth: '800px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 24px 0' }}>
-              {editingPackage ? 'Chỉnh sửa gói tập' : 'Tạo gói tập mới'}
-            </h2>
+      {/* Info card */}
+      <div style={{
+        background: 'var(--color-surface)',
+        borderRadius: '14px',
+        padding: '32px',
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(11,37,69,0.06)'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>📦</div>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '12px', color: 'var(--color-primary)' }}>
+          Quản lý gói tập của bạn
+        </h2>
+        <p style={{ fontSize: '16px', color: 'var(--color-textSecondary)', margin: '0 0 24px 0', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+          Tạo và quản lý các gói tập bạn cung cấp cho học viên. Thiết lập giá, thời lượng, 
+          lợi ích và khung giờ có sẵn.
+        </p>
+        <button
+          onClick={() => setShowModal(true)}
+          style={{
+            padding: '14px 32px',
+            borderRadius: '10px',
+            background: 'linear-gradient(90deg, var(--color-primary), var(--color-primaryVariant))',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '16px',
+            boxShadow: '0 4px 12px rgba(13,71,161,0.2)'
+          }}
+        >
+          📝 Mở bảng quản lý gói tập
+        </button>
+      </div>
 
-            <form onSubmit={handleSubmit}>
-              {/* Tên gói */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                  Tên gói <span style={{ color: '#dc3545' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  placeholder="VD: Gói giảm cân 1 tháng"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              {/* Loại gói & Giá */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                    Loại gói <span style={{ color: '#dc3545' }}>*</span>
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {PACKAGE_TYPES.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.icon} {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                    Giá (VNĐ) <span style={{ color: '#dc3545' }}>*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                    min="0"
-                    step="1000"
-                    placeholder="500000"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Loại tính phí */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                  Loại tính phí
-                </label>
-                <select
-                  value={formData.billingType}
-                  onChange={(e) => setFormData({ ...formData, billingType: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '14px'
-                  }}
-                >
-                  <option value="session">Theo buổi</option>
-                  <option value="monthly">Theo tháng</option>
-                </select>
-              </div>
-
-              {/* Số buổi hoặc Số tháng */}
-              {formData.billingType === 'session' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                      Số buổi tập
-                    </label>
-                    <select
-                      value={formData.sessions}
-                      onChange={(e) => setFormData({ ...formData, sessions: parseInt(e.target.value) })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {SESSION_COUNT_OPTIONS.map(count => (
-                        <option key={count} value={count}>{count} buổi</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                      Thời lượng / buổi
-                    </label>
-                    <select
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {DURATION_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                    Số tháng
-                  </label>
-                  <select
-                    value={formData.months}
-                    onChange={(e) => setFormData({ ...formData, months: parseInt(e.target.value) })}
-                    style={{
-                      width: '200px',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {MONTH_OPTIONS.map(month => (
-                      <option key={month} value={month}>{month} tháng</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Mô tả */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                  Mô tả
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Mô tả về gói tập này..."
-                  rows="3"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '14px',
-                    resize: 'vertical'
-                  }}
-                />
-              </div>
-
-              {/* Lợi ích */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '8px' }}>
-                  Lợi ích
-                </label>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                  <input
-                    type="text"
-                    value={newBenefit}
-                    onChange={(e) => setNewBenefit(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBenefit())}
-                    placeholder="VD: Tư vấn dinh dưỡng miễn phí"
-                    style={{
-                      flex: 1,
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={addBenefit}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      background: 'var(--color-primary)',
-                      color: 'white',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 600
-                    }}
-                  >
-                    Thêm
-                  </button>
-                </div>
-                <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                  {formData.benefits.map((benefit, index) => (
-                    <li key={index} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>{benefit}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeBenefit(index)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#dc3545',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        Xóa
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Checkbox options */}
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.isPopular}
-                    onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                  />
-                  <span>Gói phổ biến</span>
-                </label>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  />
-                  <span>Kích hoạt ngay</span>
-                </label>
-              </div>
-
-              {/* Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    border: '1px solid var(--color-border)',
-                    background: 'white',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '15px'
-                  }}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '10px',
-                    background: 'linear-gradient(90deg, var(--color-primary), var(--color-primaryVariant))',
-                    color: 'white',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '15px'
-                  }}
-                >
-                  {editingPackage ? 'Cập nhật' : 'Tạo gói'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* PTPricingModal */}
+      {showModal && employeeData && (
+        <PTPricingModal
+          isOpen={showModal}
+          onClose={handleModalClose}
+          ptId={employeeData._id}
+          onUpdate={handleModalUpdate}
+          isPTPortal={true}
+        />
       )}
     </div>
   );

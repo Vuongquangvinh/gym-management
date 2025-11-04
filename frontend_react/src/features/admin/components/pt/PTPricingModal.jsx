@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePT } from '../../../../firebase/lib/features/pt/pt.provider.jsx';
 import PTPackageModel from '../../../../firebase/lib/features/pt/pt-package.model.js';
+import { PendingRequestService } from '../../../../firebase/lib/features/pending-request/pendingRequest.service';
 import TimeSlotManager from './TimeSlotManager.jsx';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
@@ -35,7 +36,7 @@ const FIXED_TIME_SLOTS = [
   { id: 'slot8', startTime: '20:00', endTime: '22:00', duration: 120, label: '20:00 - 22:00 (2h)' }
 ];
 
-export default function PTPricingModal({ isOpen, onClose, ptId, package: editPackage, onUpdate }) {
+export default function PTPricingModal({ isOpen, onClose, ptId, package: editPackage, onUpdate, isPTPortal = false }) {
   const { createPTPackage, updatePTPackage, deletePTPackage, disablePTPackage, enablePTPackage, getPTPackages } = usePT();
   
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'form'
@@ -398,33 +399,88 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
       };
 
 
-      if (selectedPackage) {
-        await updatePTPackage(selectedPackage.id, packageData);
-        toast.success(`Cập nhật gói "${formData.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
+      if (isPTPortal) {
+        // PT Portal: Tạo pending request thay vì update trực tiếp
+        const requestData = {
+          type: selectedPackage ? 'package_update' : 'package_create',
+          packageId: selectedPackage?.id || null,
+          packageName: formData.name,
+          ptId: ptId,
+          requestedBy: ptId,
+          data: packageData,
+          previousData: selectedPackage ? {
+            name: selectedPackage.name,
+            packageType: selectedPackage.packageType,
+            price: selectedPackage.price,
+            sessions: selectedPackage.sessions,
+            duration: selectedPackage.duration,
+            description: selectedPackage.description,
+            features: selectedPackage.features,
+            isPopular: selectedPackage.isPopular,
+            isActive: selectedPackage.isActive,
+            billingType: selectedPackage.billingType,
+            months: selectedPackage.months,
+            discount: selectedPackage.discount || 0,
+            originalPrice: selectedPackage.originalPrice || selectedPackage.price,
+            availableTimeSlots: selectedPackage.availableTimeSlots || [],
+            sessionDuration: selectedPackage.sessionDuration || 60,
+            maxClientsPerSlot: selectedPackage.maxClientsPerSlot || 1
+          } : null,
+        };
+
+        const result = await PendingRequestService.createPendingRequest(requestData);
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Đã gửi yêu cầu!',
+            html: `
+              <p>Yêu cầu ${selectedPackage ? 'cập nhật' : 'tạo'} gói "${formData.name}" đã được gửi đến admin.</p>
+              <p style="font-size: 13px; color: #6c757d; margin-top: 10px;">
+                ⏳ Admin sẽ xem xét và phê duyệt sớm nhất.
+              </p>
+            `,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#007bff'
+          });
+
+          // Close modal
+          setViewMode('list');
+          setSelectedPackage(null);
+          if (onUpdate) onUpdate();
+        } else {
+          throw new Error(result.error);
+        }
       } else {
-        await createPTPackage(ptId, packageData); // Pass ptId as first parameter
-        toast.success(`Tạo gói "${formData.name}" thành công!`, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-        });
-      }
-      
-      // Reload packages and go back to list view
-      await loadPackagesLocal();
-      setViewMode('list');
-      setSelectedPackage(null);
-      
-      if (onUpdate) {
-        onUpdate();
+        // Admin: Update trực tiếp
+        if (selectedPackage) {
+          await updatePTPackage(selectedPackage.id, packageData);
+          toast.success(`Cập nhật gói "${formData.name}" thành công!`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+          });
+        } else {
+          await createPTPackage(ptId, packageData);
+          toast.success(`Tạo gói "${formData.name}" thành công!`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+          });
+        }
+        
+        // Reload packages and go back to list view
+        await loadPackagesLocal();
+        setViewMode('list');
+        setSelectedPackage(null);
+        
+        if (onUpdate) {
+          onUpdate();
+        }
       }
     } catch (error) {
       console.error('Error saving package:', error);
@@ -444,14 +500,14 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
 
   const handleDeletePackage = async (packageId, packageName) => {
     const result = await Swal.fire({
-      title: 'Xác nhận xóa gói',
+      title: isPTPortal ? 'Gửi yêu cầu xóa gói?' : 'Xác nhận xóa gói',
       html: `Bạn có chắc chắn muốn xóa gói dịch vụ <strong>${packageName}</strong>?`,
-      text: 'Hành động này không thể hoàn tác.',
+      text: isPTPortal ? 'Yêu cầu sẽ được gửi đến admin để duyệt.' : 'Hành động này không thể hoàn tác.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Xóa gói',
+      confirmButtonText: isPTPortal ? 'Gửi yêu cầu' : 'Xóa gói',
       cancelButtonText: 'Hủy',
       reverseButtons: true
     });
@@ -461,15 +517,50 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     setIsSubmitting(true);
     
     try {
-      await deletePTPackage(packageId, ptId);
-      
-      await Swal.fire({
-        icon: 'success',
-        title: 'Xóa thành công!',
-        text: 'Gói dịch vụ đã được xóa khỏi hệ thống.',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      if (isPTPortal) {
+        // PT Portal: Tạo pending request
+        const packageToDelete = localPackages.find(p => p.id === packageId);
+        
+        const requestData = {
+          type: 'package_delete',
+          packageId: packageId,
+          packageName: packageName,
+          ptId: ptId,
+          requestedBy: ptId,
+          previousData: packageToDelete ? {
+            name: packageToDelete.name,
+            packageType: packageToDelete.packageType,
+            price: packageToDelete.price,
+            sessions: packageToDelete.sessions,
+            duration: packageToDelete.duration
+          } : null,
+        };
+
+        const result = await PendingRequestService.createPendingRequest(requestData);
+
+        if (result.success) {
+          await Swal.fire({
+            icon: 'info',
+            title: 'Đã gửi yêu cầu!',
+            text: 'Yêu cầu xóa gói đã được gửi đến admin.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        // Admin: Xóa trực tiếp
+        await deletePTPackage(packageId, ptId);
+        
+        await Swal.fire({
+          icon: 'success',
+          title: 'Xóa thành công!',
+          text: 'Gói dịch vụ đã được xóa khỏi hệ thống.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
       
       await loadPackagesLocal();
       setViewMode('list');
@@ -494,16 +585,45 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     try {
       setIsSubmitting(true);
       
-      await disablePTPackage(packageId, ptId);
-      await loadPackagesLocal();
-      
-      toast.success('Vô hiệu hóa gói dịch vụ thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      if (isPTPortal) {
+        // PT Portal: Gửi yêu cầu disable
+        const packageToDisable = localPackages.find(p => p.id === packageId);
+        
+        const requestData = {
+          type: 'package_disable',
+          packageId: packageId,
+          packageName: packageToDisable?.name || 'Unknown',
+          ptId: ptId,
+          requestedBy: ptId,
+          data: { isActive: false },
+          previousData: { isActive: true },
+        };
+
+        const result = await PendingRequestService.createPendingRequest(requestData);
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Đã gửi yêu cầu!',
+            text: 'Yêu cầu vô hiệu hóa gói đã được gửi đến admin.',
+            timer: 2000
+          });
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        // Admin: Disable trực tiếp
+        await disablePTPackage(packageId, ptId);
+        await loadPackagesLocal();
+        
+        toast.success('Vô hiệu hóa gói dịch vụ thành công!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      }
       
       if (onUpdate) {
         onUpdate();
@@ -527,16 +647,45 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
     try {
       setIsSubmitting(true);
       
-      await enablePTPackage(packageId, ptId);
-      await loadPackagesLocal();
-      
-      toast.success('Kích hoạt gói dịch vụ thành công!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      if (isPTPortal) {
+        // PT Portal: Gửi yêu cầu enable
+        const packageToEnable = localPackages.find(p => p.id === packageId);
+        
+        const requestData = {
+          type: 'package_enable',
+          packageId: packageId,
+          packageName: packageToEnable?.name || 'Unknown',
+          ptId: ptId,
+          requestedBy: ptId,
+          data: { isActive: true },
+          previousData: { isActive: false },
+        };
+
+        const result = await PendingRequestService.createPendingRequest(requestData);
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Đã gửi yêu cầu!',
+            text: 'Yêu cầu kích hoạt gói đã được gửi đến admin.',
+            timer: 2000
+          });
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        // Admin: Enable trực tiếp
+        await enablePTPackage(packageId, ptId);
+        await loadPackagesLocal();
+        
+        toast.success('Kích hoạt gói dịch vụ thành công!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+      }
       
       if (onUpdate) {
         onUpdate();
@@ -595,7 +744,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             {viewMode === 'list' ? (
               <>
                 <span className="icon">💰</span>
-                Quản lý giá PT - {ptInfo?.fullName }
+                {isPTPortal ? 'Quản lý gói tập' : `Quản lý giá PT - ${ptInfo?.fullName}`}
 
               </>
             ) : selectedPackage ? (

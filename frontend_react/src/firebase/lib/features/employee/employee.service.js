@@ -45,6 +45,46 @@ export class EmployeeService {
     }
   }
 
+  // Get employee by Email (optimized - direct query)
+  static async getEmployeeByEmail(email) {
+    try {
+      const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
+      const { db } = await import('../../config/firebase');
+      
+      const employeesRef = collection(db, 'employees');
+      const q = query(employeesRef, where('email', '==', email), limit(1));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        throw new Error('Không tìm thấy nhân viên với email này');
+      }
+
+      const employeeDoc = snapshot.docs[0];
+      const data = employeeDoc.data();
+      
+      // Convert Timestamps to dates
+      Object.keys(data).forEach(field => {
+        if (data[field]?.seconds) {
+          data[field] = new Date(data[field].seconds * 1000);
+        }
+      });
+
+      const employee = new EmployeeModel({ _id: employeeDoc.id, ...data });
+
+      return {
+        success: true,
+        data: employee,
+        message: 'Tải thông tin nhân viên thành công'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Không tìm thấy nhân viên'
+      };
+    }
+  }
+
   // Create new employee
   static async createEmployee(employeeData) {
     try {
@@ -286,6 +326,67 @@ export class EmployeeService {
         message: 'Lỗi tải báo cáo lương'
       };
     }
+  }
+
+  /**
+   * Subscribe to employee changes by email (real-time)
+   * @returns unsubscribe function
+   */
+  static subscribeToEmployeeByEmail(email, onUpdate, onError) {
+    const setupSubscription = async () => {
+      try {
+        const { collection, query, where, onSnapshot, limit } = await import('firebase/firestore');
+        const { db } = await import('../../config/firebase');
+        
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, where('email', '==', email), limit(1));
+        
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            if (snapshot.empty) {
+              if (onError) {
+                onError(new Error('Không tìm thấy nhân viên với email này'));
+              }
+              return;
+            }
+
+            const employeeDoc = snapshot.docs[0];
+            const data = employeeDoc.data();
+            
+            // Convert Timestamps to dates
+            Object.keys(data).forEach(field => {
+              if (data[field]?.seconds) {
+                data[field] = new Date(data[field].seconds * 1000);
+              }
+            });
+
+            const employee = new EmployeeModel({ _id: employeeDoc.id, ...data });
+
+            if (onUpdate) {
+              onUpdate(employee);
+            }
+          },
+          (error) => {
+            console.error('Error in employee subscription:', error);
+            if (onError) {
+              onError(error);
+            }
+          }
+        );
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error setting up employee subscription:', error);
+        if (onError) {
+          onError(error);
+        }
+        return () => {}; // Return empty unsubscribe function
+      }
+    };
+
+    // Return a promise that resolves to the unsubscribe function
+    return setupSubscription();
   }
 }
 
