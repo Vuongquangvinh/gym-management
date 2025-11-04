@@ -13,6 +13,7 @@ export default function PTPackages() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [expandedRequestId, setExpandedRequestId] = useState(null);
+  const [rejectedRequests, setRejectedRequests] = useState([]);
 
   useEffect(() => {
     // Only load when currentUser has email
@@ -40,6 +41,78 @@ export default function PTPackages() {
     );
 
     // Cleanup subscription on unmount
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [employeeData?._id]);
+
+  // Real-time listener for rejected package requests
+  useEffect(() => {
+    if (!employeeData?._id) return;
+
+    const packageTypes = [
+      'package_create',
+      'package_update',
+      'package_delete',
+      'package_enable',
+      'package_disable',
+    ];
+
+    const unsubscribe = PendingRequestService.subscribeToPendingRequests(
+      {
+        ptId: employeeData._id,
+        type: packageTypes,
+        status: 'rejected'
+      },
+      (requests) => {
+        // Check for new rejections
+        if (requests && requests.length > 0) {
+          const latestRejected = requests[0];
+          
+          // Check if we've already shown this rejection
+          const lastShownRejectionId = localStorage.getItem(`lastShownPackageRejection_${employeeData._id}`);
+          if (latestRejected.id !== lastShownRejectionId) {
+            setRejectedRequests(requests);
+            
+            const typeLabels = {
+              'package_create': 'Tạo gói tập',
+              'package_update': 'Cập nhật gói tập',
+              'package_delete': 'Xóa gói tập',
+              'package_enable': 'Kích hoạt gói',
+              'package_disable': 'Vô hiệu hóa gói'
+            };
+            
+            // Show notification
+            Swal.fire({
+              icon: 'error',
+              title: 'Yêu cầu bị từ chối',
+              html: `
+                <p><strong>Loại:</strong> ${typeLabels[latestRejected.type] || latestRejected.type}</p>
+                <p><strong>Gói:</strong> ${latestRejected.packageName}</p>
+                ${latestRejected.rejectionReason ? `
+                  <div style="margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 8px; text-align: left;">
+                    <strong style="color: #856404;">📝 Lý do từ chối:</strong><br>
+                    <p style="color: #856404; margin: 8px 0 0 0;">${latestRejected.rejectionReason}</p>
+                  </div>
+                ` : '<p style="color: #6c757d; font-style: italic;">Admin chưa cung cấp lý do</p>'}
+              `,
+              confirmButtonText: 'Đã hiểu',
+              confirmButtonColor: '#007bff'
+            });
+
+            // Mark as shown
+            localStorage.setItem(`lastShownPackageRejection_${employeeData._id}`, latestRejected.id);
+          }
+        }
+      },
+      (error) => {
+        console.error('Error in rejected requests subscription:', error);
+      }
+    );
+
+    // Cleanup
     return () => {
       if (unsubscribe) {
         unsubscribe();

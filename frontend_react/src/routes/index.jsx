@@ -16,6 +16,7 @@ const Members = React.lazy(() => import('../features/admin/pages/Members'));
 const Employees = React.lazy(() => import('../features/admin/pages/Employees'));
 const PTPricing = React.lazy(() => import('../features/admin/components/pt/PTPricingPage'));
 const PendingRequests = React.lazy(() => import('../features/admin/pages/PendingRequests'));
+import { PendingRequestProvider } from '../firebase/lib/features/pending-request/pendingRequest.provider';
 const Checkins = React.lazy(() => import('../features/admin/pages/Checkins'));
 const Packages = React.lazy(() => import('../features/admin/pages/Packages'));
 const FaceCheckinPage = React.lazy(() => import('../features/admin/pages/FaceCheckinPage'));
@@ -51,7 +52,11 @@ const AppRouter = () => {
               <Route path="members" element={<Members />} />
               <Route path="employees" element={<Employees />} />
               <Route path="pt-pricing" element={<PTPricing />} />
-              <Route path="pending-requests" element={<PendingRequests />} />
+              <Route path="pending-requests" element={
+                <PendingRequestProvider>
+                  <PendingRequests />
+                </PendingRequestProvider>
+              } />
               <Route path="checkins" element={<Checkins />} />
               <Route path="checkin-stats" element={<CheckinDashboard />} />
               <Route path="packages" element={<Packages />} />

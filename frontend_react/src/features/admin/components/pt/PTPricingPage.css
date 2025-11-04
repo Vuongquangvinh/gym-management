@@ -212,7 +212,7 @@
 }
 
 /* PT Header */
-.pt-header {
+.pt-header-admin {
   display: flex;
   gap: 16px;
   margin-bottom: 20px;

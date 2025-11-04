@@ -407,6 +407,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           packageName: formData.name,
           ptId: ptId,
           requestedBy: ptId,
+          employeeName: ptInfo?.fullName || 'Unknown PT',
+          requestedByName: ptInfo?.fullName || 'Unknown PT',
+          employeeAvatar: ptInfo?.avatarUrl || null,
           data: packageData,
           previousData: selectedPackage ? {
             name: selectedPackage.name,
@@ -527,6 +530,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           packageName: packageName,
           ptId: ptId,
           requestedBy: ptId,
+          employeeName: ptInfo?.fullName || 'Unknown PT',
+          requestedByName: ptInfo?.fullName || 'Unknown PT',
+          employeeAvatar: ptInfo?.avatarUrl || null,
           previousData: packageToDelete ? {
             name: packageToDelete.name,
             packageType: packageToDelete.packageType,
@@ -595,6 +601,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           packageName: packageToDisable?.name || 'Unknown',
           ptId: ptId,
           requestedBy: ptId,
+          employeeName: ptInfo?.fullName || 'Unknown PT',
+          requestedByName: ptInfo?.fullName || 'Unknown PT',
+          employeeAvatar: ptInfo?.avatarUrl || null,
           data: { isActive: false },
           previousData: { isActive: true },
         };
@@ -657,6 +666,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           packageName: packageToEnable?.name || 'Unknown',
           ptId: ptId,
           requestedBy: ptId,
+          employeeName: ptInfo?.fullName || 'Unknown PT',
+          requestedByName: ptInfo?.fullName || 'Unknown PT',
+          employeeAvatar: ptInfo?.avatarUrl || null,
           data: { isActive: true },
           previousData: { isActive: false },
         };

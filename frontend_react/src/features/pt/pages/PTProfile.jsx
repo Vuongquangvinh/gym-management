@@ -39,6 +39,7 @@ export default function PTProfile() {
     idCard: ''
   });
   const [pendingRequest, setPendingRequest] = useState(null);
+  const [rejectedRequest, setRejectedRequest] = useState(null);
   const [showComparison, setShowComparison] = useState(false);
   const [newSpecialty, setNewSpecialty] = useState('');
   const [newCertificate, setNewCertificate] = useState('');
@@ -126,6 +127,61 @@ export default function PTProfile() {
       },
       (error) => {
         console.error('Error in pending request subscription:', error);
+      }
+    );
+
+    // Cleanup
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [currentUser?.uid]);
+
+  // Real-time listener for rejected requests
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    const unsubscribe = PendingRequestService.subscribeToPendingRequests(
+      {
+        requestedBy: currentUser.uid,
+        type: 'employee_update',
+        status: 'rejected'
+      },
+      (requests) => {
+        // Get the most recent rejected request
+        if (requests && requests.length > 0) {
+          const latestRejected = requests[0];
+          
+          // Check if we've already shown this rejection
+          const lastShownRejectionId = localStorage.getItem('lastShownRejectionId');
+          if (latestRejected.id !== lastShownRejectionId) {
+            setRejectedRequest(latestRejected);
+            
+            // Show notification
+            Swal.fire({
+              icon: 'error',
+              title: 'Yêu cầu bị từ chối',
+              html: `
+                <p>Yêu cầu thay đổi thông tin của bạn đã bị admin từ chối.</p>
+                ${latestRejected.rejectionReason ? `
+                  <div style="margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 8px; text-align: left;">
+                    <strong style="color: #856404;">📝 Lý do:</strong><br>
+                    <p style="color: #856404; margin: 8px 0 0 0;">${latestRejected.rejectionReason}</p>
+                  </div>
+                ` : ''}
+              `,
+              confirmButtonText: 'Đã hiểu',
+              confirmButtonColor: '#007bff'
+            });
+
+            // Mark as shown
+            localStorage.setItem('lastShownRejectionId', latestRejected.id);
+          }
+        }
+      },
+      (error) => {
+        console.error('Error in rejected requests subscription:', error);
       }
     );
 
@@ -227,6 +283,7 @@ export default function PTProfile() {
         employeeName: employeeData.fullName || 'Unknown',
         requestedBy: currentUser?.uid || employeeId,
         requestedByName: employeeData.fullName || 'PT',
+        employeeAvatar: employeeData.avatarUrl || null,
         status: 'pending',
         data: {
           fullName: editedData.fullName,

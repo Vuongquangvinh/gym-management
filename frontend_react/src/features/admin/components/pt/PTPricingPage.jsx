@@ -168,7 +168,7 @@ export default function PTPricingPage() {
             return (
               <div key={pt._id} className="pt-card">
                 {/* Avatar & Basic Info */}
-                <div className="pt-header">
+                <div className="pt-header-admin">
                   <div className="pt-avatar">
                     {pt.avatarUrl ? (
                       <img 
