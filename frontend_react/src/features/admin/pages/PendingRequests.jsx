@@ -1,18 +1,90 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { usePendingRequests } from '../../../firebase/lib/features/pending-request/pendingRequest.provider';
 import './PendingRequests.css';
 
 export default function PendingRequests() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { 
     requests, 
-    loading, 
+    loading,
+    loadingMore,
+    hasMore,
     filter, 
     setFilter, 
     approveRequest, 
     rejectRequest, 
     viewRequestDetails,
+    loadMore,
     counts
   } = usePendingRequests();
+
+  // Debug: Log on every render
+  console.log('🎬 [PendingRequests] Component render');
+  console.log('🎬 [PendingRequests] URL:', window.location.href);
+  console.log('🎬 [PendingRequests] searchParams:', Object.fromEntries(searchParams));
+  console.log('🎬 [PendingRequests] requests.length:', requests.length);
+  console.log('🎬 [PendingRequests] loading:', loading);
+
+  // Auto-open request from notification
+  useEffect(() => {
+    console.log('🔄 [useEffect] Running...');
+    
+    // Try URL first, then sessionStorage
+    let requestId = searchParams.get('requestId');
+    if (!requestId) {
+      requestId = sessionStorage.getItem('pendingRequestId');
+      console.log('🔍 [PendingRequests] requestId from sessionStorage:', requestId);
+    } else {
+      console.log('🔍 [PendingRequests] requestId from URL:', requestId);
+    }
+    
+    console.log('🔍 [PendingRequests] requests loaded:', requests.length);
+    console.log('🔍 [PendingRequests] all requests:', requests.map(r => r.id));
+    
+    if (requestId) {
+      // Clear sessionStorage and URL immediately
+      sessionStorage.removeItem('pendingRequestId');
+      
+      if (requests.length > 0) {
+        const request = requests.find(r => r.id === requestId);
+        console.log('🔍 [PendingRequests] Found request:', request);
+        
+        if (request) {
+          console.log('✅ [PendingRequests] Opening modal for request:', request.id);
+          
+          // Scroll to the request card
+          setTimeout(() => {
+            const element = document.getElementById(`request-${requestId}`);
+            console.log('📍 Element found:', element);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+          
+          // Open modal after scroll
+          setTimeout(() => {
+            console.log('🚀 Calling viewRequestDetails...');
+            viewRequestDetails(request);
+            // Clear URL param after opening
+            setTimeout(() => {
+              console.log('🧹 Clearing URL params...');
+              setSearchParams({});
+            }, 1000);
+          }, 500);
+        } else {
+          console.warn('⚠️ [PendingRequests] Request not found in list');
+          console.warn('⚠️ Looking for:', requestId);
+          console.warn('⚠️ Available IDs:', requests.map(r => r.id));
+          console.warn('⚠️ Request có thể đã bị xóa hoặc đã được duyệt/từ chối');
+          // Just clear URL and show the page normally
+          setSearchParams({});
+        }
+      } else {
+        console.log('ℹ️ [PendingRequests] Waiting for requests to load...');
+      }
+    }
+  }, [requests, searchParams, setSearchParams, viewRequestDetails]);
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -94,8 +166,18 @@ export default function PendingRequests() {
         <div className="requests-list">
           {requests.map(request => {
             const typeInfo = getTypeLabel(request.type);
+            const isHighlighted = searchParams.get('requestId') === request.id;
             return (
-              <div key={request.id} className={`request-card ${request.status}`}>
+              <div 
+                key={request.id} 
+                id={`request-${request.id}`}
+                className={`request-card ${request.status} ${isHighlighted ? 'highlighted' : ''}`}
+                style={isHighlighted ? { 
+                  border: '3px solid #007bff', 
+                  boxShadow: '0 4px 16px rgba(0,123,255,0.3)',
+                  animation: 'highlight-pulse 1.5s ease-in-out 3'
+                } : {}}
+              >
                 <div className="request-header">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {/* Avatar */}
@@ -200,7 +282,65 @@ export default function PendingRequests() {
           })}
         </div>
       )}
+
+      {/* Load More Button */}
+      {!loading && hasMore && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '24px',
+          marginTop: '16px'
+        }}>
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            style={{
+              padding: '12px 32px',
+              background: loadingMore ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: loadingMore ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+            }}
+          >
+            {loadingMore ? (
+              <>
+                <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                {' '}Đang tải...
+              </>
+            ) : (
+              <>📄 Tải thêm yêu cầu</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Show total loaded */}
+      {!loading && requests.length > 0 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '16px',
+          color: '#999',
+          fontSize: '13px'
+        }}>
+          Đã hiển thị {requests.length} / {counts[filter] || counts.all} yêu cầu
+        </div>
+      )}
     </div>
   );
 }
+
+/* Add spin animation for loading icon */
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
 

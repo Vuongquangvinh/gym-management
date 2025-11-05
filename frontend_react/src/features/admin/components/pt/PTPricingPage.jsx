@@ -6,7 +6,7 @@ import PTPricingModal from './PTPricingModal.jsx';
 import './PTPricingPage.css';
 
 export default function PTPricingPage() {
-  const { employees, refreshEmployees, loading: employeesLoading } = useEmployees();
+  const { employees, refreshEmployees, loading: employeesLoading, loadingMore, hasMore, fetchMore } = useEmployees();
   const { 
     getAllPTs, 
     getPTPackages, 
@@ -21,24 +21,15 @@ export default function PTPricingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Load PTs
+  // Filter PTs from all employees (automatic from provider)
   useEffect(() => {
-    loadPTs();
-  }, []);
-
-  const loadPTs = async () => {
-    try {
-      await refreshEmployees();
-    } catch (error) {
-      console.error('Error loading PTs:', error);
-    }
-  };
-
-  // Filter PTs from all employees
-  useEffect(() => {
-    if (employees) {
+    console.log('🔍 [PTPricingPage] Employees loaded:', employees?.length);
+    if (employees && employees.length > 0) {
       const ptEmployees = employees.filter(emp => emp.position === 'PT');
+      console.log('🔍 [PTPricingPage] PT employees found:', ptEmployees.length);
       setPTs(ptEmployees);
+    } else {
+      console.log('⚠️ [PTPricingPage] No employees yet');
     }
   }, [employees]);
 
@@ -304,6 +295,68 @@ export default function PTPricingPage() {
           // Refresh PT packages if needed
         }}
       />
+
+      {/* Load More Button */}
+      {!employeesLoading && hasMore && filteredPTs.length > 0 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '32px',
+          marginTop: '24px'
+        }}>
+          <button
+            onClick={fetchMore}
+            disabled={loadingMore}
+            style={{
+              padding: '14px 40px',
+              background: loadingMore ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: 600,
+              cursor: loadingMore ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s',
+              boxShadow: loadingMore ? 'none' : '0 6px 16px rgba(102, 126, 234, 0.4)',
+              transform: loadingMore ? 'none' : 'translateY(0)',
+            }}
+            onMouseEnter={(e) => {
+              if (!loadingMore) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.5)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loadingMore) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+              }
+            }}
+          >
+            {loadingMore ? (
+              <>
+                <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                {' '}Đang tải thêm PT...
+              </>
+            ) : (
+              <>📄 Tải thêm PT</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Show total loaded */}
+      {!employeesLoading && filteredPTs.length > 0 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '16px',
+          color: '#999',
+          fontSize: '14px',
+          fontWeight: 500
+        }}>
+          Đã hiển thị {filteredPTs.length} PT{hasMore ? ` • Còn nhiều hơn nữa` : ''}
+        </div>
+      )}
     </div>
   );
 }

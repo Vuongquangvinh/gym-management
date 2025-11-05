@@ -388,6 +388,89 @@ export class EmployeeService {
     // Return a promise that resolves to the unsubscribe function
     return setupSubscription();
   }
+
+  /**
+   * Subscribe to employees with pagination (real-time)
+   * @param {Object} filters - Filter conditions
+   * @param {Object} pagination - { pageSize: number, lastDoc: DocumentSnapshot }
+   * @param {Function} onUpdate - Callback with (employees, lastDoc, hasMore)
+   * @param {Function} onError - Error callback
+   * @returns unsubscribe function
+   */
+  static subscribeToEmployeesWithPagination = async (filters = {}, pagination = {}, onUpdate, onError) => {
+    try {
+      const { db } = await import('../../config/firebase.js');
+      const { collection, query, where, orderBy, limit, startAfter, onSnapshot } = await import('firebase/firestore');
+      
+      const employeesRef = collection(db, 'employees');
+      const queryConstraints = [];
+      
+      // Apply filters
+      if (filters.status) {
+        queryConstraints.push(where('status', '==', filters.status));
+      }
+      if (filters.position) {
+        queryConstraints.push(where('position', '==', filters.position));
+      }
+      if (filters.role) {
+        queryConstraints.push(where('role', '==', filters.role));
+      }
+      
+      // Order by
+      queryConstraints.push(orderBy('createdAt', 'desc'));
+      
+      // Pagination
+      const pageSize = pagination.pageSize || 20;
+      queryConstraints.push(limit(pageSize + 1)); // Load 1 extra to check hasMore
+      
+      if (pagination.lastDoc) {
+        queryConstraints.push(startAfter(pagination.lastDoc));
+      }
+      
+      const q = query(employeesRef, ...queryConstraints);
+      
+      // Subscribe to real-time updates
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const docs = snapshot.docs;
+          const hasMore = docs.length > pageSize;
+          const employees = docs.slice(0, pageSize).map(docSnap => {
+            const data = docSnap.data();
+            
+            // Convert Timestamps
+            Object.keys(data).forEach(field => {
+              if (data[field]?.toDate) {
+                data[field] = data[field].toDate();
+              }
+            });
+            
+            return new EmployeeModel({ _id: docSnap.id, ...data, _doc: docSnap });
+          });
+          
+          const lastDoc = employees.length > 0 ? docs[Math.min(pageSize - 1, docs.length - 1)] : null;
+          
+          if (onUpdate) {
+            onUpdate(employees, lastDoc, hasMore);
+          }
+        },
+        (error) => {
+          console.error('❌ Error in employees subscription:', error);
+          if (onError) {
+            onError(error);
+          }
+        }
+      );
+      
+      return unsubscribe;
+    } catch (error) {
+      console.error('Error setting up subscription:', error);
+      if (onError) {
+        onError(error);
+      }
+      return () => {};
+    }
+  }
 }
 
 export default EmployeeService;

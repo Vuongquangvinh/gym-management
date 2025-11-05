@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
+import { useSearchParams } from 'react-router-dom';
 import EmployeeService from '../../../firebase/lib/features/employee/employee.service';
 import { PendingRequestService } from '../../../firebase/lib/features/pending-request/pendingRequest.service';
 import PTPricingModal from '../../admin/components/pt/PTPricingModal';
@@ -7,6 +8,7 @@ import Swal from 'sweetalert2';
 
 export default function PTPackages() {
   const { currentUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [employeeData, setEmployeeData] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -33,6 +35,21 @@ export default function PTPackages() {
         // Update state with real-time data
         setPendingRequests(requests);
         setLoadingRequests(false);
+        
+        // Auto-expand if requestId in URL
+        const requestId = searchParams.get('requestId');
+        if (requestId && requests.some(r => r.id === requestId)) {
+          setExpandedRequestId(requestId);
+          // Clear URL param after opening
+          setSearchParams({});
+          // Scroll to requests section
+          setTimeout(() => {
+            const element = document.getElementById('package-requests-section');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }
       },
       (error) => {
         console.error('Error in real-time pending requests:', error);
@@ -46,7 +63,7 @@ export default function PTPackages() {
         unsubscribe();
       }
     };
-  }, [employeeData?._id]);
+  }, [employeeData?._id, searchParams, setSearchParams]);
 
   // Real-time listener for rejected package requests
   useEffect(() => {
@@ -118,7 +135,7 @@ export default function PTPackages() {
         unsubscribe();
       }
     };
-  }, [employeeData?._id]);
+  }, [employeeData?._id, searchParams, setSearchParams]);
 
   const loadData = async () => {
     try {
@@ -446,7 +463,7 @@ export default function PTPackages() {
 
       {/* Pending Requests Section */}
       {pendingRequests.length > 0 && (
-        <div style={{
+        <div id="package-requests-section" style={{
           background: 'linear-gradient(135deg, #cfe2ff 0%, #b6d4fe 100%)',
           border: '2px solid #0d6efd',
           borderRadius: '14px',

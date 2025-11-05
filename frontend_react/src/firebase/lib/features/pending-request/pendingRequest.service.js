@@ -4,13 +4,17 @@ import {
   updateDoc,
   doc,
   getDocs,
+  getDoc,
   query,
   where,
   orderBy,
+  limit,
+  startAfter,
   serverTimestamp,
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../../config/firebase.js';
+import { NotificationService } from '../notification/notification.service.js';
 
 /**
  * Service quản lý Pending Requests
@@ -31,6 +35,17 @@ export class PendingRequestService {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      // Create notification for admin
+      try {
+        await NotificationService.notifyAdminOfNewRequest({
+          id: docRef.id,
+          ...requestData
+        });
+      } catch (notifError) {
+        console.error('Error creating notification:', notifError);
+        // Don't fail the request if notification fails
+      }
 
       return {
         success: true,
@@ -161,21 +176,59 @@ export class PendingRequestService {
    * Approve pending request
    */
   static async approveRequest(requestId) {
-    return this.updateRequestStatus(requestId, 'approved');
+    const result = await this.updateRequestStatus(requestId, 'approved');
+    
+    // Create notification for PT
+    if (result.success) {
+      try {
+        const requestDocRef = doc(db, this.COLLECTION_NAME, requestId);
+        const requestDoc = await getDoc(requestDocRef);
+        
+        if (requestDoc.exists()) {
+          const requestData = { id: requestId, ...requestDoc.data() };
+          await NotificationService.notifyPTOfRequestStatus(requestData, 'approved');
+        }
+      } catch (notifError) {
+        console.error('Error creating approval notification:', notifError);
+      }
+    }
+    
+    return result;
   }
 
   /**
    * Reject pending request
    */
   static async rejectRequest(requestId, reason = '') {
-    return this.updateRequestStatus(requestId, 'rejected', { rejectionReason: reason });
+    const result = await this.updateRequestStatus(requestId, 'rejected', { rejectionReason: reason });
+    
+    // Create notification for PT
+    if (result.success) {
+      try {
+        const requestDocRef = doc(db, this.COLLECTION_NAME, requestId);
+        const requestDoc = await getDoc(requestDocRef);
+        
+        if (requestDoc.exists()) {
+          const requestData = { id: requestId, ...requestDoc.data() };
+          await NotificationService.notifyPTOfRequestStatus(requestData, 'rejected', reason);
+        }
+      } catch (notifError) {
+        console.error('Error creating rejection notification:', notifError);
+      }
+    }
+    
+    return result;
   }
 
   /**
-   * Subscribe to pending requests (real-time)
+   * Subscribe to pending requests (real-time) with pagination
+   * @param {Object} filters - Filter conditions
+   * @param {Object} pagination - { pageSize: number, lastDoc: DocumentSnapshot }
+   * @param {Function} onUpdate - Callback with (requests, lastDoc, hasMore)
+   * @param {Function} onError - Error callback
    * @returns unsubscribe function
    */
-  static subscribeToPendingRequests(filters = {}, onUpdate, onError) {
+  static subscribeToPendingRequests(filters = {}, pagination = {}, onUpdate, onError) {
     try {
       const pendingRequestsRef = collection(db, this.COLLECTION_NAME);
       let q = query(pendingRequestsRef);
@@ -204,17 +257,30 @@ export class PendingRequestService {
       // Order by createdAt descending
       q = query(q, orderBy('createdAt', 'desc'));
 
+      // Apply pagination
+      const pageSize = pagination.pageSize || 20;
+      q = query(q, limit(pageSize + 1)); // Load 1 extra to check hasMore
+
+      if (pagination.lastDoc) {
+        q = query(q, startAfter(pagination.lastDoc));
+      }
+
       // Subscribe to real-time updates
       const unsubscribe = onSnapshot(
         q,
         (querySnapshot) => {
-          const requests = querySnapshot.docs.map(doc => ({
+          const docs = querySnapshot.docs;
+          const hasMore = docs.length > pageSize;
+          const requests = docs.slice(0, pageSize).map(doc => ({
             id: doc.id,
             ...doc.data(),
+            _doc: doc // Store doc for next page
           }));
 
+          const lastDoc = requests.length > 0 ? docs[Math.min(pageSize - 1, docs.length - 1)] : null;
+
           if (onUpdate) {
-            onUpdate(requests);
+            onUpdate(requests, lastDoc, hasMore);
           }
         },
         (error) => {
@@ -253,7 +319,8 @@ export class PendingRequestService {
         type: packageTypes,
         status: 'pending',
       },
-      onUpdate,
+      { pageSize: 100 }, // PT usually has fewer requests
+      (requests) => onUpdate(requests), // Adapter to old signature
       onError
     );
   }
@@ -266,10 +333,11 @@ export class PendingRequestService {
     return this.subscribeToPendingRequests(
       {
         requestedBy: userId,
-        type: 'employee_update',  // ✅ Changed from 'profile_update' to 'employee_update'
+        type: 'employee_update',
         status: 'pending',
       },
-      onUpdate,
+      { pageSize: 100 }, // PT usually has fewer requests
+      (requests) => onUpdate(requests), // Adapter to old signature
       onError
     );
   }

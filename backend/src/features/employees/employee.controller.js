@@ -271,9 +271,8 @@ export const resetEmployeePasswordByEmail = async (req, res) => {
       password: newTempPassword
     });
 
-    // Update Firestore with new tempPassword
+    // Update Firestore metadata (NO plaintext password)
     await employeeDoc.ref.update({
-      tempPassword: newTempPassword,
       passwordLastReset: new Date(),
       updatedAt: new Date()
     });

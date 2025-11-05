@@ -25,7 +25,8 @@ export function EmployeeProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(false); 
+  const [hasMore, setHasMore] = useState(false);
+  const [lastDoc, setLastDoc] = useState(null);
   const [stats, setStats] = useState({ total: 0, active: 0, pt: 0, recentHires: 0 });
   const [filters, setFilters] = useState({
     status: '',
@@ -45,15 +46,48 @@ export function EmployeeProvider({ children }) {
     }
   }, []);
 
-  // Load more employees (disabled with onSnapshot)
-  const fetchMore = async () => {
-    // No-op: onSnapshot already loads all data
-    setLoadingMore(false);
-  };
+  // Load more employees (pagination)
+  const fetchMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return;
+    
+    setLoadingMore(true);
+    console.log('📄 [EmployeeProvider] Loading more employees...');
+    
+    try {
+      const EmployeeService = (await import('./employee.service.js')).default;
+      
+      const unsubscribe = await EmployeeService.subscribeToEmployeesWithPagination(
+        filters,
+        { pageSize: 20, lastDoc: lastDoc },
+        (newEmployees, lastDocument, hasMoreData) => {
+          console.log('🔥 [EmployeeProvider] Loaded more:', newEmployees.length, 'hasMore:', hasMoreData);
+          
+          // Append to existing
+          setEmployees(prev => [...prev, ...newEmployees]);
+          setLastDoc(lastDocument);
+          setHasMore(hasMoreData);
+          setLoadingMore(false);
+          
+          // Cleanup after one-time load
+          unsubscribe();
+        },
+        (error) => {
+          console.error('Error loading more employees:', error);
+          setLoadingMore(false);
+        }
+      );
+    } catch (error) {
+      console.error('Error in fetchMore:', error);
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore, lastDoc, filters]);
 
   // Refresh employees (reload from start)
   const refreshEmployees = async () => {
     // onSnapshot handles real-time updates automatically
+    setEmployees([]);
+    setLastDoc(null);
+    setHasMore(false);
     await fetchStats();
   };
 
@@ -82,13 +116,16 @@ export function EmployeeProvider({ children }) {
       const newEmployee = new EmployeeModel(employeeData);
       const employeeId = await newEmployee.save();
       
+      console.log('✅ [EmployeeProvider] Employee saved to Firestore:', employeeId);
+      console.log('🔥 [EmployeeProvider] onSnapshot will auto-update the list');
+      
       toast.success(`Thêm nhân viên ${employeeData.fullName} thành công!`, {
         position: "top-right",
         autoClose: 3000,
       });
 
-      // Refresh data
-      await refreshEmployees();
+      // onSnapshot will automatically detect the new employee and update the list
+      // No need to manually refresh
       return employeeId;
     } catch (error) {
       console.error('Error adding employee:', error);
@@ -153,61 +190,56 @@ export function EmployeeProvider({ children }) {
     }
   };
 
-  // Real-time updates with onSnapshot
+  // Real-time updates with onSnapshot + Pagination
   useEffect(() => {
-    // Setup real-time listener with onSnapshot
-    const employeesRef = collection(db, 'employees');
-    const queryConstraints = [];
+    console.log('🔄 [EmployeeProvider] Setting up subscription with filters:', filters);
+    setLoading(true);
+    setEmployees([]);
+    setLastDoc(null);
+    setHasMore(false);
     
-    // Add filters if any
-    if (filters.status) {
-      queryConstraints.push(where('status', '==', filters.status));
-    }
-    if (filters.position) {
-      queryConstraints.push(where('position', '==', filters.position));
-    }
-    if (filters.role) {
-      queryConstraints.push(where('role', '==', filters.role));
-    }
+    let unsubscribeFn = null;
     
-    // Add orderBy for sorting
-    queryConstraints.push(orderBy('createdAt', 'desc'));
-    
-    // Limit to avoid loading too much data
-    queryConstraints.push(fsLimit(100));
-    
-    const q = query(employeesRef, ...queryConstraints);
-    
-    // Subscribe to real-time updates
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const employeesList = snapshot.docs.map(docSnap => {
-          const data = docSnap.data();
-          
-          // Convert Timestamps to dates
-          Object.keys(data).forEach(field => {
-            if (data[field] instanceof Date) {
-              data[field] = data[field].toDate?.() || data[field];
-            } else if (data[field]?.toDate) {
-              data[field] = data[field].toDate();
-            }
-          });
-          
-          return new EmployeeModel({ _id: docSnap.id, ...data });
-        });
+    const loadEmployeesWithPagination = async () => {
+      try {
+        const EmployeeService = (await import('./employee.service.js')).default;
         
-        setEmployees(employeesList);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('❌ onSnapshot error:', error);
-        setError(error.message);
+        console.log('🚀 [EmployeeProvider] Calling subscribeToEmployeesWithPagination...');
+        
+        unsubscribeFn = await EmployeeService.subscribeToEmployeesWithPagination(
+          filters,
+          { pageSize: 20, lastDoc: null }, // First page
+          (employeesList, lastDocument, hasMoreData) => {
+            console.log('🔥 [EmployeeProvider] onSnapshot fired! Loaded employees:', employeesList.length, 'hasMore:', hasMoreData);
+            
+            setEmployees(employeesList);
+            setLastDoc(lastDocument);
+            setHasMore(hasMoreData);
+            setLoading(false);
+          },
+          (error) => {
+            console.error('❌ Error loading employees:', error);
+            setError(error.message);
+            setLoading(false);
+          }
+        );
+        
+        console.log('✅ [EmployeeProvider] Subscription setup complete');
+      } catch (error) {
+        console.error('❌ Error setting up subscription:', error);
         setLoading(false);
       }
-    );
+    };
+    
+    loadEmployeesWithPagination();
     
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      console.log('🧹 [EmployeeProvider] Cleanup subscription');
+      if (unsubscribeFn) {
+        unsubscribeFn();
+      }
+    };
   }, [filters]);
 
   // Load stats on mount

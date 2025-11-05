@@ -241,9 +241,49 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
         }
       }
 
+      // Handle role change and account creation
+      let finalUid = employee.uid || null;
+      let accountMessage = '';
+      
+      const needsLoginAccount = formData.role === 'pt' || formData.role === 'admin';
+      const hadLoginAccount = employee.uid != null;
+      
+      // Case 1: Đổi từ employee → pt/admin (cần tạo account)
+      if (needsLoginAccount && !hadLoginAccount) {
+        try {
+          console.log('🔐 Creating new Firebase Auth account (role changed to', formData.role, ')');
+          const authResponse = await fetch('http://localhost:3000/api/employees/create-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email,
+              displayName: formData.fullName,
+              phone: formData.phone
+            })
+          });
+          
+          const authResult = await authResponse.json();
+          if (authResult.success) {
+            finalUid = authResult.uid;
+            accountMessage = `\n✅ Đã tạo tài khoản đăng nhập\n🔑 Mật khẩu: ${authResult.tempPassword}`;
+          }
+        } catch (error) {
+          console.warn('Warning: Could not create auth account:', error);
+          accountMessage = '\n⚠️ Chưa tạo được tài khoản đăng nhập. Có thể tạo sau.';
+        }
+      }
+      
+      // Case 2: Đổi từ pt/admin → employee (nên xóa/disable account)
+      if (!needsLoginAccount && hadLoginAccount) {
+        console.warn('⚠️ Role changed to employee but Firebase Auth account still exists (UID:', employee.uid, ')');
+        console.warn('⚠️ Consider disabling or deleting this account manually');
+        accountMessage = '\n⚠️ Lưu ý: Tài khoản đăng nhập vẫn tồn tại. Cân nhắc vô hiệu hóa nếu không cần.';
+      }
+
       // Convert string values to appropriate types  
       const updateData = {
         ...formData,
+        uid: finalUid, // ✅ Preserve or add uid
         avatarUrl, // Sẽ giữ nguyên URL cũ nếu không có ảnh mới
         dateOfBirth: new Date(formData.dateOfBirth),
         startDate: new Date(formData.startDate),
@@ -251,8 +291,20 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
         commissionRate: parseFloat(formData.commissionRate)
       };
 
-      console.log('💾 Final update data avatarUrl:', updateData.avatarUrl);
+      console.log('💾 Final update data - uid:', updateData.uid, 'role:', updateData.role);
       await updateEmployee(employee._id, updateData);
+      
+      // Show success with account message
+      await Swal.fire({
+        icon: 'success',
+        title: 'Cập nhật thành công!',
+        html: `
+          <p>Thông tin nhân viên <strong>${formData.fullName}</strong> đã được cập nhật.</p>
+          ${accountMessage ? `<p style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px; font-size: 13px;">${accountMessage}</p>` : ''}
+        `,
+        confirmButtonText: 'OK'
+      });
+      
       onClose();
     } catch (error) {
       console.error('Error updating employee:', error);
@@ -551,8 +603,7 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
                   >
                     <option value="employee">Nhân viên</option>
                     <option value="pt">PT</option>
-                    <option value="manager">Quản lý</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Admin/Quản lý</option>
                   </select>
                 </div>
               </div>
@@ -641,9 +692,10 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
               </div>
             </div>
 
-            {/* Account Information Section */}
-            <div className="form-section">
-              <h3>Thông Tin Tài Khoản</h3>
+            {/* Account Information Section - Only for PT and Admin */}
+            {(formData.role === 'pt' || formData.role === 'admin') && (
+              <div className="form-section">
+                <h3>Thông Tin Tài Khoản</h3>
               
               <div className="form-row">
                 <div className="form-group full-width">
@@ -790,7 +842,8 @@ export default function EditEmployeeModal({ isOpen, onClose, employee }) {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
 
             {/* Additional Information Section */}
             <div className="form-section">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
+import { NotificationBell } from '../../../shared/components/Notification/NotificationBell.jsx';
 
 export default function PTHeader({ onToggle }) {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ export default function PTHeader({ onToggle }) {
       </div>
       
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <NotificationBell />
+        
         <button 
           onClick={handleLogout}
           style={{

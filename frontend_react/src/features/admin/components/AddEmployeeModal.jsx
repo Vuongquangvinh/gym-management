@@ -169,39 +169,45 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         }
       }
 
-      // Step 1: Create Firebase Auth account first
+      // Step 1: Create Firebase Auth account (only for PT and Admin)
       let uid = null;
       let tempPassword = '';
       
-      try {
-        const authResponse = await fetch('http://localhost:3000/api/employees/create-account', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            displayName: formData.fullName,
-            phone: formData.phone
-          })
-        });
+      const needsLoginAccount = formData.role === 'pt' || formData.role === 'admin';
+      
+      if (needsLoginAccount) {
+        try {
+          const authResponse = await fetch('http://localhost:3000/api/employees/create-account', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              displayName: formData.fullName,
+              phone: formData.phone
+            })
+          });
 
-        const authResult = await authResponse.json();
-        
-        if (!authResult.success) {
-          throw new Error(authResult.error || 'Không thể tạo tài khoản đăng nhập');
+          const authResult = await authResponse.json();
+          
+          if (!authResult.success) {
+            throw new Error(authResult.error || 'Không thể tạo tài khoản đăng nhập');
+          }
+
+          uid = authResult.uid;
+          tempPassword = authResult.tempPassword;
+          
+          // Set generated password to display in modal
+          setGeneratedPassword(tempPassword);
+          
+          console.log('✅ Created Firebase Auth account for', formData.role, ':', uid);
+        } catch (authError) {
+          console.error('Error creating auth account:', authError);
+          throw new Error('Không thể tạo tài khoản đăng nhập: ' + authError.message);
         }
-
-        uid = authResult.uid;
-        tempPassword = authResult.tempPassword;
-        
-        // Set generated password to display in modal
-        setGeneratedPassword(tempPassword);
-        
-        console.log('✅ Created Firebase Auth account:', uid);
-      } catch (authError) {
-        console.error('Error creating auth account:', authError);
-        throw new Error('Không thể tạo tài khoản đăng nhập: ' + authError.message);
+      } else {
+        console.log('ℹ️ Skipping auth account creation for role:', formData.role);
       }
 
       // Step 2: Convert string values to appropriate types
@@ -209,7 +215,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         ...formData,
         idCard: formData.idCard,
         uid: uid, // Link to Firebase Auth
-        tempPassword: tempPassword, // Lưu mật khẩu tạm thời để admin có thể xem lại
+        // ❌ REMOVED: tempPassword (security risk - don't store plaintext passwords)
         avatarUrl: avatarUrl || '',
         dateOfBirth: new Date(formData.dateOfBirth),
         startDate: new Date(formData.startDate),
@@ -225,42 +231,69 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       resetForm();
       onClose();
       
-      // Step 4: Show success with password using SweetAlert2
-      await Swal.fire({
-        icon: 'success',
-        title: 'Thêm nhân viên thành công!',
-        html: `
-          <div style="text-align: left; padding: 10px;">
-            <p><strong>👤 Nhân viên:</strong> ${formData.fullName}</p>
-            <p><strong>📧 Email:</strong> ${formData.email}</p>
-            <hr style="margin: 15px 0;">
-            <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
-              <strong>🔑 Mật khẩu tạm thời:</strong><br>
-              <span style="font-size: 20px; font-weight: bold; color: #000;">${tempPassword}</span>
-            </p>
-            <p style="font-size: 12px; color: #6c757d;">
-              💡 Mật khẩu đã được lưu trong hệ thống và có thể xem lại trong phần chỉnh sửa nhân viên.
-            </p>
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '📋 Copy Mật Khẩu',
-        cancelButtonText: 'Đóng',
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        width: '500px'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigator.clipboard.writeText(tempPassword);
-          Swal.fire({
-            icon: 'success',
-            title: 'Đã copy!',
-            text: 'Mật khẩu đã được copy vào clipboard',
-            timer: 1500,
-            showConfirmButton: false
-          });
-        }
-      });
+      // Step 4: Show success message
+      if (needsLoginAccount && tempPassword) {
+        // Show password for PT/Admin
+        await Swal.fire({
+          icon: 'success',
+          title: 'Thêm nhân viên thành công!',
+          html: `
+            <div style="text-align: left; padding: 10px;">
+              <p><strong>👤 Nhân viên:</strong> ${formData.fullName}</p>
+              <p><strong>📧 Email:</strong> ${formData.email}</p>
+              <p><strong>🎭 Quyền:</strong> ${formData.role === 'pt' ? 'PT' : 'Admin/Quản lý'}</p>
+              <hr style="margin: 15px 0;">
+              <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                <strong>🔑 Mật khẩu tạm thời:</strong><br>
+                <span style="font-size: 20px; font-weight: bold; color: #000;">${tempPassword}</span>
+              </p>
+              <p style="font-size: 12px; color: #dc3545; font-weight: 600;">
+                ⚠️ LƯU Ý: Mật khẩu chỉ hiển thị 1 lần này. Hãy copy và gửi cho nhân viên ngay!
+              </p>
+              <p style="font-size: 11px; color: #6c757d; margin-top: 8px;">
+                💡 Nếu quên mật khẩu, admin có thể reset trong phần chỉnh sửa nhân viên.
+              </p>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: '📋 Copy Mật Khẩu',
+          cancelButtonText: 'Đóng',
+          confirmButtonColor: '#28a745',
+          cancelButtonColor: '#6c757d',
+          width: '500px'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigator.clipboard.writeText(tempPassword);
+            Swal.fire({
+              icon: 'success',
+              title: 'Đã copy!',
+              text: 'Mật khẩu đã được copy vào clipboard',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          }
+        });
+      } else {
+        // Simple success for regular employees
+        await Swal.fire({
+          icon: 'success',
+          title: 'Thêm nhân viên thành công!',
+          html: `
+            <div style="text-align: left; padding: 10px;">
+              <p><strong>👤 Nhân viên:</strong> ${formData.fullName}</p>
+              <p><strong>📧 Email:</strong> ${formData.email}</p>
+              <p><strong>🎭 Quyền:</strong> Nhân viên</p>
+              <hr style="margin: 15px 0;">
+              <p style="font-size: 13px; color: #6c757d;">
+                ℹ️ Nhân viên thông thường không cần tài khoản đăng nhập hệ thống.
+              </p>
+            </div>
+          `,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#007bff',
+          width: '450px'
+        });
+      }
     } catch (error) {
       console.error('Error adding employee:', error);
       setErrors({ submit: error.message || 'Có lỗi xảy ra khi thêm nhân viên' });
@@ -478,8 +511,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                   >
                     <option value="employee">Nhân viên</option>
                     <option value="pt">PT</option>
-                    <option value="manager">Quản lý</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Admin/Quản lý</option>
                   </select>
                 </div>
               </div>
@@ -567,9 +599,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Account Information Section */}
-            <div className="form-section">
-              <h3>Thông Tin Tài Khoản</h3>
+            {/* Account Information Section - Only for PT and Admin */}
+            {(formData.role === 'pt' || formData.role === 'admin') && (
+              <div className="form-section">
+                <h3>Thông Tin Tài Khoản</h3>
               
               <div className="form-row">
                 <div className="form-group full-width">
@@ -646,7 +679,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
 
             {/* Additional Information Section */}
             <div className="form-section">

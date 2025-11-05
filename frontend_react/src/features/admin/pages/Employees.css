@@ -363,8 +363,8 @@
 }
 
 /* Status Badges */
-.status-badge {
-  padding: 6px 12px;
+.status-badge-employees {
+  padding: 6px 2px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;

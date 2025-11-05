@@ -6,6 +6,7 @@ import './header.css';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { signOutUser } from '../../../firebase/lib/features/auth/auth.service.js';
+import { NotificationBell } from '../Notification/NotificationBell.jsx';
 
 export default function Header({ onToggle }) {
 	const [open, setOpen] = useState(false);
@@ -35,13 +36,10 @@ export default function Header({ onToggle }) {
 				</div>
 			</div>
 
-			<div className="right">
-				<button className="icon-btn" aria-label="Notifications">
-					🔔
-					<span className="badge">3</span>
-				</button>``
+		<div className="right">
+			<NotificationBell />
 
-				<div className="user dropdown" onClick={() => setOpen((v) => !v)}>
+			<div className="user dropdown" onClick={() => setOpen((v) => !v)}>
 					<div className="avatar">{currentUser?.email?.charAt(0)?.toUpperCase() ?? 'A'}</div>
 					<div className="username">{currentUser?.email ? currentUser.email.split('@')[0] : 'Admin'}</div>
 					{open && (

@@ -334,7 +334,7 @@ function EmployeesContent() {
                       )}
                     </td>
                     <td>
-                      <span className={`status-badge ${getStatusBadge(employee.status)}`}>
+                      <span className={`status-badge-employees ${getStatusBadge(employee.status)}`}>
                         {employee.status === 'active' && 'Đang làm việc'}
                         {employee.status === 'inactive' && 'Tạm nghỉ'}
                         {employee.status === 'resigned' && 'Đã nghỉ việc'}

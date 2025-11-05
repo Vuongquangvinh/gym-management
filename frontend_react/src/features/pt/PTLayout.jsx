@@ -4,6 +4,7 @@ import PTSidebar from './components/PTSidebar';
 import PTHeader from './components/PTHeader';
 import './pt.css';
 import { PTProvider } from '../../firebase/lib/features/pt/pt.provider.jsx';
+import { NotificationProvider } from '../../firebase/lib/features/notification/notification.provider.jsx';
 
 export default function PTLayout() {
   const [open, setOpen] = useState(false);
@@ -19,14 +20,16 @@ export default function PTLayout() {
   return (
     <div className={`pt-root ${open ? 'menu-open' : ''}`} style={{ display: 'flex', height: '100vh', minHeight: '0' }}>
       <PTSidebar />
-      <div className="pt-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '0' }}>
-        <PTHeader onToggle={toggle} />
-        <div className="pt-content" style={{ flex: 1, overflow: 'auto', minHeight: '0' }}>
-          <PTProvider>
-            <Outlet />
-          </PTProvider>
+      <NotificationProvider role="pt">
+        <div className="pt-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '0' }}>
+          <PTHeader onToggle={toggle} />
+          <div className="pt-content" style={{ flex: 1, overflow: 'auto', minHeight: '0' }}>
+            <PTProvider>
+              <Outlet />
+            </PTProvider>
+          </div>
         </div>
-      </div>
+      </NotificationProvider>
     </div>
   );
 }

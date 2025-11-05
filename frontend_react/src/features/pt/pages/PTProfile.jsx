@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
+import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import EmployeeService from '../../../firebase/lib/features/employee/employee.service';
 import { PendingRequestService } from '../../../firebase/lib/features/pending-request/pendingRequest.service';
@@ -10,6 +11,7 @@ import PTComparisonView from '../components/PTComparisonView';
 
 export default function PTProfile() {
   const { currentUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [ptInfo, setPtInfo] = useState({
@@ -38,9 +40,9 @@ export default function PTProfile() {
     gender: 'male',
     idCard: ''
   });
-  const [pendingRequest, setPendingRequest] = useState(null);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [rejectedRequest, setRejectedRequest] = useState(null);
-  const [showComparison, setShowComparison] = useState(false);
+  const [expandedRequestId, setExpandedRequestId] = useState(null);
   const [newSpecialty, setNewSpecialty] = useState('');
   const [newCertificate, setNewCertificate] = useState('');
   const [newAchievement, setNewAchievement] = useState('');
@@ -115,14 +117,22 @@ export default function PTProfile() {
     const unsubscribe = PendingRequestService.subscribeToProfilePendingRequest(
       currentUser.uid,
       (requests) => {
-        // Get the first pending request (most recent)
-        if (requests && requests.length > 0) {
-          setPendingRequest(requests[0]);
-          // Auto-show comparison when pending request exists
-          setShowComparison(true);
-        } else {
-          setPendingRequest(null);
-          setShowComparison(false);
+        // Store all pending requests
+        setPendingRequests(requests || []);
+        
+        // Auto-expand if requestId in URL
+        const requestId = searchParams.get('requestId');
+        if (requestId && requests.some(r => r.id === requestId)) {
+          setExpandedRequestId(requestId);
+          // Clear URL param after opening
+          setSearchParams({});
+          // Scroll to requests section
+          setTimeout(() => {
+            const element = document.getElementById('pending-requests-section');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
         }
       },
       (error) => {
@@ -136,7 +146,7 @@ export default function PTProfile() {
         unsubscribe();
       }
     };
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, searchParams, setSearchParams]);
 
   // Real-time listener for rejected requests
   useEffect(() => {
@@ -270,13 +280,8 @@ export default function PTProfile() {
 
       const employeeId = employeeData.id || employeeData._id;
 
-      // Tạo pending request thay vì update trực tiếp
-      const { db } = await import('../../../firebase/lib/config/firebase');
-      const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
-      
-      const pendingRequestsRef = collection(db, 'pendingRequests');
-      
-      await addDoc(pendingRequestsRef, {
+      // Tạo pending request qua service (sẽ auto-create notification)
+      const result = await PendingRequestService.createPendingRequest({
         type: 'employee_update',
         employeeId: employeeId,
         employeeEmail: employeeData.email || currentUser?.email,
@@ -284,7 +289,6 @@ export default function PTProfile() {
         requestedBy: currentUser?.uid || employeeId,
         requestedByName: employeeData.fullName || 'PT',
         employeeAvatar: employeeData.avatarUrl || null,
-        status: 'pending',
         data: {
           fullName: editedData.fullName,
           phone: editedData.phone,
@@ -302,10 +306,12 @@ export default function PTProfile() {
           gender: employeeData.gender,
           idCard: employeeData.idCard,
           ptInfo: employeeData.ptInfo || {}
-        },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        }
       });
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tạo yêu cầu');
+      }
 
       Swal.fire({
         icon: 'info',
@@ -320,10 +326,8 @@ export default function PTProfile() {
         confirmButtonColor: '#007bff'
       });
 
-      // Auto-show comparison view after submit
-      setShowComparison(true);
-
-      // Real-time listener will automatically reload
+      // Auto-expand the new request when it loads
+      // Real-time listener will automatically reload and expand
     } catch (error) {
       console.error('Error saving PT profile:', error);
       Swal.fire({
@@ -591,18 +595,28 @@ export default function PTProfile() {
     }
   };
 
-  const handleCancelRequest = async () => {
+  const handleCancelRequest = async (requestId) => {
     try {
+      const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Xác nhận hủy yêu cầu?',
+        text: 'Bạn có chắc muốn hủy yêu cầu này?',
+        showCancelButton: true,
+        confirmButtonText: 'Hủy yêu cầu',
+        cancelButtonText: 'Không',
+        confirmButtonColor: '#f44336'
+      });
+
+      if (!result.isConfirmed) return;
+
       const { db } = await import('../../../firebase/lib/config/firebase');
       const { doc, updateDoc } = await import('firebase/firestore');
 
-      const requestRef = doc(db, 'pendingRequests', pendingRequest.id);
+      const requestRef = doc(db, 'pendingRequests', requestId);
       await updateDoc(requestRef, {
         status: 'cancelled',
         cancelledAt: new Date()
       });
-
-      setPendingRequest(null);
 
       Swal.fire({
         icon: 'success',
@@ -634,19 +648,114 @@ export default function PTProfile() {
         Cập nhật thông tin cá nhân và thông tin PT để học viên hiểu rõ hơn về bạn
       </p>
 
-      {/* Pending Request Banner */}
-      <PTPendingRequestBanner
-        pendingRequest={pendingRequest}
-        showComparison={showComparison}
-        setShowComparison={setShowComparison}
-        onCancelRequest={handleCancelRequest}
-      />
+      {/* Pending Requests List */}
+      {pendingRequests.length > 0 && (
+        <div id="pending-requests-section" style={{
+          background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+          border: '2px solid #2196F3',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '24px' }}>📝</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: 600, color: '#1565c0', marginBottom: '4px' }}>
+                Yêu cầu chỉnh sửa thông tin đang chờ duyệt
+              </p>
+              <p style={{ fontSize: '13px', color: '#1976d2', margin: 0 }}>
+                Bạn có {pendingRequests.length} yêu cầu đang chờ admin phê duyệt
+              </p>
+            </div>
+          </div>
 
-      {/* Comparison View */}
-      <PTComparisonView 
-        pendingRequest={pendingRequest}
-        showComparison={showComparison}
-      />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {pendingRequests.map(request => {
+              const isExpanded = expandedRequestId === request.id;
+              const formatDate = (timestamp) => {
+                if (!timestamp) return 'N/A';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('vi-VN');
+              };
+
+              return (
+                <div
+                  key={request.id}
+                  style={{
+                    background: 'white',
+                    border: '1px solid #e3f2fd',
+                    borderRadius: '8px',
+                    padding: '12px 16px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{
+                          background: '#2196F3',
+                          color: 'white',
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontWeight: 600
+                        }}>
+                          CẬP NHẬT THÔNG TIN
+                        </span>
+                        <span style={{ fontSize: '13px', color: '#999' }}>
+                          {formatDate(request.createdAt)}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+                        Yêu cầu cập nhật thông tin cá nhân và thông tin PT
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => setExpandedRequestId(isExpanded ? null : request.id)}
+                        style={{
+                          padding: '6px 12px',
+                          background: 'white',
+                          border: '1px solid #2196F3',
+                          borderRadius: '6px',
+                          color: '#2196F3',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 500
+                        }}
+                      >
+                        {isExpanded ? '🔼 Thu gọn' : '🔽 Xem chi tiết'}
+                      </button>
+                      <button
+                        onClick={() => handleCancelRequest(request.id)}
+                        style={{
+                          padding: '6px 12px',
+                          background: 'white',
+                          border: '1px solid #f44336',
+                          borderRadius: '6px',
+                          color: '#f44336',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 500
+                        }}
+                      >
+                        🚫 Hủy yêu cầu
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <PTComparisonView 
+                      pendingRequest={request}
+                      showComparison={true}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Warning box */}
       <div style={{

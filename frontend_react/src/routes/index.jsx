@@ -42,7 +42,7 @@ const AppRouter = () => {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Các route được bảo vệ */}
-          {/* <Route element={<ProtectedRoute />}> */}
+          <Route element={<ProtectedRoute />}>
             <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/qr" element={<ShowQRPage />} />
             
@@ -75,7 +75,7 @@ const AppRouter = () => {
               <Route path="schedule" element={<PTSchedule />} />
               <Route path="settings" element={<PTSettings />} />
             </Route>
-          {/* </Route> */}
+          </Route>
           {/* Route cho trang không tồn tại */}
         </Routes>
       </React.Suspense>

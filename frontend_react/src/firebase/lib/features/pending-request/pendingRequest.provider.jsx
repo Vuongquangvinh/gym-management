@@ -28,11 +28,15 @@ export function PendingRequestProvider({ children }) {
     cancelled: 0,
     all: 0
   });
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Real-time listener for ALL requests (for counting)
   useEffect(() => {
     const unsubscribe = PendingRequestService.subscribeToPendingRequests(
       {}, // No filter - get all
+      { pageSize: 1000 }, // Large page size for counting
       (requestsList) => {
         setAllRequests(requestsList);
         
@@ -58,9 +62,12 @@ export function PendingRequestProvider({ children }) {
     };
   }, []);
 
-  // Real-time listener for FILTERED requests
+  // Real-time listener for FILTERED requests with pagination
   useEffect(() => {
     setLoading(true);
+    setRequests([]); // Clear old requests when filter changes
+    setLastDoc(null);
+    setHasMore(false);
 
     // Setup filters
     const filters = {};
@@ -68,11 +75,12 @@ export function PendingRequestProvider({ children }) {
       filters.status = filter;
     }
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates (first page)
     const unsubscribe = PendingRequestService.subscribeToPendingRequests(
       filters,
-      async (requestsList) => {
-        console.log('🔥 [Provider] Loaded requests:', requestsList.length);
+      { pageSize: 20, lastDoc: null }, // First page
+      async (requestsList, lastDocument, hasMoreData) => {
+        console.log('🔥 [Provider] Loaded requests:', requestsList.length, 'hasMore:', hasMoreData);
         
         // Convert timestamps and backfill avatars
         const formatted = await Promise.all(requestsList.map(async (req) => {
@@ -105,6 +113,8 @@ export function PendingRequestProvider({ children }) {
         formatted.sort((a, b) => b.createdAt - a.createdAt);
         
         setRequests(formatted);
+        setLastDoc(lastDocument);
+        setHasMore(hasMoreData);
         setLoading(false);
       },
       (error) => {
@@ -771,6 +781,74 @@ export function PendingRequestProvider({ children }) {
   }, []);
 
   /**
+   * Load more requests (pagination)
+   */
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return;
+    
+    setLoadingMore(true);
+    console.log('📄 [Provider] Loading more requests...');
+    
+    try {
+      const filters = {};
+      if (filter !== 'all') {
+        filters.status = filter;
+      }
+
+      // Subscribe to next page
+      const unsubscribe = PendingRequestService.subscribeToPendingRequests(
+        filters,
+        { pageSize: 20, lastDoc: lastDoc },
+        async (requestsList, lastDocument, hasMoreData) => {
+          console.log('🔥 [Provider] Loaded more:', requestsList.length, 'hasMore:', hasMoreData);
+          
+          // Backfill avatars
+          const formatted = await Promise.all(requestsList.map(async (req) => {
+            let avatarUrl = req.employeeAvatar;
+            
+            if (!avatarUrl && req.employeeId) {
+              try {
+                const { doc, getDoc } = await import('firebase/firestore');
+                const employeeDoc = await getDoc(doc(db, 'employees', req.employeeId));
+                if (employeeDoc.exists()) {
+                  avatarUrl = employeeDoc.data().avatarUrl || null;
+                }
+              } catch (error) {
+                console.error('Error fetching avatar for', req.employeeId, error);
+              }
+            }
+            
+            return {
+              ...req,
+              employeeAvatar: avatarUrl,
+              createdAt: req.createdAt?.toDate?.() || new Date(req.createdAt),
+              updatedAt: req.updatedAt?.toDate?.() || new Date(req.updatedAt)
+            };
+          }));
+          
+          formatted.sort((a, b) => b.createdAt - a.createdAt);
+          
+          // Append to existing requests
+          setRequests(prev => [...prev, ...formatted]);
+          setLastDoc(lastDocument);
+          setHasMore(hasMoreData);
+          setLoadingMore(false);
+          
+          // Cleanup subscription after loading
+          unsubscribe();
+        },
+        (error) => {
+          console.error('Error loading more:', error);
+          setLoadingMore(false);
+        }
+      );
+    } catch (error) {
+      console.error('Error in loadMore:', error);
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore, lastDoc, filter]);
+
+  /**
    * Refresh requests (manual reload)
    */
   const refreshRequests = useCallback(() => {
@@ -781,13 +859,16 @@ export function PendingRequestProvider({ children }) {
   const contextValue = {
     requests,
     loading,
+    loadingMore,
+    hasMore,
     filter,
     setFilter,
     approveRequest: approveRequestWithConfirm,
     rejectRequest: rejectRequestWithConfirm,
     viewRequestDetails,
     refreshRequests,
-    counts,  // ← Add counts
+    loadMore,
+    counts,
   };
 
   return (
