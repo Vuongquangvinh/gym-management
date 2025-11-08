@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const serviceAccountPath = path.resolve(
   __dirname,
-  "../../gym-managment-aa0a1-firebase-adminsdk-fbsvc-2241cac4bf.json"
+  "../../gym-managment-aa0a1-firebase-adminsdk-fbsvc-1138eee267.json"
 );
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
 
