@@ -376,6 +376,44 @@ async def process_checkin(request: CheckinRequest):
         checkin_ref.set(checkin_data)
         print(f"✅ Check-in saved successfully with ID: {checkin_id}")
         
+        # Create notifications
+        print(f"📬 Creating notifications...")
+        
+        # Notification data for admin
+        admin_notif_data = {
+            "recipientId": "admin",
+            "recipientRole": "admin",
+            "type": f"employee_{request.checkinType}",
+            "title": f"Nhân viên {request.checkinType}",
+            "message": f"{emp_data.get('fullName', '')} đã {request.checkinType} lúc {datetime.fromisoformat(request.timestamp.replace('Z', '+00:00')).strftime('%H:%M')}",
+            "relatedId": checkin_id,
+            "relatedType": request.checkinType,
+            "senderName": emp_data.get("fullName", ""),
+            "senderAvatar": emp_data.get("avatarUrl", None),
+            "read": False,
+            "createdAt": firestore.SERVER_TIMESTAMP
+        }
+        
+        # Notification data for PT (confirmation)
+        pt_notif_data = {
+            "recipientId": request.employeeId,
+            "recipientRole": "pt",
+            "type": f"{request.checkinType}_confirmation",
+            "title": f"{request.checkinType.capitalize()} thành công",
+            "message": f"Bạn đã {request.checkinType} thành công lúc {datetime.fromisoformat(request.timestamp.replace('Z', '+00:00')).strftime('%H:%M')}",
+            "relatedId": checkin_id,
+            "relatedType": request.checkinType,
+            "senderName": "Hệ thống",
+            "senderAvatar": None,
+            "read": False,
+            "createdAt": firestore.SERVER_TIMESTAMP
+        }
+        
+        # Save notifications
+        db.collection("notifications").add(admin_notif_data)
+        db.collection("notifications").add(pt_notif_data)
+        print(f"✅ Notifications created for admin and PT")
+        
         action_text = "Check-in" if request.checkinType == "checkin" else "Checkout"
         
         return {

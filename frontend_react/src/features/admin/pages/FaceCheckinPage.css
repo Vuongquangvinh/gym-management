@@ -5,6 +5,7 @@
   padding: 24px;
   background: #f8f9fa;
   min-height: 100vh;
+  
 }
 
 /* Loading State */
@@ -399,7 +400,7 @@
 .email { color: #3498db; }
 
 /* Position Badge */
-.position-badge {
+.position-badge-checkin {
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -411,13 +412,14 @@
 }
 
 /* Status Badges */
-.status-badge {
+.status-badge-checkin {
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  
 }
 
 .status-active { background: #d5f5d5; color: #27ae60; }
@@ -433,6 +435,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  
 }
 
 .face-registered { 
@@ -631,8 +634,8 @@
     padding: 6px 12px;
   }
 
-  .position-badge,
-  .status-badge,
+  .position-badge-checkin,
+  .status-badge-checkin,
   .face-status-badge {
     font-size: 11px;
     padding: 4px 10px;

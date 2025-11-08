@@ -113,7 +113,7 @@
   flex-shrink: 0; /* Don't shrink header */
 }
 .admin-content { 
-  padding: 28px; 
+  /* padding: 28px;  */
   flex: 1;
   overflow: auto; /* Allow content to scroll */
   width: 100%;

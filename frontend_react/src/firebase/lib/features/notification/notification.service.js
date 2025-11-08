@@ -209,5 +209,82 @@ export class NotificationService {
       senderAvatar: null
     });
   }
+
+  /**
+   * Helper: Notify admin khi PT check-in
+   */
+  static async notifyAdminOfCheckin(employeeData, checkinData) {
+    const message = `${employeeData.fullName} đã check-in lúc ${new Date(checkinData.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+
+    return await this.createNotification({
+      recipientId: 'admin',
+      recipientRole: 'admin',
+      type: 'employee_checkin',
+      title: 'Nhân viên check-in',
+      message,
+      relatedId: checkinData.checkinId || employeeData._id,
+      relatedType: 'checkin',
+      senderName: employeeData.fullName,
+      senderAvatar: employeeData.avatarUrl || null
+    });
+  }
+
+  /**
+   * Helper: Notify admin khi PT checkout
+   */
+  static async notifyAdminOfCheckout(employeeData, checkoutData) {
+    const message = `${employeeData.fullName} đã checkout lúc ${new Date(checkoutData.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+
+    return await this.createNotification({
+      recipientId: 'admin',
+      recipientRole: 'admin',
+      type: 'employee_checkout',
+      title: 'Nhân viên checkout',
+      message,
+      relatedId: checkoutData.checkinId || employeeData._id,
+      relatedType: 'checkout',
+      senderName: employeeData.fullName,
+      senderAvatar: employeeData.avatarUrl || null
+    });
+  }
+
+  /**
+   * Helper: Notify PT khi họ check-in thành công (confirmation)
+   */
+  static async notifyPTOfCheckin(employeeData, checkinData) {
+    const message = `Bạn đã check-in thành công lúc ${new Date(checkinData.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+
+    return await this.createNotification({
+      recipientId: employeeData._id,
+      recipientRole: 'pt',
+      type: 'checkin_confirmation',
+      title: 'Check-in thành công',
+      message,
+      relatedId: checkinData.checkinId || employeeData._id,
+      relatedType: 'checkin',
+      senderName: 'Hệ thống',
+      senderAvatar: null
+    });
+  }
+
+  /**
+   * Helper: Notify PT khi họ checkout thành công (confirmation)
+   */
+  static async notifyPTOfCheckout(employeeData, checkoutData) {
+    const message = `Bạn đã checkout thành công lúc ${new Date(checkoutData.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+
+    return await this.createNotification({
+      recipientId: employeeData._id,
+      recipientRole: 'pt',
+      type: 'checkout_confirmation',
+      title: 'Checkout thành công',
+      message,
+      relatedId: checkoutData.checkinId || employeeData._id,
+      relatedType: 'checkout',
+      senderName: 'Hệ thống',
+      senderAvatar: null
+    });
+  }
 }
+
 

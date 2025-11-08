@@ -359,14 +359,14 @@ function FaceCheckinContent() {
                     </td>
                     <td>
                       <span 
-                        className="position-badge"
+                        className="position-badge-checkin"
                         style={{ backgroundColor: getPositionColor(employee.position) }}
                       >
                         {employee.position}
                       </span>
                     </td>
                     <td>
-                      <span className={`status-badge ${getStatusBadge(employee.status)}`}>
+                      <span className={`status-badge-checkin ${getStatusBadge(employee.status)}`}>
                         {employee.status === 'active' && 'Đang làm việc'}
                         {employee.status === 'inactive' && 'Tạm nghỉ'}
                         {employee.status === 'resigned' && 'Đã nghỉ việc'}
