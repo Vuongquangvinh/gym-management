@@ -151,8 +151,9 @@ export default function DetailMember({ user, isOpen, onClose, onUpdate }) {
           userName: user.full_name,
           userEmail: user.email,
           userPhone: user.phone_number,
-          returnUrl: `${window.location.origin}/admin`,
-          cancelUrl: `${window.location.origin}/admin`,
+          // Add userId to returnUrl to trigger refresh after payment
+          returnUrl: `${window.location.origin}/admin/members?paymentSuccess=true&userId=${user.id || user._id}`,
+          cancelUrl: `${window.location.origin}/admin/members?paymentCancelled=true`,
         }),
       });
 

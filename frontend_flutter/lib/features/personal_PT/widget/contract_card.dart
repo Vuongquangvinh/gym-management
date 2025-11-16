@@ -71,31 +71,8 @@ class ContractCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              // Sessions info
-              Row(
-                children: [
-                  Icon(
-                    Icons.event_available,
-                    size: 16,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${contract.completedSessions}/${contract.totalSessions} buổi',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-              ),
-
               // Time slots count
-              if (contract.selectedTimeSlots.isNotEmpty) ...[
+              if (contract.weeklySchedule.schedule.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -108,7 +85,7 @@ class ContractCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${contract.selectedTimeSlots.length} khung giờ tập',
+                      '${contract.weeklySchedule.schedule.length} khung giờ tập/tuần',
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark
@@ -120,57 +97,28 @@ class ContractCard extends StatelessWidget {
                 ),
               ],
 
-              // Progress bar
-              if (contract.totalSessions > 0) ...[
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: contract.completedSessions / contract.totalSessions,
-                  backgroundColor: isDark
-                      ? AppColors.borderDark
-                      : AppColors.borderLight,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _getStatusColor(contract.status),
-                  ),
-                ),
-              ],
-
-              // Note nếu có
-              if (contract.note != null && contract.note!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.borderDark.withOpacity(0.3)
-                        : AppColors.borderLight.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.note,
-                        size: 16,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
+              // Payment info
+              if (contract.paymentAmount != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.attach_money,
+                      size: 16,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${NumberFormat('#,###').format(contract.paymentAmount)} đ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          contract.note!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -204,9 +152,9 @@ class ContractCard extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'pending':
+      case 'pending_payment':
         return AppColors.warning;
-      case 'approved':
+      case 'paid':
       case 'active':
         return AppColors.success;
       case 'completed':
@@ -220,10 +168,10 @@ class ContractCard extends StatelessWidget {
 
   String _getStatusText(String status) {
     switch (status) {
-      case 'pending':
-        return 'Chờ duyệt';
-      case 'approved':
-        return 'Đã duyệt';
+      case 'pending_payment':
+        return 'Chờ thanh toán';
+      case 'paid':
+        return 'Đã thanh toán';
       case 'active':
         return 'Đang hoạt động';
       case 'completed':

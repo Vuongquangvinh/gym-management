@@ -5,6 +5,7 @@ import {
   getPaymentStatus,
   cancelGymPayment,
   confirmPaymentManual,
+  createPTPackagePayment,
 } from "./payos.controller.js";
 
 const router = Router();
@@ -58,5 +59,26 @@ router.post("/cancel/:orderCode", cancelGymPayment);
  * @body    { orderCode: number }
  */
 router.post("/confirm-payment", confirmPaymentManual);
+
+/**
+ * @route   POST /api/payos/create-pt-package-payment
+ * @desc    Tạo payment link cho gói PT (PT Package)
+ * @access  Public
+ * @body    {
+ *   ptPackageId: string,
+ *   ptPackageName: string,
+ *   ptPackagePrice: number,
+ *   userId: string,
+ *   userName: string,
+ *   ptId: string,
+ *   ptName: string,
+ *   selectedTimeSlots: array,
+ *   userEmail: string (optional),
+ *   userPhone: string (optional),
+ *   returnUrl: string (optional),
+ *   cancelUrl: string (optional)
+ * }
+ */
+router.post("/create-pt-package-payment", createPTPackagePayment);
 
 export default router;

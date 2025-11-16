@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../model/employee.model.dart';
 import '../../../theme/colors.dart';
+import '../../../shared/widgets/network_avatar.dart';
 
 /// Widget hiển thị thông tin PT
 class PTInfoCard extends StatelessWidget {
@@ -14,7 +15,8 @@ class PTInfoCard extends StatelessWidget {
     final ptInfo = employee.ptInfo;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
@@ -45,24 +47,10 @@ class PTInfoCard extends StatelessWidget {
           // Avatar và tên
           Row(
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                backgroundImage: employee.avatarUrl.isNotEmpty
-                    ? NetworkImage(employee.avatarUrl)
-                    : null,
-                child: employee.avatarUrl.isEmpty
-                    ? Text(
-                        employee.fullName.isNotEmpty
-                            ? employee.fullName[0].toUpperCase()
-                            : 'PT',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      )
-                    : null,
+              NetworkAvatar(
+                avatarUrl: employee.avatarUrl,
+                size: 80,
+                placeholderIcon: Icons.person,
               ),
               const SizedBox(width: 16),
               Expanded(

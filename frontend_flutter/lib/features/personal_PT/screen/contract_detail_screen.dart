@@ -5,9 +5,9 @@ import '../../model/contract.mode.dart';
 import '../provider/contract_provider.dart';
 import '../widget/pt_info_card.dart';
 import '../widget/package_info_card.dart';
-import '../widget/time_slots_widget.dart';
+import '../widget/editable_weekly_schedule_widget.dart';
 import '../../../theme/colors.dart';
-import '../../package/widgets/pt/weekly_schedule_selection_screen.dart';
+import '../../chat/screens/chat_screen.dart';
 
 /// Màn hình chi tiết contract
 class ContractDetailScreen extends StatefulWidget {
@@ -30,67 +30,6 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     });
   }
 
-  /// Mở màn hình chỉnh sửa lịch tập
-  Future<void> _editSchedule(
-    BuildContext context,
-    ContractModel contract,
-  ) async {
-    final provider = context.read<ContractDetailProvider>();
-
-    // Kiểm tra có thể edit không (chỉ edit được khi status là pending hoặc active)
-    if (contract.status != 'pending' && contract.status != 'active') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Không thể chỉnh sửa lịch tập ở trạng thái hiện tại'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    // Kiểm tra đã load đủ thông tin chưa
-    if (provider.package == null || provider.ptEmployee == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Đang tải thông tin...'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
-      return;
-    }
-
-    // Mở màn hình edit
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WeeklyScheduleSelectionScreen(
-          package: provider.package!,
-          ptId: contract.ptId,
-          ptName: provider.ptEmployee!.fullName,
-          isEditMode: true,
-          existingContract: contract,
-        ),
-      ),
-    );
-
-    // Nếu cập nhật thành công, reload lại data
-    if (result == true) {
-      provider.loadFromContract(contract);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text('Cập nhật lịch tập thành công!'),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -101,7 +40,7 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           : AppColors.backgroundLight,
       appBar: AppBar(
         title: const Text(
-          'Chi tiết hợp đồng',
+          'Chi tiết hợp đồng PT',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         elevation: 0,
@@ -114,7 +53,6 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (provider.error != null) {
             return Center(
               child: Column(
@@ -150,44 +88,112 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           final contract = provider.contract ?? widget.contract;
 
           return SingleChildScrollView(
+            // Không padding ngang để card sát mép
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Status Banner
+                // 1. Banner trạng thái
                 _buildStatusBanner(context, contract),
 
-                // Contract Info
-                _buildContractInfo(context, contract),
-
-                // PT Info
+                // 2. Thông tin PT
                 if (provider.ptEmployee != null)
                   PTInfoCard(employee: provider.ptEmployee!),
 
-                // Package Info
+                // 2.5 Nút Liên hệ PT - CHAT REALTIME
+                if (provider.ptEmployee != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Lấy PT UID từ employee (không dùng contract.ptId)
+                          final ptUid = provider.ptEmployee?.uid;
+                          final clientId =
+                              contract.userId; // ← Lấy client ID từ contract
+
+                          if (ptUid == null || ptUid.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Không thể kết nối với PT. Vui lòng thử lại sau.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          print('🔑 DEBUG - Contract PT ID: ${contract.ptId}');
+                          print('🔑 DEBUG - Employee UID: $ptUid');
+                          print(
+                            '🔑 DEBUG - Client ID from contract: $clientId',
+                          );
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                ptId: ptUid, // ← Dùng UID của employee
+                                ptName:
+                                    provider.ptEmployee?.fullName ??
+                                    'Huấn luyện viên',
+                                clientId:
+                                    clientId, // ← Truyền client ID từ contract
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        label: const Text(
+                          'Liên hệ PT',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // 3. Thông tin gói PT
                 if (provider.package != null)
                   PackageInfoCard(package: provider.package!),
 
-                // Time Slots
-                if (contract.selectedTimeSlots.isNotEmpty)
-                  TimeSlotsWidget(
-                    timeSlots: contract.selectedTimeSlots,
-                    canEdit:
-                        contract.status == 'pending' ||
-                        contract.status == 'active',
-                    onEdit: () => _editSchedule(context, contract),
+                // 4. Thông tin hợp đồng
+                _buildContractInfo(context, contract),
+
+                // 5. Khung giờ tập (có thể chỉnh sửa)
+                if (provider.package != null)
+                  EditableWeeklyScheduleWidget(
+                    contract: contract,
+                    package: provider.package!,
+                    onScheduleUpdated: () {
+                      // Reload contract detail sau khi update
+                      context.read<ContractDetailProvider>().loadContractDetail(
+                        contract.id,
+                      );
+                    },
                   ),
 
-                // Progress Section
-                // _buildProgressSection(context, contract),
-
-                // Dates Section
+                // 6. Thời gian hợp đồng
                 _buildDatesSection(context, contract),
 
-                // Note Section
-                if (contract.note != null && contract.note!.isNotEmpty)
-                  _buildNoteSection(context, contract.note!),
-
-                const SizedBox(height: 100),
+                // 7. Thông tin thanh toán
+                if (contract.paymentStatus != null)
+                  _buildPaymentInfoSection(context, contract),
               ],
             ),
           );
@@ -237,7 +243,8 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      width: double.infinity,
+      margin: EdgeInsets.zero,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
@@ -266,90 +273,16 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           const SizedBox(height: 16),
           _buildInfoRow(
             context,
-            icon: Icons.event_available,
-            label: 'Tổng số buổi',
-            value: '${contract.totalSessions} buổi',
+            icon: Icons.calendar_month,
+            label: 'Gói tập PT',
+            value: 'Theo tháng',
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
             context,
-            icon: Icons.check_circle_outline,
-            label: 'Đã hoàn thành',
-            value: '${contract.completedSessions} buổi',
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            context,
-            icon: Icons.pending_actions,
-            label: 'Còn lại',
-            value:
-                '${contract.totalSessions - contract.completedSessions} buổi',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressSection(BuildContext context, ContractModel contract) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final progress = contract.totalSessions > 0
-        ? contract.completedSessions / contract.totalSessions
-        : 0.0;
-    final percentage = (progress * 100).toInt();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Tiến độ tập luyện',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-              Text(
-                '$percentage%',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 10,
-              backgroundColor: isDark
-                  ? AppColors.borderDark
-                  : AppColors.borderLight,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getStatusColor(contract.status),
-              ),
-            ),
+            icon: Icons.schedule,
+            label: 'Số khung giờ/tuần',
+            value: '${contract.weeklySchedule.schedule.length} khung giờ',
           ),
         ],
       ),
@@ -360,7 +293,8 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      margin: EdgeInsets.zero,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
@@ -425,57 +359,83 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     );
   }
 
-  Widget _buildNoteSection(BuildContext context, String note) {
+  Widget _buildPaymentInfoSection(
+    BuildContext context,
+    ContractModel contract,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      margin: EdgeInsets.zero,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.borderDark.withOpacity(0.3)
-            : AppColors.warning.withOpacity(0.1),
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.warning,
-          width: 1,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.note_alt_outlined,
-                color: isDark ? AppColors.warning : AppColors.warning,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Ghi chú',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           Text(
-            note,
+            'Thông tin thanh toán',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
               color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
+          const SizedBox(height: 16),
+          if (contract.paymentAmount != null)
+            _buildInfoRow(
+              context,
+              icon: Icons.attach_money,
+              label: 'Số tiền',
+              value:
+                  '${NumberFormat('#,###').format(contract.paymentAmount)} đ',
+            ),
+          if (contract.paymentStatus != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              context,
+              icon: Icons.payment,
+              label: 'Trạng thái thanh toán',
+              value: _getPaymentStatusText(contract.paymentStatus!),
+            ),
+          ],
+          if (contract.paidAt != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              context,
+              icon: Icons.check_circle,
+              label: 'Thời gian thanh toán',
+              value: _formatDateTime(contract.paidAt!.toDate()),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _getPaymentStatusText(String status) {
+    switch (status) {
+      case 'PENDING':
+        return 'Chờ thanh toán';
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'CANCELLED':
+        return 'Đã hủy';
+      default:
+        return status;
+    }
   }
 
   Widget _buildInfoRow(
@@ -523,9 +483,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'pending':
+      case 'pending_payment':
         return AppColors.warning;
-      case 'approved':
+      case 'paid':
       case 'active':
         return AppColors.success;
       case 'completed':
@@ -539,10 +499,10 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   String _getStatusText(String status) {
     switch (status) {
-      case 'pending':
-        return 'Chờ duyệt';
-      case 'approved':
-        return 'Đã duyệt';
+      case 'pending_payment':
+        return 'Chờ thanh toán';
+      case 'paid':
+        return 'Đã thanh toán';
       case 'active':
         return 'Đang hoạt động';
       case 'completed':
@@ -556,9 +516,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   IconData _getStatusIcon(String status) {
     switch (status) {
-      case 'pending':
-        return Icons.pending_outlined;
-      case 'approved':
+      case 'pending_payment':
+        return Icons.payment_outlined;
+      case 'paid':
         return Icons.check_circle_outline;
       case 'active':
         return Icons.play_circle_outline;

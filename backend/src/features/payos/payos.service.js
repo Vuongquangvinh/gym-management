@@ -78,17 +78,31 @@ export async function createGymPackagePayment({
 
     // 🔥 SAVE ORDER INFO TO FIRESTORE
     try {
-      await saveOrderInfo({
+      const orderInfo = {
         orderCode: Number(orderCode),
         userId: metadata.userId,
         userName: buyerInfo.name,
         userEmail: buyerInfo.email,
-        packageId: metadata.packageId,
-        packageName: metadata.packageName,
-        packageDuration: metadata.packageDuration,
         amount: amount,
         status: "PENDING",
-      });
+        paymentType: metadata.paymentType || "gym_package",
+      };
+
+      // 🔥 Add fields based on payment type
+      if (metadata.paymentType === "pt_package") {
+        // PT Package specific fields
+        orderInfo.ptPackageId = metadata.ptPackageId;
+        orderInfo.ptPackageName = metadata.ptPackageName;
+        orderInfo.ptId = metadata.ptId;
+        orderInfo.contractId = metadata.contractId;
+      } else {
+        // Gym Package specific fields
+        orderInfo.packageId = metadata.packageId;
+        orderInfo.packageName = metadata.packageName;
+        orderInfo.packageDuration = metadata.packageDuration;
+      }
+
+      await saveOrderInfo(orderInfo);
     } catch (saveError) {
       console.error(
         "⚠️ Warning: Failed to save order to Firestore:",
@@ -274,6 +288,11 @@ export async function saveOrderInfo(orderData) {
       orderData.orderCode
     );
 
+    console.log(
+      "📦 Full orderData before cleaning:",
+      JSON.stringify(orderData, null, 2)
+    );
+
     // Check if admin is initialized
     if (!admin.apps || admin.apps.length === 0) {
       throw new Error("Firebase Admin SDK is not initialized");
@@ -291,8 +310,15 @@ export async function saveOrderInfo(orderData) {
     Object.keys(orderData).forEach((key) => {
       if (orderData[key] !== undefined) {
         cleanOrderData[key] = orderData[key];
+      } else {
+        console.warn(`⚠️ Skipping undefined field: ${key}`);
       }
     });
+
+    console.log(
+      "✅ Cleaned orderData:",
+      JSON.stringify(cleanOrderData, null, 2)
+    );
 
     await orderRef.set({
       ...cleanOrderData,

@@ -15,7 +15,8 @@ class PackageInfoCard extends StatelessWidget {
     final formatter = NumberFormat('#,###', 'vi_VN');
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,

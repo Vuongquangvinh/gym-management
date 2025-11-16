@@ -15,6 +15,8 @@ export default function Members() {
     const cancelFlag = urlParams.get('cancel');
     const cancelled = urlParams.get('cancelled');
     const userId = urlParams.get('userId');
+    const paymentSuccess = urlParams.get('paymentSuccess'); // From admin update package
+    const paymentCancelled = urlParams.get('paymentCancelled'); // From admin update package
     
     console.log('🔍 URL params:', {
       paymentStatus,
@@ -22,14 +24,16 @@ export default function Members() {
       cancelFlag,
       cancelled,
       userId,
+      paymentSuccess,
+      paymentCancelled,
       allParams: Object.fromEntries(urlParams)
     });
 
-    // Kiểm tra thanh toán thành công: status=PAID hoặc payment=success
-    if (paymentStatus === 'PAID' || urlParams.get('payment') === 'success') {
+    // Kiểm tra thanh toán thành công: status=PAID hoặc payment=success hoặc paymentSuccess=true
+    if (paymentStatus === 'PAID' || urlParams.get('payment') === 'success' || paymentSuccess === 'true') {
       console.log('✅ Phát hiện thanh toán thành công!');
       handlePaymentSuccess(userId, orderCode);
-    } else if (cancelled === 'true' || cancelFlag === 'true' || urlParams.get('payment') === 'cancel') {
+    } else if (cancelled === 'true' || cancelFlag === 'true' || urlParams.get('payment') === 'cancel' || paymentCancelled === 'true') {
       console.log('❌ Thanh toán bị hủy, đang xóa user...');
       handlePaymentCancel(userId);
     } else {
@@ -42,21 +46,60 @@ export default function Members() {
       console.log('💰 Xử lý thanh toán thành công cho userId:', userId);
       console.log('📝 OrderCode:', orderCode);
       
-      // User đã được tạo trước khi thanh toán rồi, chỉ cần xóa localStorage
-      localStorage.removeItem('pendingPaymentUserId');
-      localStorage.removeItem('pendingPaymentOrderCode');
-      localStorage.removeItem('pendingUserData'); // Xóa dữ liệu cũ nếu có
+      // Kiểm tra xem có phải là pending user mới không
+      const pendingUserId = localStorage.getItem('pendingPaymentUserId');
+      const isPendingUser = pendingUserId !== null;
       
-      // Hiển thị thông báo thành công
-      setPaymentStatus({ 
-        success: true, 
-        message: '✅ Thanh toán thành công! Hội viên đã được tạo trong hệ thống.' 
-      });
+      // 🔥 QUAN TRỌNG: Gọi confirm payment để update database
+      // Vì webhook không hoạt động trên localhost
+      if (orderCode) {
+        console.log('🔄 Đang xác nhận thanh toán với backend...');
+        try {
+          const confirmResponse = await fetch('/api/payos/confirm-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderCode }),
+          });
+          
+          const confirmData = await confirmResponse.json();
+          console.log('✅ Confirm payment response:', confirmData);
+          
+          if (confirmData.success) {
+            console.log('✅ Backend đã cập nhật gói tập thành công');
+          } else {
+            console.warn('⚠️ Confirm payment có vấn đề:', confirmData.message);
+          }
+        } catch (confirmError) {
+          console.error('❌ Lỗi khi confirm payment:', confirmError);
+          // Không throw error, vẫn tiếp tục hiển thị success
+        }
+      }
+      
+      if (isPendingUser) {
+        // Trường hợp 1: Tạo user mới
+        console.log('📝 Thanh toán cho user mới');
+        localStorage.removeItem('pendingPaymentUserId');
+        localStorage.removeItem('pendingPaymentOrderCode');
+        localStorage.removeItem('pendingUserData');
+        
+        setPaymentStatus({ 
+          success: true, 
+          message: '✅ Thanh toán thành công! Hội viên mới đã được tạo trong hệ thống.' 
+        });
+      } else {
+        // Trường hợp 2: Cập nhật gói tập cho user hiện có
+        console.log('🔄 Thanh toán cập nhật gói tập cho user hiện có');
+        
+        setPaymentStatus({ 
+          success: true, 
+          message: '✅ Thanh toán thành công! Gói tập đã được cập nhật.' 
+        });
+      }
       
       // Xóa query params khỏi URL
       window.history.replaceState({}, '', '/admin/members');
       
-      // Reload trang sau 2 giây để hiển thị user mới
+      // Reload trang sau 2 giây để hiển thị dữ liệu mới
       setTimeout(() => {
         window.location.reload();
       }, 2000);

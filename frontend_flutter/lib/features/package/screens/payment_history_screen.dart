@@ -189,72 +189,91 @@ class _PaymentHistoryContentState extends State<_PaymentHistoryContent> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      extendBodyBehindAppBar: false,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(65),
-        child: AppBar(
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-          ),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [AppColors.primaryLight, AppColors.primary]
-                    : [AppColors.primary, AppColors.primaryVariant],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          leading: IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                size: 18,
-                color: Colors.white,
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Modern Gradient AppBar
+          SliverAppBar(
+            expandedHeight: 160,
+            floating: false,
+            pinned: true,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [AppColors.surfaceDark, AppColors.cardDark]
+                        : [AppColors.primary, AppColors.primaryLight],
+                  ),
                 ),
-                child: const Icon(
-                  Icons.receipt_long,
-                  size: 22,
-                  color: Colors.white,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.receipt_long_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Lịch sử thanh toán',
+                                    style: const TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Theo dõi giao dịch',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Lịch sử thanh toán',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
+            ),
+            leading: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -262,92 +281,158 @@ class _PaymentHistoryContentState extends State<_PaymentHistoryContent> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.filter_list,
-                  size: 20,
+                  Icons.arrow_back_ios_new,
                   color: Colors.white,
+                  size: 18,
                 ),
               ),
-              onPressed: () {
-                // TODO: Implement filter
-                _showFilterDialog();
-              },
+              onPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(width: 8),
-          ],
-        ),
+            actions: [
+              IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.filter_list_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                onPressed: _showFilterDialog,
+              ),
+              const SizedBox(width: 12),
+            ],
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+          ),
+
+          // Content
+          _isLoading
+              ? SliverFillRemaining(child: _buildLoadingState())
+              : _error != null
+              ? SliverFillRemaining(child: _buildErrorState())
+              : SliverPadding(
+                  padding: const EdgeInsets.all(20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Statistics
+                      PaymentStatisticsWidget(paymentHistory: _paymentHistory),
+
+                      const SizedBox(height: 16),
+
+                      // Filter status
+                      if (_filterStartDate != null ||
+                          _filterEndDate != null ||
+                          _selectedPackageType != null)
+                        _buildFilterStatusBar(),
+
+                      // Payment History
+                      PaymentHistoryWidget(
+                        paymentHistory: _filteredPaymentHistory,
+                        onRefresh: _loadPaymentHistory,
+                      ),
+                    ]),
+                  ),
+                ),
+        ],
       ),
-      body: _buildBody(),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               strokeWidth: 3,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Đang tải lịch sử thanh toán...',
-              style: TextStyle(
-                fontSize: 16,
-                color: context.textSecondary,
-                fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Đang tải lịch sử thanh toán...',
+            style: TextStyle(
+              fontSize: 16,
+              color: context.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.error.withOpacity(0.2),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 64,
+                color: AppColors.error,
               ),
             ),
-          ],
-        ),
-      );
-    }
-
-    if (_error != null) {
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 100),
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: AppColors.error,
-                ),
+            const SizedBox(height: 28),
+            Text(
+              'Đã có lỗi xảy ra',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: context.textPrimary,
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Đã có lỗi xảy ra',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: context.textPrimary,
-                ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: context.textSecondary,
+                height: 1.5,
               ),
-              const SizedBox(height: 12),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: context.textSecondary,
-                  height: 1.5,
+            ),
+            const SizedBox(height: 32),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryLight],
                 ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: _loadPaymentHistory,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh_rounded),
                 label: const Text(
                   'Thử lại',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -357,40 +442,14 @@ class _PaymentHistoryContentState extends State<_PaymentHistoryContent> {
                     horizontal: 32,
                     vertical: 16,
                   ),
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
-                  elevation: 2,
-                  shadowColor: AppColors.primary.withOpacity(0.4),
+                  shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadPaymentHistory,
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Statistics widget
-            PaymentStatisticsWidget(paymentHistory: _paymentHistory),
-
-            // Filter status indicator
-            if (_filterStartDate != null ||
-                _filterEndDate != null ||
-                _selectedPackageType != null)
-              _buildFilterStatusBar(),
-            PaymentHistoryWidget(
-              paymentHistory: _filteredPaymentHistory,
-              onRefresh: _loadPaymentHistory,
             ),
           ],
         ),
@@ -421,30 +480,53 @@ class _PaymentHistoryContentState extends State<_PaymentHistoryContent> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withOpacity(0.1),
-            AppColors.primaryLight.withOpacity(0.05),
+            AppColors.primary.withOpacity(0.12),
+            AppColors.primaryLight.withOpacity(0.08),
           ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryLight],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Icon(Icons.filter_alt, size: 20, color: AppColors.primary),
+            child: const Icon(
+              Icons.filter_alt_rounded,
+              size: 20,
+              color: Colors.white,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

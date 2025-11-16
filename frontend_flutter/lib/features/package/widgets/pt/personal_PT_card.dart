@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../theme/colors.dart';
+import '../../../../shared/widgets/network_avatar.dart';
 import '../../../model/employee.model.dart';
 
 class PersonalPTCard extends StatelessWidget {
@@ -16,16 +17,15 @@ class PersonalPTCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: context.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.border.withOpacity(0.5), width: 1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: context.border.withOpacity(0.2), width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -33,31 +33,34 @@ class PersonalPTCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Avatar
+              // Avatar with gradient border
               Container(
-                width: 70,
-                height: 70,
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: AppColors.primary.withOpacity(0.1),
-                  image: pt.avatarUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(pt.avatarUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.secondary, AppColors.accent],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.secondary.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: pt.avatarUrl.isEmpty
-                    ? Center(
-                        child: Icon(
-                          Icons.person,
-                          size: 36,
-                          color: AppColors.primary,
-                        ),
-                      )
-                    : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: NetworkAvatar(
+                    avatarUrl: pt.avatarUrl,
+                    size: 64,
+                    placeholderIcon: Icons.person,
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
 
               // Info
               Expanded(
@@ -67,92 +70,45 @@ class PersonalPTCard extends StatelessWidget {
                     // Name
                     Text(
                       pt.fullName,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: context.textPrimary,
+                        letterSpacing: 0.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
 
                     // Experience
                     if (ptInfo != null)
-                      Text(
-                        ptInfo.experienceText,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: context.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            size: 14,
+                            color: AppColors.secondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            ptInfo.experienceText,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: context.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    const SizedBox(height: 8),
 
-                    // Rating & Specialties
-                    Row(
-                      children: [
-                        // Rating
-                        if (ptInfo != null && ptInfo.totalRatings > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: ptInfo.hasHighRating
-                                  ? AppColors.success.withOpacity(0.1)
-                                  : AppColors.warning.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.star,
-                                  size: 14,
-                                  color: ptInfo.hasHighRating
-                                      ? AppColors.success
-                                      : AppColors.warning,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  ptInfo.rating.toStringAsFixed(1),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: ptInfo.hasHighRating
-                                        ? AppColors.success
-                                        : AppColors.warning,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        // Specialties count
-                        if (ptInfo != null && ptInfo.specialties.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Text(
-                              '${ptInfo.specialties.length} chuyên môn',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: context.textSecondary,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    // Specialties
+                    // Specialties count
                     if (ptInfo != null && ptInfo.specialties.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: ptInfo.specialties.take(2).map((specialty) {
-                            return Container(
+                        child: Row(
+                          children: [
+                            Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 4,
@@ -160,28 +116,45 @@ class PersonalPTCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: AppColors.accent.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                specialty,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.accent,
+                                border: Border.all(
+                                  color: AppColors.accent.withOpacity(0.3),
+                                  width: 1,
                                 ),
                               ),
-                            );
-                          }).toList(),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.local_fire_department_rounded,
+                                    size: 12,
+                                    color: AppColors.accent,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${ptInfo.specialties.length} chuyên môn',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],
                 ),
               ),
 
-              // Arrow
+              const SizedBox(width: 8),
+
+              // Arrow icon
               Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: context.textSecondary,
+                Icons.arrow_forward_ios_rounded,
+                size: 18,
+                color: context.textSecondary.withOpacity(0.5),
               ),
             ],
           ),

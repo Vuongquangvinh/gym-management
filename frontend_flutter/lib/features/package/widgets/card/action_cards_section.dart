@@ -5,7 +5,7 @@ import 'action_card.dart';
 class ActionCardsSection extends StatelessWidget {
   final VoidCallback onPackagesTap;
   final VoidCallback onPTTap;
-  // final VoidCallback onHistoryTap;
+  final bool disablePTCard;
   final VoidCallback onPaymentTap;
   final VoidCallback onSupportTap;
 
@@ -13,7 +13,7 @@ class ActionCardsSection extends StatelessWidget {
     super.key,
     required this.onPackagesTap,
     required this.onPTTap,
-    // required this.onHistoryTap,
+    required this.disablePTCard,
     required this.onPaymentTap,
     required this.onSupportTap,
   });
@@ -33,9 +33,12 @@ class ActionCardsSection extends StatelessWidget {
         ActionCard(
           icon: Icons.event_available,
           title: 'Đăng ký buổi tập với PT',
-          subtitle: 'Xem danh sách PT',
+          subtitle: disablePTCard
+              ? 'Bạn cần đăng ký gói tập trước'
+              : 'Xem danh sách PT',
           color: AppColors.accent,
-          onTap: onPTTap,
+          onTap: disablePTCard ? null : onPTTap,
+          disabled: disablePTCard,
         ),
         // const SizedBox(height: 12),
         // ActionCard(

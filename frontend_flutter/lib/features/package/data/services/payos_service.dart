@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../config/api_config.dart';
 
 final logger = Logger();
@@ -41,21 +42,28 @@ class PayOSService {
       logger.i('Đang tạo payment link cho gói tập...');
       logger.d('Package: $packageName, Price: $packagePrice');
 
+      final url = '$baseUrl/create-gym-payment';
+      logger.i('🌐 URL: $url');
+
+      final requestBody = {
+        'packageId': packageId,
+        'packageName': packageName,
+        'packagePrice': packagePrice,
+        'packageDuration': packageDuration,
+        'userId': userId,
+        'userName': userName,
+        if (userEmail != null) 'userEmail': userEmail,
+        if (userPhone != null) 'userPhone': userPhone,
+        if (returnUrl != null) 'returnUrl': returnUrl,
+        if (cancelUrl != null) 'cancelUrl': cancelUrl,
+      };
+
+      logger.d('📤 Request body: ${jsonEncode(requestBody)}');
+
       final response = await http.post(
-        Uri.parse('$baseUrl/create-gym-payment'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'packageId': packageId,
-          'packageName': packageName,
-          'packagePrice': packagePrice,
-          'packageDuration': packageDuration,
-          'userId': userId,
-          'userName': userName,
-          if (userEmail != null) 'userEmail': userEmail,
-          if (userPhone != null) 'userPhone': userPhone,
-          if (returnUrl != null) 'returnUrl': returnUrl,
-          if (cancelUrl != null) 'cancelUrl': cancelUrl,
-        }),
+        body: jsonEncode(requestBody),
       );
 
       logger.d('Response status: ${response.statusCode}');
@@ -177,6 +185,91 @@ class PayOSService {
       }
     } catch (e) {
       logger.e('💥 Lỗi khi xác nhận thanh toán: $e');
+      rethrow;
+    }
+  }
+
+  /// Tạo payment link cho gói PT (PT Package)
+  static Future<Map<String, dynamic>> createPTPackagePayment({
+    required String ptPackageId,
+    required String ptPackageName,
+    required int ptPackagePrice,
+    required String userId,
+    required String userName,
+    required String ptId,
+    required String ptName,
+    required List<Map<String, dynamic>> selectedTimeSlots,
+    Timestamp? startDate,
+    Timestamp? endDate,
+    String? userEmail,
+    String? userPhone,
+    String? returnUrl,
+    String? cancelUrl,
+  }) async {
+    try {
+      logger.i('Đang tạo payment link cho gói PT...');
+      logger.d('PT Package: $ptPackageName, Price: $ptPackagePrice');
+      logger.d('PT ID: $ptId, PT Name: $ptName');
+      logger.d('Selected Time Slots: $selectedTimeSlots');
+      if (startDate != null && endDate != null) {
+        logger.d(
+          'Start Date: ${startDate.toDate()}, End Date: ${endDate.toDate()}',
+        );
+      }
+
+      final url = '$baseUrl/create-pt-package-payment';
+      logger.i('🌐 URL: $url');
+
+      final requestBody = {
+        'ptPackageId': ptPackageId,
+        'ptPackageName': ptPackageName,
+        'ptPackagePrice': ptPackagePrice,
+        'userId': userId,
+        'userName': userName,
+        'ptId': ptId,
+        'ptName': ptName,
+        'selectedTimeSlots': selectedTimeSlots,
+        if (startDate != null)
+          'startDate': startDate.toDate().toIso8601String(),
+        if (endDate != null) 'endDate': endDate.toDate().toIso8601String(),
+        if (userEmail != null) 'userEmail': userEmail,
+        if (userPhone != null) 'userPhone': userPhone,
+        if (returnUrl != null) 'returnUrl': returnUrl,
+        if (cancelUrl != null) 'cancelUrl': cancelUrl,
+      };
+
+      logger.d('📤 Request body: ${jsonEncode(requestBody)}');
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      logger.d('Response status: ${response.statusCode}');
+      logger.d('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        logger.i('Tạo payment link cho gói PT thành công!');
+        logger.d('📦 Full response data: ${jsonEncode(data)}');
+
+        if (data['data'] != null) {
+          logger.d('  - checkoutUrl: ${data['data']['checkoutUrl']}');
+          logger.d('  - qrCode: ${data['data']['qrCode']}');
+          logger.d('  - orderCode: ${data['data']['orderCode']}');
+          logger.d('  - amount: ${data['data']['amount']}');
+          logger.d('  - contractId: ${data['data']['contractId']}');
+        }
+
+        return data;
+      } else {
+        final error = jsonDecode(response.body);
+        logger.e('Lỗi từ server: ${error['message']}');
+        throw Exception(error['message'] ?? 'Không thể tạo payment link');
+      }
+    } catch (e) {
+      logger.e('Lỗi khi tạo payment link cho gói PT: $e');
       rethrow;
     }
   }

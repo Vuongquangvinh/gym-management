@@ -23,38 +23,68 @@ class _PaymentStatisticsWidgetState extends State<PaymentStatisticsWidget> {
   Widget build(BuildContext context) {
     final stats = _calculateStatistics();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
-    final scale = size.width / 400;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16 * scale),
-      padding: EdgeInsets.all(16 * scale),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(12 * scale),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [AppColors.surfaceDark, AppColors.cardDark]
+              : [Colors.white, AppColors.primaryLight.withOpacity(0.05)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : AppColors.primary.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+            spreadRadius: -2,
+          ),
+        ],
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.2),
+              ? Colors.white.withOpacity(0.08)
+              : AppColors.primary.withOpacity(0.1),
           width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header with icon
           Row(
             children: [
-              Icon(
-                Icons.bar_chart_rounded,
-                color: AppColors.primary,
-                size: 20 * scale,
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryLight],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.analytics_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              SizedBox(width: 8 * scale),
+              const SizedBox(width: 12),
               Text(
                 'Thống kê chi tiêu',
                 style: TextStyle(
-                  fontSize: 16 * scale,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: context.textPrimary,
                 ),
@@ -62,94 +92,107 @@ class _PaymentStatisticsWidgetState extends State<PaymentStatisticsWidget> {
             ],
           ),
 
-          SizedBox(height: 16 * scale),
+          const SizedBox(height: 20),
 
-          // Period selector - Horizontal tabs
+          // Period selector with modern chips
           Container(
-            padding: EdgeInsets.all(4 * scale),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8 * scale),
+                  : Colors.grey.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                _buildPeriodTab('Tất cả', StatisticsPeriod.all, scale),
-                SizedBox(width: 4 * scale),
-                _buildPeriodTab('Tháng này', StatisticsPeriod.month, scale),
-                SizedBox(width: 4 * scale),
-                _buildPeriodTab('Năm nay', StatisticsPeriod.year, scale),
+                _buildPeriodTab('Tất cả', StatisticsPeriod.all),
+                const SizedBox(width: 4),
+                _buildPeriodTab('Tháng này', StatisticsPeriod.month),
+                const SizedBox(width: 4),
+                _buildPeriodTab('Năm nay', StatisticsPeriod.year),
               ],
             ),
           ),
 
-          SizedBox(height: 16 * scale),
+          const SizedBox(height: 20),
 
-          // Statistics grid - 2x2
+          // Statistics grid - Modern cards
           Row(
             children: [
               Expanded(
-                child: _buildSimpleStatCard(
+                child: _buildModernStatCard(
                   'Tổng chi',
                   _formatCurrency(stats['totalAmount']),
-                  Icons.attach_money,
-                  AppColors.primary,
+                  Icons.account_balance_wallet_rounded,
+                  [AppColors.primary, AppColors.primaryLight],
                   isDark,
-                  scale,
                 ),
               ),
-              SizedBox(width: 12 * scale),
+              const SizedBox(width: 12),
               Expanded(
-                child: _buildSimpleStatCard(
+                child: _buildModernStatCard(
                   'Giao dịch',
                   '${stats['count']}',
-                  Icons.receipt,
-                  AppColors.secondary,
+                  Icons.receipt_long_rounded,
+                  [AppColors.secondary, AppColors.accent],
                   isDark,
-                  scale,
                 ),
               ),
             ],
           ),
 
-          SizedBox(height: 12 * scale),
+          const SizedBox(height: 12),
 
-          // Average
+          // Average - Full width modern card
           Container(
-            padding: EdgeInsets.all(12 * scale),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8 * scale),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.info.withOpacity(0.15),
+                  AppColors.info.withOpacity(0.08),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.info.withOpacity(0.2),
-                width: 1,
+                color: AppColors.info.withOpacity(0.25),
+                width: 1.5,
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.trending_up,
-                  color: AppColors.info,
-                  size: 18 * scale,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.trending_up_rounded,
+                    color: AppColors.info,
+                    size: 22,
+                  ),
                 ),
-                SizedBox(width: 8 * scale),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Trung bình',
+                        'Trung bình / giao dịch',
                         style: TextStyle(
-                          fontSize: 12 * scale,
+                          fontSize: 13,
                           color: context.textSecondary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 2 * scale),
+                      const SizedBox(height: 4),
                       Text(
                         _formatCurrency(stats['averageAmount']),
                         style: TextStyle(
-                          fontSize: 15 * scale,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.info,
                         ),
@@ -165,7 +208,7 @@ class _PaymentStatisticsWidgetState extends State<PaymentStatisticsWidget> {
     );
   }
 
-  Widget _buildPeriodTab(String label, StatisticsPeriod period, double scale) {
+  Widget _buildPeriodTab(String label, StatisticsPeriod period) {
     final isSelected = _selectedPeriod == period;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -176,21 +219,36 @@ class _PaymentStatisticsWidgetState extends State<PaymentStatisticsWidget> {
             _selectedPeriod = period;
           });
         },
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8 * scale),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(6 * scale),
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryLight],
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13 * scale,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? Colors.white70 : Colors.black87),
+                  : (isDark ? Colors.white70 : Colors.black54),
             ),
           ),
         ),
@@ -198,42 +256,61 @@ class _PaymentStatisticsWidgetState extends State<PaymentStatisticsWidget> {
     );
   }
 
-  Widget _buildSimpleStatCard(
+  Widget _buildModernStatCard(
     String label,
     String value,
     IconData icon,
-    Color color,
+    List<Color> gradientColors,
     bool isDark,
-    double scale,
   ) {
     return Container(
-      padding: EdgeInsets.all(12 * scale),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8 * scale),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        gradient: LinearGradient(
+          colors: gradientColors.map((c) => c.withOpacity(0.12)).toList(),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: gradientColors.first.withOpacity(0.25),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 18 * scale),
-          SizedBox(height: 8 * scale),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: gradientColors),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: gradientColors.first.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 18),
+          ),
+          const SizedBox(height: 12),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12 * scale,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white70
-                  : Colors.black54,
+              fontSize: 12,
+              color: context.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 4 * scale),
+          const SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16 * scale,
+              fontSize: 17,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: gradientColors.first,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

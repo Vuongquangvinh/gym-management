@@ -100,21 +100,23 @@ class _MembershipCardState extends State<MembershipCard> {
         final daysLeft = membershipProvider.daysLeft;
 
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          margin: const EdgeInsets.only(bottom: 0),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isActive
-                  ? [AppColors.primary, AppColors.primary.withOpacity(0.8)]
-                  : [AppColors.muted, AppColors.muted.withOpacity(0.8)],
+                  ? [AppColors.primary, AppColors.primaryLight]
+                  : [AppColors.muted, AppColors.muted.withOpacity(0.7)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.25),
-                blurRadius: 25,
-                offset: const Offset(0, 12),
+                color: (isActive ? AppColors.primary : AppColors.muted)
+                    .withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: -4,
               ),
             ],
           ),
@@ -122,13 +124,25 @@ class _MembershipCardState extends State<MembershipCard> {
             borderRadius: BorderRadius.circular(24),
             child: Stack(
               children: [
-                // Background decoration
+                // Animated background circles
                 Positioned(
-                  right: -40,
-                  top: -40,
+                  right: -50,
+                  top: -50,
                   child: Container(
-                    width: 140,
-                    height: 140,
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: -30,
+                  bottom: -30,
+                  child: Container(
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withOpacity(0.08),
@@ -136,65 +150,47 @@ class _MembershipCardState extends State<MembershipCard> {
                   ),
                 ),
                 Positioned(
-                  left: -20,
-                  bottom: -20,
+                  right: 40,
+                  bottom: 30,
                   child: Container(
-                    width: 100,
-                    height: 100,
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withOpacity(0.06),
                     ),
                   ),
                 ),
-                // Content
+
+                // Main Content
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row: Name and Status
+                      // Header: Logo + Status
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Thành viên',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white.withOpacity(0.75),
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  memberName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Gói $cardType',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.85),
-                                  ),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
+                            child: const Icon(
+                              Icons.card_membership_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
-                          const SizedBox(width: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,
@@ -202,24 +198,33 @@ class _MembershipCardState extends State<MembershipCard> {
                             ),
                             decoration: BoxDecoration(
                               color: isActive
-                                  ? AppColors.success.withOpacity(0.85)
-                                  : Colors.white.withOpacity(0.2),
+                                  ? AppColors.success.withOpacity(0.9)
+                                  : Colors.white.withOpacity(0.25),
                               borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  isActive ? Icons.check_circle : Icons.cancel,
-                                  color: Colors.white,
-                                  size: 16,
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 Text(
-                                  isActive ? 'Hoạt động' : 'Hết hạn',
+                                  isActive ? 'Đang hoạt động' : 'Hết hạn',
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                     letterSpacing: 0.3,
                                   ),
@@ -229,25 +234,88 @@ class _MembershipCardState extends State<MembershipCard> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
-                      // Bottom row: Expiry date and warning
+
+                      const SizedBox(height: 24),
+
+                      // Member Name
+                      Text(
+                        'Thành viên',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.85),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        memberName,
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Package Type
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.local_offer_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              cardType,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Footer: Expiry + Warning
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Hết hạn',
+                                'HẾT HẠN',
                                 style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white.withOpacity(0.7),
-                                  letterSpacing: 0.5,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withOpacity(0.8),
+                                  letterSpacing: 1.2,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               Text(
                                 expiryDate != null
                                     ? DateFormat(
@@ -256,9 +324,9 @@ class _MembershipCardState extends State<MembershipCard> {
                                     : 'N/A',
                                 style: GoogleFonts.inter(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                  letterSpacing: 0.3,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ],
@@ -267,26 +335,32 @@ class _MembershipCardState extends State<MembershipCard> {
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
-                                vertical: 6,
+                                vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.85),
-                                borderRadius: BorderRadius.circular(18),
+                                color: AppColors.warning,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.warning.withOpacity(0.4),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(
-                                    Icons.access_time,
+                                    Icons.schedule_rounded,
                                     color: Colors.white,
-                                    size: 14,
+                                    size: 16,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     'Còn $daysLeft ngày',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                   ),

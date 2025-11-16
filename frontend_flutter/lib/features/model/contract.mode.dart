@@ -1,6 +1,5 @@
 import "package:cloud_firestore/cloud_firestore.dart";
 import "package:logger/logger.dart";
-import "package:shared_preferences/shared_preferences.dart";
 
 final logger = Logger();
 
@@ -41,60 +40,145 @@ class SelectedTimeSlot {
   }
 }
 
+// Model cho lịch tập hàng tuần (7 ngày) - dùng cho gói tháng
+class WeeklySchedule {
+  final Map<int, SelectedTimeSlot>
+  schedule; // dayOfWeek (1-7) -> SelectedTimeSlot
+
+  WeeklySchedule({required this.schedule});
+
+  factory WeeklySchedule.fromMap(Map<String, dynamic> map) {
+    final scheduleMap = <int, SelectedTimeSlot>{};
+    map.forEach((key, value) {
+      final dayOfWeek = int.parse(key);
+      scheduleMap[dayOfWeek] = SelectedTimeSlot.fromMap(
+        value as Map<String, dynamic>,
+      );
+    });
+    return WeeklySchedule(schedule: scheduleMap);
+  }
+
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
+    schedule.forEach((dayOfWeek, slot) {
+      map[dayOfWeek.toString()] = slot.toMap();
+    });
+    return map;
+  }
+
+  bool isComplete() => schedule.length == 7;
+
+  List<String> getMissingDays() {
+    const dayNames = [
+      '',
+      'Thứ 2',
+      'Thứ 3',
+      'Thứ 4',
+      'Thứ 5',
+      'Thứ 6',
+      'Thứ 7',
+      'Chủ nhật',
+    ];
+    final missing = <String>[];
+    for (int i = 1; i <= 7; i++) {
+      if (!schedule.containsKey(i)) {
+        missing.add(dayNames[i]);
+      }
+    }
+    return missing;
+  }
+}
+
 class ContractModel {
   final String id; // Document ID trong Firestore
   final String userId; // ID của user (member)
   final String ptId; // ID của PT
   final String ptPackageId; // ID của PT Package
-  final List<SelectedTimeSlot> selectedTimeSlots; // Danh sách khung giờ đã chọn
+
+  // Lịch tập hàng tuần - đây là lịch chính thức duy nhất
+  // User có thể cập nhật lịch này sau khi mua gói
+  final WeeklySchedule weeklySchedule;
+
+  // Status flow: pending_payment → paid → active → completed/cancelled
   final String
-  status; // 'pending', 'approved', 'active', 'completed', 'cancelled'
+  status; // 'pending_payment', 'paid', 'active', 'completed', 'cancelled'
+
+  // Thông tin thanh toán
+  final String? paymentOrderCode; // Mã đơn hàng PayOS
+  final int? paymentAmount; // Số tiền thanh toán
+  final String? paymentStatus; // 'PENDING', 'PAID', 'CANCELLED'
+  final Timestamp? paidAt; // Thời gian thanh toán thành công
+
+  // Thời gian
   final Timestamp createdAt; // Thời gian tạo contract
   final Timestamp? updatedAt; // Thời gian cập nhật
-  final Timestamp? startDate; // Ngày bắt đầu contract
-  final Timestamp? endDate; // Ngày kết thúc contract
-  final int totalSessions; // Tổng số buổi tập
-  final int completedSessions; // Số buổi đã tập
-  final String? note; // Ghi chú từ PT hoặc user
+  final Timestamp? startDate; // Ngày bắt đầu contract (PT set khi lên lịch)
+  final Timestamp? endDate; // Ngày kết thúc contract (PT set khi lên lịch)
 
   ContractModel({
     required this.id,
     required this.userId,
     required this.ptId,
     required this.ptPackageId,
-    required this.selectedTimeSlots,
+    required this.weeklySchedule,
     required this.status,
+    this.paymentOrderCode,
+    this.paymentAmount,
+    this.paymentStatus,
+    this.paidAt,
     required this.createdAt,
     this.updatedAt,
     this.startDate,
     this.endDate,
-    required this.totalSessions,
-    this.completedSessions = 0,
-    this.note,
   });
 
+  // Computed property để lấy danh sách time slots (cho backward compatibility)
+  List<SelectedTimeSlot> get selectedTimeSlots {
+    return weeklySchedule.schedule.values.toList()
+      ..sort((a, b) => a.dayOfWeek.compareTo(b.dayOfWeek));
+  }
+
   factory ContractModel.fromMap(Map<String, dynamic> map, {String id = ''}) {
+    // Xử lý weeklySchedule - ưu tiên weeklySchedule, fallback về selectedTimeSlots nếu có
+    WeeklySchedule? schedule;
+
+    if (map['weeklySchedule'] != null) {
+      // Có weeklySchedule - dùng luôn
+      schedule = WeeklySchedule.fromMap(
+        map['weeklySchedule'] as Map<String, dynamic>,
+      );
+    } else if (map['selectedTimeSlots'] != null) {
+      // Không có weeklySchedule nhưng có selectedTimeSlots (data cũ)
+      // Convert selectedTimeSlots thành weeklySchedule
+      final slots = (map['selectedTimeSlots'] as List<dynamic>)
+          .map((slot) => SelectedTimeSlot.fromMap(slot as Map<String, dynamic>))
+          .toList();
+
+      final scheduleMap = <int, SelectedTimeSlot>{};
+      for (var slot in slots) {
+        scheduleMap[slot.dayOfWeek] = slot;
+      }
+      schedule = WeeklySchedule(schedule: scheduleMap);
+    } else {
+      // Không có gì - tạo schedule rỗng
+      schedule = WeeklySchedule(schedule: {});
+    }
+
     return ContractModel(
       id: id,
       userId: map['userId'] ?? '',
       ptId: map['ptId'] ?? '',
       ptPackageId: map['ptPackageId'] ?? '',
-      selectedTimeSlots:
-          (map['selectedTimeSlots'] as List<dynamic>?)
-              ?.map(
-                (slot) =>
-                    SelectedTimeSlot.fromMap(slot as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
-      status: map['status'] ?? 'pending',
+      weeklySchedule: schedule,
+      status: map['status'] ?? 'pending_payment',
+      paymentOrderCode: map['paymentOrderCode'],
+      paymentAmount: map['paymentAmount'],
+      paymentStatus: map['paymentStatus'],
+      paidAt: map['paidAt'] as Timestamp?,
       createdAt: map['createdAt'] ?? Timestamp.now(),
       updatedAt: map['updatedAt'] as Timestamp?,
       startDate: map['startDate'] as Timestamp?,
       endDate: map['endDate'] as Timestamp?,
-      totalSessions: map['totalSessions'] ?? 0,
-      completedSessions: map['completedSessions'] ?? 0,
-      note: map['note'],
     );
   }
 
@@ -108,17 +192,16 @@ class ContractModel {
       'userId': userId,
       'ptId': ptId,
       'ptPackageId': ptPackageId,
-      'selectedTimeSlots': selectedTimeSlots
-          .map((slot) => slot.toMap())
-          .toList(),
+      'weeklySchedule': weeklySchedule.toMap(),
       'status': status,
+      'paymentOrderCode': paymentOrderCode,
+      'paymentAmount': paymentAmount,
+      'paymentStatus': paymentStatus,
+      'paidAt': paidAt,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'startDate': startDate,
       'endDate': endDate,
-      'totalSessions': totalSessions,
-      'completedSessions': completedSessions,
-      'note': note,
     };
   }
 
@@ -127,24 +210,25 @@ class ContractModel {
     required String userId,
     required String ptId,
     required String ptPackageId,
-    required List<SelectedTimeSlot> selectedTimeSlots,
-    required int totalSessions,
-    String? note,
+    required WeeklySchedule weeklySchedule,
+    String? paymentOrderCode,
+    int? paymentAmount,
+    Timestamp? startDate,
+    Timestamp? endDate,
   }) async {
     try {
       final contractData = {
         'userId': userId,
         'ptId': ptId,
         'ptPackageId': ptPackageId,
-        'selectedTimeSlots': selectedTimeSlots
-            .map((slot) => slot.toMap())
-            .toList(),
-        'status': 'pending',
+        'weeklySchedule': weeklySchedule.toMap(),
+        'status': 'pending_payment',
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
-        'totalSessions': totalSessions,
-        'completedSessions': 0,
-        if (note != null) 'note': note,
+        if (paymentOrderCode != null) 'paymentOrderCode': paymentOrderCode,
+        if (paymentAmount != null) 'paymentAmount': paymentAmount,
+        if (startDate != null) 'startDate': startDate,
+        if (endDate != null) 'endDate': endDate,
       };
 
       final docRef = await FirebaseFirestore.instance
@@ -222,23 +306,30 @@ class ContractModel {
     }
   }
 
-  /// Cập nhật số buổi đã hoàn thành
-  static Future<void> updateCompletedSessions({
+  /// Cập nhật thông tin thanh toán
+  static Future<void> updatePaymentInfo({
     required String contractId,
-    required int completedSessions,
+    required String paymentOrderCode,
+    required int paymentAmount,
+    required String paymentStatus,
+    Timestamp? paidAt,
   }) async {
     try {
       await FirebaseFirestore.instance
           .collection('contracts')
           .doc(contractId)
           .update({
-            'completedSessions': completedSessions,
+            'paymentOrderCode': paymentOrderCode,
+            'paymentAmount': paymentAmount,
+            'paymentStatus': paymentStatus,
+            'paidAt': paidAt ?? Timestamp.now(),
+            'status': paymentStatus == 'PAID' ? 'paid' : 'pending_payment',
             'updatedAt': Timestamp.now(),
           });
 
-      logger.i('Completed sessions updated successfully');
+      logger.i('Payment info updated successfully');
     } catch (e) {
-      logger.e('Error updating completed sessions: $e');
+      logger.e('Error updating payment info: $e');
       rethrow;
     }
   }
@@ -271,30 +362,32 @@ class ContractModel {
     String? userId,
     String? ptId,
     String? ptPackageId,
-    List<SelectedTimeSlot>? selectedTimeSlots,
+    WeeklySchedule? weeklySchedule,
     String? status,
+    String? paymentOrderCode,
+    int? paymentAmount,
+    String? paymentStatus,
+    Timestamp? paidAt,
     Timestamp? createdAt,
     Timestamp? updatedAt,
     Timestamp? startDate,
     Timestamp? endDate,
-    int? totalSessions,
-    int? completedSessions,
-    String? note,
   }) {
     return ContractModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       ptId: ptId ?? this.ptId,
       ptPackageId: ptPackageId ?? this.ptPackageId,
-      selectedTimeSlots: selectedTimeSlots ?? this.selectedTimeSlots,
+      weeklySchedule: weeklySchedule ?? this.weeklySchedule,
       status: status ?? this.status,
+      paymentOrderCode: paymentOrderCode ?? this.paymentOrderCode,
+      paymentAmount: paymentAmount ?? this.paymentAmount,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paidAt: paidAt ?? this.paidAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
-      totalSessions: totalSessions ?? this.totalSessions,
-      completedSessions: completedSessions ?? this.completedSessions,
-      note: note ?? this.note,
     );
   }
 }

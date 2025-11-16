@@ -6,63 +6,66 @@ import 'package:flutter/material.dart';
 /// Color primary = AppColors.primary;
 
 class AppColors {
-  // Brand / primary - Màu tím đậm hiện đại, mạnh mẽ và thu hút Gen Z
-  static const primary = Color(0xFF0D47A1); // deep blue (brand)
-  static const primaryVariant = Color(0xFF08316A);
-  static const primaryLight = Color(
-    0xFF818CF8,
-  ); // lighter variant for gradients
+  // Brand / primary - Màu xanh dương chuyên nghiệp, hiện đại
+  static const primary = Color(0xFF2563EB); // Professional Blue
+  static const primaryVariant = Color(0xFF1E40AF); // Darker Blue
+  static const primaryLight = Color(0xFF3B82F6); // Lighter Blue for gradients
 
-  // Secondary / accents - Màu hồng neon năng động, trendy
-  static const secondary = Color(0xFFEC4899); // hot pink
-  static const secondaryVariant = Color(0xFFDB2777);
-  static const accent = Color(0xFF10B981); // emerald green for CTAs
+  // Secondary / accents - Màu bổ trợ hiện đại
+  static const secondary = Color(0xFF06B6D4); // Cyan Blue
+  static const secondaryVariant = Color(0xFF0891B2); // Darker Cyan
+  static const accent = Color(0xFF10B981); // Emerald Green for CTAs
 
   // Fitness colors - Màu sắc gradient hiện đại cho các chỉ số
-  static const cardio = Color(0xFF06B6D4); // bright cyan
-  static const strength = Color(0xFFA855F7); // vibrant purple
-  static const yoga = Color(0xFF34D399); // mint green
-  static const nutrition = Color(0xFFFBBF24); // golden yellow
+  static const cardio = Color(0xFFEF4444); // Modern Red
+  static const strength = Color(0xFF8B5CF6); // Purple
+  static const yoga = Color(0xFF14B8A6); // Teal
+  static const nutrition = Color(0xFFF59E0B); // Amber
 
   // Health metrics colors
-  static const heartRate = Color(0xFFF43F5E); // red-pink for heart
-  static const steps = Color(0xFF3B82F6); // bright blue for steps
-  static const water = Color(0xFF06B6D4); // cyan for water
-  static const calories = Color(0xFFF59E0B); // amber for calories
+  static const heartRate = Color(0xFFEF4444); // Modern Red
+  static const steps = Color(0xFF3B82F6); // Blue
+  static const water = Color(0xFF06B6D4); // Cyan
+  static const calories = Color(0xFFF59E0B); // Amber
 
-  // Light Mode - Minimalist & Clean
-  static const backgroundLight = Color(0xFFF8FAFC);
-  static const surfaceLight = Color(0xFFFFFFFF);
-  static const textPrimaryLight = Color(0xFF0F172A);
-  static const textSecondaryLight = Color(0xFF64748B);
-  static const borderLight = Color(0xFFE2E8F0);
-  static const cardLight = Color(0xFFFFFFFF);
+  // Light Mode - Clean Blue & White
+  static const backgroundLight = Color.fromARGB(
+    255,
+    207,
+    228,
+    255,
+  ); // Light Blue Background
+  static const surfaceLight = Color(0xFFFFFFFF); // Pure White
+  static const textPrimaryLight = Color(0xFF1E293B); // Slate Dark
+  static const textSecondaryLight = Color(0xFF64748B); // Slate Gray
+  static const borderLight = Color(0xFFE2E8F0); // Light Border
+  static const cardLight = Color(0xFFFFFFFF); // White Card
 
-  // Dark Mode - Deep & Bold
-  static const backgroundDark = Color(0xFF0F172A); // slate dark
-  static const surfaceDark = Color(0xFF1E293B); // slate lighter
-  static const cardDark = Color(0xFF1E293B); // card background
-  static const textPrimaryDark = Color(0xFFF1F5F9); // almost white
-  static const textSecondaryDark = Color(0xFF94A3B8); // slate gray
-  static const borderDark = Color(0xFF334155);
+  // Dark Mode - Deep Blue & Dark
+  static const backgroundDark = Color(0xFF0F172A); // Deep Navy Blue
+  static const surfaceDark = Color(0xFF1E293B); // Slate Surface
+  static const cardDark = Color(0xFF334155); // Slate Card
+  static const textPrimaryDark = Color(0xFFF8FAFC); // Almost White
+  static const textSecondaryDark = Color(0xFF94A3B8); // Light Slate
+  static const borderDark = Color(0xFF475569); // Slate Border
 
-  // System colors - Modern & Vibrant
-  static const success = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
-  static const error = Color(0xFFEF4444);
-  static const muted = Color(0xFF94A3B8); // neutral gray for inactive states
-  static const info = Color(0xFF3B82F6);
+  // System colors - Modern & Clear
+  static const success = Color(0xFF10B981); // Emerald Green
+  static const warning = Color(0xFFF59E0B); // Amber
+  static const error = Color(0xFFEF4444); // Modern Red
+  static const muted = Color(0xFF94A3B8); // Slate Gray
+  static const info = Color(0xFF3B82F6); // Blue
 
   // QR / scan-specific
-  static const qrScan = Color(0xFF6366F1);
-  static const overlay = Color(0xCC0F172A);
+  static const qrScan = Color(0xFF2563EB); // Blue for scan
+  static const overlay = Color(0xDD0F172A); // Dark Blue Overlay
 
-  // Gradient combinations for cards - Instagram-inspired
-  static const gymCardGradientStart = Color(0xFF6366F1);
-  static const gymCardGradientEnd = Color(0xFFEC4899);
+  // Gradient combinations - Modern Blue Theme
+  static const gymCardGradientStart = Color(0xFF2563EB); // Blue
+  static const gymCardGradientEnd = Color(0xFF3B82F6); // Light Blue
 
-  static const premiumGradientStart = Color(0xFFF59E0B);
-  static const premiumGradientEnd = Color(0xFFEC4899);
+  static const premiumGradientStart = Color(0xFF1E40AF); // Dark Blue
+  static const premiumGradientEnd = Color(0xFF06B6D4); // Cyan
 }
 
 /// App Theme Data

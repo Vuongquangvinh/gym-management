@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 
 import '../../../model/employee.model.dart';
 import '../../../../theme/colors.dart';
+import '../../../../shared/widgets/network_avatar.dart';
 import 'pt_packages_screen.dart';
 
 final _logger = Logger();
@@ -78,19 +79,10 @@ class DetailPTScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: CircleAvatar(
-                            radius: 56,
-                            backgroundImage: pt.avatarUrl.isNotEmpty
-                                ? NetworkImage(pt.avatarUrl)
-                                : null,
-                            backgroundColor: Colors.white,
-                            child: pt.avatarUrl.isEmpty
-                                ? Icon(
-                                    Icons.person,
-                                    size: 56,
-                                    color: AppColors.muted,
-                                  )
-                                : null,
+                          child: NetworkAvatar(
+                            avatarUrl: pt.avatarUrl,
+                            size: 112,
+                            placeholderIcon: Icons.person,
                           ),
                         ),
                         const SizedBox(height: 16),

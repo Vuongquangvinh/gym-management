@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'user.model.dart';
 
@@ -20,8 +21,6 @@ class TimeSlot {
   final bool isActive;
   final String note;
   final String startTime;
-  final bool isChosen;
-  final String userIdChosenPackage;
 
   TimeSlot({
     required this.dayOfWeek,
@@ -30,8 +29,6 @@ class TimeSlot {
     required this.isActive,
     required this.note,
     required this.startTime,
-    this.isChosen = false,
-    this.userIdChosenPackage = '',
   });
 
   factory TimeSlot.fromMap(Map<String, dynamic> map) {
@@ -42,8 +39,6 @@ class TimeSlot {
       isActive: map['isActive'] ?? false,
       note: map['note'] ?? '',
       startTime: map['startTime'] ?? '',
-      isChosen: map['isChosen'] ?? false,
-      userIdChosenPackage: map['userIdChosenPackage'] ?? '',
     );
   }
 
@@ -55,19 +50,157 @@ class TimeSlot {
       'isActive': isActive,
       'note': note,
       'startTime': startTime,
-      'isChosen': isChosen,
-      'userIdChosenPackage': userIdChosenPackage,
     };
+  }
+
+  TimeSlot copyWith({
+    int? dayOfWeek,
+    String? endTime,
+    String? id,
+    bool? isActive,
+    String? note,
+    String? startTime,
+  }) {
+    return TimeSlot(
+      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
+      endTime: endTime ?? this.endTime,
+      id: id ?? this.id,
+      isActive: isActive ?? this.isActive,
+      note: note ?? this.note,
+      startTime: startTime ?? this.startTime,
+    );
+  }
+
+  /// Kiểm tra slot còn chỗ cho ngày cụ thể
+  bool isAvailableForDate(
+    DateTime date,
+    List<BookedSession> bookedSessions,
+    int maxClients,
+  ) {
+    final sessionsOnDate = bookedSessions.where((session) {
+      final sessionDate = session.specificDate;
+      return session.timeSlotId == id &&
+          sessionDate.year == date.year &&
+          sessionDate.month == date.month &&
+          sessionDate.day == date.day &&
+          session.status != 'cancelled';
+    }).length;
+
+    return sessionsOnDate < maxClients;
+  }
+
+  /// Lấy số slot đã đặt cho ngày cụ thể
+  int getBookedCountForDate(DateTime date, List<BookedSession> bookedSessions) {
+    return bookedSessions.where((session) {
+      final sessionDate = session.specificDate;
+      return session.timeSlotId == id &&
+          sessionDate.year == date.year &&
+          sessionDate.month == date.month &&
+          sessionDate.day == date.day &&
+          session.status != 'cancelled';
+    }).length;
+  }
+
+  /// Lấy danh sách người đã đặt cho ngày cụ thể
+  List<BookedSession> getBookedSessionsForDate(
+    DateTime date,
+    List<BookedSession> bookedSessions,
+  ) {
+    return bookedSessions.where((session) {
+      final sessionDate = session.specificDate;
+      return session.timeSlotId == id &&
+          sessionDate.year == date.year &&
+          sessionDate.month == date.month &&
+          sessionDate.day == date.day &&
+          session.status != 'cancelled';
+    }).toList();
+  }
+}
+
+class BookedSession {
+  final String timeSlotId;
+  final DateTime specificDate;
+  final String userId;
+  final Timestamp bookedAt;
+  final String status; // 'pending_payment', 'confirmed', 'cancelled'
+  final String? paymentOrderCode; // Mã đơn hàng PayOs
+  final int? paymentAmount; // Số tiền thanh toán
+  final String? paymentStatus; // 'PENDING', 'PAID', 'CANCELLED'
+  final Timestamp? paidAt; // Thời gian thanh toán thành công
+
+  BookedSession({
+    required this.timeSlotId,
+    required this.specificDate,
+    required this.userId,
+    required this.bookedAt,
+    this.status = 'pending_payment',
+    this.paymentOrderCode,
+    this.paymentAmount,
+    this.paymentStatus,
+    this.paidAt,
+  });
+
+  factory BookedSession.fromMap(Map<String, dynamic> map) {
+    return BookedSession(
+      timeSlotId: map['timeSlotId'] ?? '',
+      specificDate: (map['specificDate'] as Timestamp).toDate(),
+      userId: map['userId'] ?? '',
+      bookedAt: map['bookedAt'] as Timestamp,
+      status: map['status'] ?? 'pending_payment',
+      paymentOrderCode: map['paymentOrderCode'],
+      paymentAmount: map['paymentAmount'],
+      paymentStatus: map['paymentStatus'],
+      paidAt: map['paidAt'] as Timestamp?,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'timeSlotId': timeSlotId,
+      'specificDate': Timestamp.fromDate(specificDate),
+      'userId': userId,
+      'bookedAt': bookedAt,
+      'status': status,
+      if (paymentOrderCode != null) 'paymentOrderCode': paymentOrderCode,
+      if (paymentAmount != null) 'paymentAmount': paymentAmount,
+      if (paymentStatus != null) 'paymentStatus': paymentStatus,
+      if (paidAt != null) 'paidAt': paidAt,
+    };
+  }
+
+  BookedSession copyWith({
+    String? timeSlotId,
+    DateTime? specificDate,
+    String? userId,
+    Timestamp? bookedAt,
+    String? status,
+    String? paymentOrderCode,
+    int? paymentAmount,
+    String? paymentStatus,
+    Timestamp? paidAt,
+  }) {
+    return BookedSession(
+      timeSlotId: timeSlotId ?? this.timeSlotId,
+      specificDate: specificDate ?? this.specificDate,
+      userId: userId ?? this.userId,
+      bookedAt: bookedAt ?? this.bookedAt,
+      status: status ?? this.status,
+      paymentOrderCode: paymentOrderCode ?? this.paymentOrderCode,
+      paymentAmount: paymentAmount ?? this.paymentAmount,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paidAt: paidAt ?? this.paidAt,
+    );
   }
 }
 
 class PTPackageModel {
   final String id;
 
-  /// Cập nhật trạng thái chọn khung giờ cho một package
-  static Future<void> updateTimeSlotSelection({
+  /// Đặt buổi tập với ngày cụ thể
+  static Future<void> bookSessionWithDate({
     required String ptPackageId,
     required String timeSlotId,
+    required DateTime specificDate,
     String? userId,
   }) async {
     try {
@@ -76,25 +209,169 @@ class PTPackageModel {
         memberId = userId;
       } else {
         memberId = await UserModel.getMemberId();
-        if (memberId == null || memberId.isEmpty)
+        if (memberId == null || memberId.isEmpty) {
           throw Exception('UserId (_id) not found');
+        }
       }
+
       final docRef = FirebaseFirestore.instance
           .collection('ptPackages')
           .doc(ptPackageId);
+
       final docSnap = await docRef.get();
       if (!docSnap.exists) throw Exception('PT Package not found');
+
       final data = docSnap.data() as Map<String, dynamic>;
-      final List<dynamic> slots = data['availableTimeSlots'] ?? [];
-      final updatedSlots = slots.map((slot) {
-        if (slot['id'] == timeSlotId) {
-          return {...slot, 'isChosen': true, 'userIdChosenPackage': memberId};
-        }
-        return slot;
-      }).toList();
-      await docRef.update({'availableTimeSlots': updatedSlots});
+      final List<dynamic> sessions = data['bookedSessions'] ?? [];
+
+      // Kiểm tra xem ngày đó đã full chưa
+      final maxClients = data['maxClientsPerSlot'] ?? 1;
+      final sessionsOnDate = sessions.where((s) {
+        final sessionDate = (s['specificDate'] as Timestamp).toDate();
+        return s['timeSlotId'] == timeSlotId &&
+            sessionDate.year == specificDate.year &&
+            sessionDate.month == specificDate.month &&
+            sessionDate.day == specificDate.day &&
+            s['status'] != 'cancelled';
+      }).length;
+
+      if (sessionsOnDate >= maxClients) {
+        throw Exception(
+          'Khung giờ này đã đầy cho ngày ${DateFormat('dd/MM/yyyy').format(specificDate)}',
+        );
+      }
+
+      // Thêm booking mới với trạng thái confirmed (không cần thanh toán)
+      final newBooking = BookedSession(
+        timeSlotId: timeSlotId,
+        specificDate: specificDate,
+        userId: memberId,
+        bookedAt: Timestamp.now(),
+        status: 'confirmed',
+      );
+
+      await docRef.update({
+        'bookedSessions': FieldValue.arrayUnion([newBooking.toMap()]),
+      });
+
+      logger.i(
+        'Session booked successfully for ${DateFormat('dd/MM/yyyy').format(specificDate)}',
+      );
     } catch (e) {
-      logger.e('Error updating time slot selection: $e');
+      logger.e('Error booking session with date: $e');
+      rethrow;
+    }
+  }
+
+  /// Tạo booking tạm với trạng thái pending_payment
+  static Future<BookedSession> createPendingBooking({
+    required String ptPackageId,
+    required String timeSlotId,
+    required DateTime specificDate,
+    required String orderCode,
+    required int amount,
+    String? userId,
+  }) async {
+    try {
+      String? memberId;
+      if (userId != null && userId.isNotEmpty) {
+        memberId = userId;
+      } else {
+        memberId = await UserModel.getMemberId();
+        if (memberId == null || memberId.isEmpty) {
+          throw Exception('UserId (_id) not found');
+        }
+      }
+
+      final docRef = FirebaseFirestore.instance
+          .collection('ptPackages')
+          .doc(ptPackageId);
+
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) throw Exception('PT Package not found');
+
+      final data = docSnap.data() as Map<String, dynamic>;
+      final List<dynamic> sessions = data['bookedSessions'] ?? [];
+
+      // Kiểm tra xem ngày đó đã full chưa
+      final maxClients = data['maxClientsPerSlot'] ?? 1;
+      final sessionsOnDate = sessions.where((s) {
+        final sessionDate = (s['specificDate'] as Timestamp).toDate();
+        return s['timeSlotId'] == timeSlotId &&
+            sessionDate.year == specificDate.year &&
+            sessionDate.month == specificDate.month &&
+            sessionDate.day == specificDate.day &&
+            s['status'] != 'cancelled';
+      }).length;
+
+      if (sessionsOnDate >= maxClients) {
+        throw Exception(
+          'Khung giờ này đã đầy cho ngày ${DateFormat('dd/MM/yyyy').format(specificDate)}',
+        );
+      }
+
+      // Tạo booking mới với trạng thái pending_payment
+      final newBooking = BookedSession(
+        timeSlotId: timeSlotId,
+        specificDate: specificDate,
+        userId: memberId,
+        bookedAt: Timestamp.now(),
+        status: 'pending_payment',
+        paymentOrderCode: orderCode,
+        paymentAmount: amount,
+        paymentStatus: 'PENDING',
+      );
+
+      await docRef.update({
+        'bookedSessions': FieldValue.arrayUnion([newBooking.toMap()]),
+      });
+
+      logger.i(
+        'Pending booking created for ${DateFormat('dd/MM/yyyy').format(specificDate)}',
+      );
+
+      return newBooking;
+    } catch (e) {
+      logger.e('Error creating pending booking: $e');
+      rethrow;
+    }
+  }
+
+  /// Xác nhận thanh toán cho booking
+  static Future<void> confirmPaymentForBooking({
+    required String ptPackageId,
+    required String orderCode,
+  }) async {
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('ptPackages')
+          .doc(ptPackageId);
+
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) throw Exception('PT Package not found');
+
+      final data = docSnap.data() as Map<String, dynamic>;
+      final List<dynamic> sessions = data['bookedSessions'] ?? [];
+
+      // Tìm booking với orderCode
+      final bookingIndex = sessions.indexWhere(
+        (s) => s['paymentOrderCode'] == orderCode,
+      );
+
+      if (bookingIndex == -1) {
+        throw Exception('Booking not found with orderCode: $orderCode');
+      }
+
+      // Cập nhật trạng thái booking
+      sessions[bookingIndex]['status'] = 'confirmed';
+      sessions[bookingIndex]['paymentStatus'] = 'PAID';
+      sessions[bookingIndex]['paidAt'] = Timestamp.now();
+
+      await docRef.update({'bookedSessions': sessions});
+
+      logger.i('Payment confirmed for booking with orderCode: $orderCode');
+    } catch (e) {
+      logger.e('Error confirming payment: $e');
       rethrow;
     }
   }
@@ -110,8 +387,7 @@ class PTPackageModel {
   final List<String> features;
   final bool isActive;
   final bool isPopular;
-  final bool isChosen;
-  final String userIdChosenPackage;
+  final List<BookedSession> bookedSessions;
   final int maxClientsPerSlot;
   final int? months; // Số tháng (nếu là gói theo tháng)
   final String name;
@@ -137,8 +413,7 @@ class PTPackageModel {
     required this.features,
     required this.isActive,
     required this.isPopular,
-    required this.isChosen,
-    required this.userIdChosenPackage,
+    this.bookedSessions = const [],
     required this.maxClientsPerSlot,
     this.months,
     required this.name,
@@ -216,8 +491,14 @@ class PTPackageModel {
           [],
       isActive: map['isActive'] ?? false,
       isPopular: map['isPopular'] ?? false,
-      isChosen: map['isChosen'] ?? false,
-      userIdChosenPackage: map['userIdChosenPackage'] ?? '',
+      bookedSessions:
+          (map['bookedSessions'] as List<dynamic>?)
+              ?.map(
+                (session) =>
+                    BookedSession.fromMap(session as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
       maxClientsPerSlot: map['maxClientsPerSlot'] ?? 0,
       months: map['months'] as int?,
       name: map['name'] ?? '',
@@ -273,8 +554,9 @@ class PTPackageModel {
       'features': features,
       'isActive': isActive,
       'isPopular': isPopular,
-      'isChosen': isChosen,
-      'userIdChosenPackage': userIdChosenPackage,
+      'bookedSessions': bookedSessions
+          .map((session) => session.toMap())
+          .toList(),
       'maxClientsPerSlot': maxClientsPerSlot,
       if (months != null) 'months': months,
       'name': name,
@@ -302,8 +584,7 @@ class PTPackageModel {
     List<String>? features,
     bool? isActive,
     bool? isPopular,
-    bool? isChosen,
-    String? userIdChosenPackage,
+    List<BookedSession>? bookedSessions,
     int? maxClientsPerSlot,
     int? months,
     String? name,
@@ -329,8 +610,7 @@ class PTPackageModel {
       features: features ?? this.features,
       isActive: isActive ?? this.isActive,
       isPopular: isPopular ?? this.isPopular,
-      isChosen: isChosen ?? this.isChosen,
-      userIdChosenPackage: userIdChosenPackage ?? this.userIdChosenPackage,
+      bookedSessions: bookedSessions ?? this.bookedSessions,
       maxClientsPerSlot: maxClientsPerSlot ?? this.maxClientsPerSlot,
       months: months ?? this.months,
       name: name ?? this.name,
@@ -344,5 +624,33 @@ class PTPackageModel {
       sessions: sessions ?? this.sessions,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  /// Lấy các ngày khả dụng cho một time slot (theo tuần)
+  Map<int, List<DateTime>> getAvailableDatesByWeek(
+    String timeSlotId, {
+    int weeksAhead = 8,
+  }) {
+    final slot = availableTimeSlots.firstWhere((s) => s.id == timeSlotId);
+    final today = DateTime.now();
+    final Map<int, List<DateTime>> weekMap = {};
+
+    for (int i = 0; i < weeksAhead * 7; i++) {
+      final date = today.add(Duration(days: i));
+
+      // Chỉ lấy ngày trùng với dayOfWeek của slot
+      if (date.weekday % 7 == slot.dayOfWeek) {
+        // Tính số tuần từ hôm nay
+        final weekNumber = (i / 7).floor();
+
+        if (!weekMap.containsKey(weekNumber)) {
+          weekMap[weekNumber] = [];
+        }
+
+        weekMap[weekNumber]!.add(date);
+      }
+    }
+
+    return weekMap;
   }
 }

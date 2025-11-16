@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../theme/colors.dart';
-import '../components/qr_app_bar.dart';
 import '../components/qr_title_section.dart';
 import '../components/qr_code_card.dart';
 import '../components/qr_zoom_hint.dart';
 import '../components/qr_fullscreen_dialog.dart';
 import 'package:logger/logger.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 final logger = Logger();
 
@@ -93,36 +93,80 @@ class _QRScreenState extends State<QRScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [
-                    AppColors.backgroundDark,
-                    AppColors.surfaceDark,
-                    AppColors.primary.withOpacity(0.1),
-                  ]
+                ? [AppColors.backgroundDark, AppColors.surfaceDark]
                 : [
                     AppColors.backgroundLight,
-                    AppColors.primary.withOpacity(0.05),
-                    AppColors.secondary.withOpacity(0.05),
+                    AppColors.primary.withOpacity(0.03),
+                    AppColors.secondary.withOpacity(0.03),
                   ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Custom App Bar
-              QRAppBar(
-                onBack: () => Navigator.pop(context),
-                onShare: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Share QR Code'),
-                      backgroundColor: AppColors.info,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
+              // Modern App Bar
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Back Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ),
-                  );
-                },
+                    Spacer(),
+                    // Share Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.share_rounded,
+                          color: AppColors.primary,
+                        ),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Chia sẻ QR Code'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // Main Content

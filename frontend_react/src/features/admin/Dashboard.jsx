@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState(null);
   const navigate = useNavigate();
 
   const loadDashboardData = async () => {
@@ -27,6 +28,42 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    // Check for payment success/cancel in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get('paymentSuccess');
+    const paymentCancelled = urlParams.get('paymentCancelled');
+    const userId = urlParams.get('userId');
+
+    if (paymentSuccess === 'true') {
+      console.log('✅ Payment success detected for userId:', userId);
+      setPaymentMessage({
+        type: 'success',
+        text: '✅ Thanh toán thành công! Gói tập đã được cập nhật.'
+      });
+      
+      // Clear URL params
+      window.history.replaceState({}, '', '/admin');
+      
+      // Auto dismiss after 5 seconds
+      setTimeout(() => {
+        setPaymentMessage(null);
+      }, 5000);
+    } else if (paymentCancelled === 'true') {
+      console.log('❌ Payment cancelled');
+      setPaymentMessage({
+        type: 'error',
+        text: '❌ Thanh toán đã bị hủy.'
+      });
+      
+      // Clear URL params
+      window.history.replaceState({}, '', '/admin');
+      
+      // Auto dismiss after 5 seconds
+      setTimeout(() => {
+        setPaymentMessage(null);
+      }, 5000);
+    }
+
     loadDashboardData();
     // Refresh data mỗi 30 giây
     const interval = setInterval(loadDashboardData, 30000);
@@ -56,6 +93,21 @@ export default function Dashboard() {
         <h2>Dashboard</h2>
         <p className="muted">Tổng quan phòng tập - Cập nhật realtime</p>
         {error && <p className="error-text">{error}</p>}
+        {paymentMessage && (
+          <div 
+            style={{
+              padding: '12px 16px',
+              marginTop: '12px',
+              borderRadius: '8px',
+              backgroundColor: paymentMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+              color: paymentMessage.type === 'success' ? '#155724' : '#721c24',
+              border: `1px solid ${paymentMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+              fontWeight: '500'
+            }}
+          >
+            {paymentMessage.text}
+          </div>
+        )}
       </div>
 
       <div className="grid">

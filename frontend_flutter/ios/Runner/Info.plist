@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Frontend Flutter</string>
+	<string>REPS</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>frontend_flutter</string>
+	<string>REPS</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -49,5 +49,7 @@
 	<string>Cần quyền để lưu mã QR vào thư viện ảnh</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cần quyền để truy cập thư viện ảnh</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Cần quyền Face ID để đăng nhập nhanh vào ứng dụng</string>
 </dict>
 </plist>

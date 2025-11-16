@@ -201,7 +201,8 @@ class UserModel {
         return null;
       }
 
-      // Truy vấn collection users để lấy field _id
+      // Không cần lấy field _id, chỉ cần documentId thực tế
+      // Đảm bảo document tồn tại
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userDocId)
@@ -212,15 +213,8 @@ class UserModel {
         return null;
       }
 
-      final userData = userDoc.data();
-      final memberId = userData?['_id'] as String?;
-
-      if (memberId == null || memberId.isEmpty) {
-        logger.w('Không tìm thấy field _id trong user document');
-        return null;
-      }
-
-      return memberId;
+      // Trả về documentId thực tế
+      return userDocId;
     } catch (e) {
       logger.e('Lỗi khi lấy memberId: $e');
       return null;

@@ -14,16 +14,17 @@ class RenewButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.accent, Color(0xFFF57C00)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryLight],
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.accent.withOpacity(0.4),
+            color: AppColors.primary.withOpacity(0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -31,16 +32,36 @@ class RenewButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
+          splashColor: Colors.white.withOpacity(0.3),
+          highlightColor: Colors.white.withOpacity(0.1),
           child: Center(
-            child: Text(
-              'GIA HẠN NGAY',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 1.2,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'GIA HẠN NGAY',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

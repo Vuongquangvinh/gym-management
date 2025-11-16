@@ -1,52 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/colors.dart';
+import '../../model/user.model.dart';
 
 class QuickActionsWidget extends StatelessWidget {
-  const QuickActionsWidget({super.key});
+  final UserPackageInfo? userPackageInfo;
+
+  const QuickActionsWidget({super.key, this.userPackageInfo});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Thao tác nhanh',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: context.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
+        // Grid layout 2x2 với khoảng cách hợp lý
         Row(
           children: [
             Expanded(
               child: _QuickActionCard(
                 icon: Icons.qr_code_scanner_rounded,
                 title: 'Check-in',
-                subtitle: 'Quét mã QR',
+                subtitle: 'Quét QR',
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryVariant],
+                  colors: [AppColors.primary, AppColors.primaryLight],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
                 onTap: () {
-                  Navigator.pushNamed(context, '/qr');
+                  final userId = userPackageInfo?.user.id;
+                  final fullName = userPackageInfo?.user.fullName;
+                  final email = userPackageInfo?.user.email;
+                  final phoneNumber = userPackageInfo?.user.phoneNumber;
+                  final packageName = userPackageInfo?.getPackageName();
+                  final hasActivePackage = userPackageInfo?.hasActivePackage();
+
+                  Navigator.pushNamed(
+                    context,
+                    '/qr',
+                    arguments: {
+                      'qrData': userId ?? 'default_qr_code',
+                      'userId': userId,
+                      'fullName': fullName,
+                      'email': email,
+                      'phoneNumber': phoneNumber,
+                      'packageName': packageName,
+                      'hasActivePackage': hasActivePackage,
+                    },
+                  );
                 },
               ),
             ),
-            // Expanded(
-            //   child: _QuickActionCard(
-            //     icon: Icons.card_membership_rounded,
-            //     title: 'Gói tập',
-            //     subtitle: 'Xem & gia hạn',
-            //     gradient: LinearGradient(
-            //       colors: [AppColors.secondary, AppColors.accent],
-            //     ),
-            //     onTap: () {
-            //       Navigator.pushNamed(context, '/package');
-            //     },
-            //   ),
-            // ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickActionCard(
+                icon: Icons.fitness_center_rounded,
+                title: 'PT cá nhân',
+                subtitle: 'Đặt lịch',
+                gradient: LinearGradient(
+                  colors: [AppColors.secondary, AppColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                onTap: () {
+                  Navigator.pushNamed(context, '/my-contracts');
+                },
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -54,28 +73,36 @@ class QuickActionsWidget extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.fitness_center_rounded,
-                title: 'PT cá nhân',
-                subtitle: 'Đặt lịch tập',
+                icon: Icons.history_rounded,
+                title: 'Lịch sử',
+                subtitle: 'Check-in',
                 gradient: LinearGradient(
-                  colors: [AppColors.success, Color(0xFF4CAF50)],
+                  colors: [AppColors.cardio, Color(0xFFFF8787)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
                 onTap: () {
-                  Navigator.pushNamed(context, '/my-contracts');
+                  Navigator.pushNamed(context, '/checkin-history');
                 },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.history_rounded,
-                title: 'Lịch sử',
-                subtitle: 'Check-in ',
+                icon: Icons.calendar_month_rounded,
+                title: 'Gói tập',
+                subtitle: 'Gia hạn',
                 gradient: LinearGradient(
-                  colors: [AppColors.warning, Color(0xFFFF9800)],
+                  colors: [AppColors.strength, Color(0xFF6EDDD6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
                 onTap: () {
-                  Navigator.pushNamed(context, '/checkin-history');
+                  Navigator.pushNamed(
+                    context,
+                    '/packageMember',
+                    arguments: {'userId': userPackageInfo?.user.id ?? ''},
+                  );
                 },
               ),
             ),
@@ -107,45 +134,62 @@ class _QuickActionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 100,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
+              blurRadius: 10,
               offset: const Offset(0, 4),
+              spreadRadius: -2,
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Icon container
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: Icon(icon, color: Colors.white, size: 20),
             ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.white.withOpacity(0.9),
-              ),
+            // Text info
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: Colors.white.withOpacity(0.85),
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ],
         ),

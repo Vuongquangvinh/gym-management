@@ -131,80 +131,151 @@ class _CheckInHistoryScreenState extends State<CheckInHistoryScreen>
     final stats = _statistics;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    AppColors.backgroundDark,
-                    AppColors.surfaceDark,
-                    AppColors.primary.withOpacity(0.1),
-                  ]
-                : [
-                    AppColors.backgroundLight,
-                    AppColors.primary.withOpacity(0.05),
-                    AppColors.secondary.withOpacity(0.05),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // App Bar
-              HistoryAppBar(onBack: () => Navigator.pop(context)),
-
-              // Stats Card - Chỉ hiển thị tổng số sessions
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: HistoryStatsCard(totalSessions: stats['totalSessions']),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Filter Tabs
-              HistoryFilterTabs(
-                selectedFilter: _selectedFilter,
-                onFilterChanged: (filter) {
-                  setState(() {
-                    _selectedFilter = filter;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // History List
-              Expanded(
-                child: _isLoading
-                    ? _buildLoadingState()
-                    : _filteredHistory.isEmpty
-                    ? _buildEmptyState(isDark)
-                    : FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: RefreshIndicator(
-                          onRefresh: _loadCheckinHistory,
-                          color: AppColors.primary,
-                          child: ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(
-                              parent: BouncingScrollPhysics(),
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Modern Gradient AppBar
+          SliverAppBar(
+            expandedHeight: 140,
+            floating: false,
+            pinned: true,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [AppColors.surfaceDark, AppColors.cardDark]
+                        : [AppColors.secondary, AppColors.accent],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.history_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _filteredHistory.length,
-                            itemBuilder: (context, index) {
-                              return HistoryListItem(
-                                checkin: _filteredHistory[index],
-                                index: index,
-                              );
-                            },
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Lịch sử check-in',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Theo dõi quá trình tập luyện',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ],
+            ),
+            leading: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ),
+
+          // Content
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+
+                // Stats Card
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: HistoryStatsCard(
+                    totalSessions: stats['totalSessions'],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Filter Tabs
+                HistoryFilterTabs(
+                  selectedFilter: _selectedFilter,
+                  onFilterChanged: (filter) {
+                    setState(() {
+                      _selectedFilter = filter;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+
+          // History List
+          _isLoading
+              ? SliverFillRemaining(child: _buildLoadingState())
+              : _filteredHistory.isEmpty
+              ? SliverFillRemaining(child: _buildEmptyState(isDark))
+              : SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverAnimatedOpacity(
+                    opacity: _fadeAnimation.value,
+                    duration: const Duration(milliseconds: 300),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return HistoryListItem(
+                          checkin: _filteredHistory[index],
+                          index: index,
+                        );
+                      }, childCount: _filteredHistory.length),
+                    ),
+                  ),
+                ),
+        ],
       ),
     );
   }

@@ -22,8 +22,18 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Logging middleware
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  console.log("📦 Body:", JSON.stringify(req.body));
+  next();
+});
+
 // Serve static files from frontend public directory
-app.use('/uploads', express.static(path.join(__dirname, '../../frontend_react/public/uploads')));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../../frontend_react/public/uploads"))
+);
 
 // Routes
 app.use("/api/auth", authRoutes);

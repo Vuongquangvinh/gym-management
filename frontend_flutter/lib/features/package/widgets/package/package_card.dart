@@ -27,23 +27,34 @@ class PackageCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: context.surface,
-          borderRadius: BorderRadius.circular(18),
+          gradient: isSelected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primary.withOpacity(0.08),
+                    AppColors.secondary.withOpacity(0.05),
+                  ],
+                )
+              : null,
+          color: isSelected ? null : context.surface,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : context.border.withOpacity(0.5),
-            width: isSelected ? 2.5 : 1.5,
+                : context.border.withOpacity(0.3),
+            width: isSelected ? 2.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? AppColors.primary.withOpacity(0.25)
-                  : Colors.black.withOpacity(0.08),
-              blurRadius: isSelected ? 20 : 12,
-              offset: const Offset(0, 6),
+                  ? AppColors.primary.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.06),
+              blurRadius: isSelected ? 24 : 10,
+              offset: Offset(0, isSelected ? 8 : 4),
+              spreadRadius: isSelected ? 1 : 0,
             ),
           ],
         ),
@@ -52,126 +63,245 @@ class PackageCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header with icon, name, and check
               Row(
                 children: [
+                  // Icon container
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: isSelected
-                            ? [
-                                AppColors.primary,
-                                AppColors.primary.withOpacity(0.7),
-                              ]
-                            : [
-                                AppColors.muted,
-                                AppColors.muted.withOpacity(0.7),
-                              ],
+                            ? [AppColors.primary, AppColors.primaryLight]
+                            : [AppColors.secondary, AppColors.accent],
                       ),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              (isSelected
+                                      ? AppColors.primary
+                                      : AppColors.secondary)
+                                  .withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       package['icon'] as IconData,
-                      color: isSelected ? Colors.white : AppColors.muted,
+                      color: Colors.white,
                       size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),
+                  // Package name and duration
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           package['name'],
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.montserrat(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: context.textPrimary,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${package['duration']} ngày',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: context.textSecondary,
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.secondary.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.access_time_rounded,
+                                size: 14,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${package['duration']} ngày',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
+                  // Check icon when selected
                   if (isSelected)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.success,
+                            AppColors.success.withOpacity(0.7),
+                          ],
+                        ),
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.success.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.check,
+                        Icons.check_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 22,
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 18),
-              Text(
-                '${NumberFormat('#,###').format(package['price'])} VNĐ',
-                style: GoogleFonts.inter(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.accent,
-                  letterSpacing: 0.2,
+              const SizedBox(height: 20),
+
+              // Price with gradient background
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.accent.withOpacity(0.15),
+                      AppColors.accent.withOpacity(0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.accent.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.local_offer_rounded,
+                      size: 20,
+                      color: AppColors.accent,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${NumberFormat('#,###').format(package['price'])} VNĐ',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.accent,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
+
+              // Benefits section
               if (benefits.isNotEmpty) ...[
+                const SizedBox(height: 20),
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [context.border, context.border.withOpacity(0)],
+                      colors: [
+                        context.border.withOpacity(0.5),
+                        context.border.withOpacity(0),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  'Quyền lợi:',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: context.textSecondary,
-                    letterSpacing: 0.2,
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.stars_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Quyền lợi',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: context.textPrimary,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 ...benefits.map(
                   (benefit) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(2),
+                          margin: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: AppColors.success.withOpacity(0.2),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.success,
+                                AppColors.success.withOpacity(0.7),
+                              ],
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.check_circle,
-                            color: AppColors.success,
-                            size: 18,
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 14,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             benefit,
                             style: GoogleFonts.inter(
                               fontSize: 14,
+                              fontWeight: FontWeight.w500,
                               color: context.textPrimary,
+                              height: 1.4,
                             ),
                           ),
                         ),

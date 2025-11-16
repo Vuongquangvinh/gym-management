@@ -36,31 +36,44 @@ class PaymentHistoryWidget extends StatelessWidget {
   Widget _buildEmptyState(BuildContext context, double scale) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 60 * scale),
+        padding: const EdgeInsets.symmetric(vertical: 80),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64 * scale,
-              color: AppColors.muted.withOpacity(0.5),
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withOpacity(0.1),
+                    AppColors.primaryLight.withOpacity(0.05),
+                  ],
+                ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.2),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.receipt_long_rounded,
+                size: 64,
+                color: AppColors.primary.withOpacity(0.6),
+              ),
             ),
-            SizedBox(height: 16 * scale),
+            const SizedBox(height: 24),
             Text(
               'Chưa có lịch sử thanh toán',
               style: TextStyle(
-                fontSize: 16 * scale,
-                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
                 color: context.textPrimary,
               ),
             ),
-            SizedBox(height: 8 * scale),
+            const SizedBox(height: 8),
             Text(
               'Các giao dịch thanh toán sẽ hiển thị ở đây',
-              style: TextStyle(
-                fontSize: 14 * scale,
-                color: context.textSecondary,
-              ),
+              style: TextStyle(fontSize: 14, color: context.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -76,7 +89,7 @@ class PaymentHistoryWidget extends StatelessWidget {
       itemCount: paymentHistory.length,
       itemBuilder: (context, index) {
         final payment = paymentHistory[index];
-        return _buildPaymentCard(context, payment, index, scale);
+        return _buildPaymentCard(context, payment, index);
       },
     );
   }
@@ -85,34 +98,50 @@ class PaymentHistoryWidget extends StatelessWidget {
     BuildContext context,
     Map<String, dynamic> payment,
     int index,
-    double scale,
   ) {
+    final isDark = context.isDarkMode;
     final status = payment['status']?.toString() ?? 'UNKNOWN';
     final statusConfig = _getStatusConfig(status);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12 * scale),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: context.isDarkMode ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(12 * scale),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [AppColors.surfaceDark, AppColors.cardDark]
+              : [Colors.white, AppColors.primaryLight.withOpacity(0.02)],
+        ),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.isDarkMode
-              ? Colors.white.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.2),
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : AppColors.primary.withOpacity(0.12),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : AppColors.primary.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+            spreadRadius: -2,
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showPaymentDetails(context, payment),
-          borderRadius: BorderRadius.circular(12 * scale),
+          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: EdgeInsets.all(16 * scale),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Row 1: Package name + Status
+                // Header: Package name + Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,80 +150,143 @@ class PaymentHistoryWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            payment['packageName']?.toString() ?? 'Gói tập',
-                            style: TextStyle(
-                              fontSize: 16 * scale,
-                              fontWeight: FontWeight.bold,
-                              color: context.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryLight,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.card_membership_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  payment['packageName']?.toString() ??
+                                      'Gói tập',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: context.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 4 * scale),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 14,
+                                color: context.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${payment['packageDuration'] ?? 'N/A'} ngày',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: context.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildModernStatusChip(statusConfig),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Divider
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        context.border.withOpacity(0),
+                        context.border.withOpacity(0.3),
+                        context.border.withOpacity(0),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Footer: Amount + Date
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Amount with gradient background
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.success.withOpacity(0.15),
+                            AppColors.success.withOpacity(0.08),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.success.withOpacity(0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet_rounded,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
-                            '${payment['packageDuration'] ?? 'N/A'} ngày',
+                            _formatCurrency(payment['amount']),
                             style: TextStyle(
-                              fontSize: 13 * scale,
-                              color: context.textSecondary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(width: 8 * scale),
-                    _buildStatusChip(statusConfig, scale),
-                  ],
-                ),
-
-                SizedBox(height: 12 * scale),
-
-                // Divider
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: context.border.withOpacity(0.3),
-                ),
-
-                SizedBox(height: 12 * scale),
-
-                // Row 2: Amount + Date
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Amount
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.payments_outlined,
-                          size: 18 * scale,
-                          color: AppColors.success,
-                        ),
-                        SizedBox(width: 6 * scale),
-                        Text(
-                          _formatCurrency(payment['amount']),
-                          style: TextStyle(
-                            fontSize: 15 * scale,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
                     // Date
                     Row(
                       children: [
                         Icon(
-                          Icons.access_time,
-                          size: 16 * scale,
+                          Icons.calendar_today_rounded,
+                          size: 14,
                           color: context.textSecondary,
                         ),
-                        SizedBox(width: 4 * scale),
+                        const SizedBox(width: 6),
                         Text(
                           _formatDate(payment['createdAt']),
                           style: TextStyle(
-                            fontSize: 12 * scale,
+                            fontSize: 12,
                             color: context.textSecondary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -209,27 +301,29 @@ class PaymentHistoryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip(Map<String, dynamic> config, double scale) {
+  Widget _buildModernStatusChip(Map<String, dynamic> config) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10 * scale,
-        vertical: 4 * scale,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: config['color'].withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12 * scale),
-        border: Border.all(color: config['color'].withOpacity(0.3), width: 1),
+        gradient: LinearGradient(
+          colors: [
+            config['color'].withOpacity(0.15),
+            config['color'].withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: config['color'].withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(config['icon'], size: 14 * scale, color: config['color']),
-          SizedBox(width: 4 * scale),
+          Icon(config['icon'], size: 14, color: config['color']),
+          const SizedBox(width: 6),
           Text(
             config['label'],
             style: TextStyle(
-              fontSize: 11 * scale,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
               color: config['color'],
             ),
           ),

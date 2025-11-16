@@ -8,12 +8,16 @@ import {
   updateOrderStatus,
 } from "./payos.service.js";
 import { admin } from "../../config/firebase.js";
+import { sendPaymentSuccessNotification } from "../../utils/fcm.helper.js";
 
 /**
  * Controller: Tạo payment link cho gói tập gym
  */
 export async function createGymPayment(req, res) {
   try {
+    console.log("🎯 [PayOS Controller] Nhận request tạo gym payment");
+    console.log("📦 Request body:", JSON.stringify(req.body, null, 2));
+
     const {
       packageId,
       packageName,
@@ -29,6 +33,7 @@ export async function createGymPayment(req, res) {
 
     // Validate required fields
     if (!packageId || !packageName || !packagePrice) {
+      console.error("❌ Thiếu thông tin gói tập");
       return res.status(400).json({
         success: false,
         message:
@@ -37,14 +42,18 @@ export async function createGymPayment(req, res) {
     }
 
     if (!userId) {
+      console.error("❌ Thiếu userId");
       return res.status(400).json({
         success: false,
         message: "Thiếu thông tin người dùng (userId)",
       });
     }
 
+    console.log("✅ Validation passed");
+
     // Tạo orderCode unique (timestamp + random)
     const orderCode = Date.now();
+    console.log("🔢 OrderCode:", orderCode);
 
     // Tạo description (max 25 ký tự theo quy định PayOS)
     // Cắt packageId nếu quá dài để đảm bảo tổng không quá 25 ký tự
@@ -202,7 +211,85 @@ export async function handlePaymentWebhook(req, res) {
       });
     }
 
-    // 🔥 6. UPDATE USER PACKAGE INFO IN FIRESTORE
+    // 🔥 6. CHECK PAYMENT TYPE - PT Package vs Gym Package
+    const paymentType = orderInfo.paymentType || "gym_package";
+    const db = admin.firestore();
+
+    if (paymentType === "pt_package") {
+      // ✅ PT PACKAGE PAYMENT FLOW
+      console.log("💪 Processing PT Package payment...");
+      const { contractId } = orderInfo;
+
+      if (!contractId) {
+        console.error("❌ Missing contractId in PT package order");
+        return res.status(400).json({
+          success: false,
+          message: "Missing contract ID",
+        });
+      }
+
+      // Update contract payment status
+      console.log("📝 Updating contract:", contractId);
+      await db.collection("contracts").doc(contractId).update({
+        paymentStatus: "PAID",
+        status: "paid",
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log("✅ Contract payment updated to PAID");
+
+      // Update order status
+      await updateOrderStatus(orderCode, {
+        status: "PAID",
+        paymentTime: transactionDateTime,
+        transactionId: reference,
+      });
+
+      console.log("✅ PT Package payment processed successfully");
+
+      // 🔔 GỬI THÔNG BÁO THANH TOÁN THÀNH CÔNG (PT PACKAGE)
+      try {
+        console.log("📲 Sending payment success notification (PT)...");
+        const notificationResult = await sendPaymentSuccessNotification(
+          orderInfo.userId,
+          {
+            packageName: orderInfo.ptPackageName || "Gói tập PT",
+            amount: amount,
+            orderCode: orderCode,
+            contractId: contractId,
+            paymentType: "pt_package",
+          }
+        );
+
+        if (notificationResult.success) {
+          console.log("✅ Payment notification sent successfully (PT)");
+        } else {
+          console.warn(
+            "⚠️ Failed to send payment notification (PT):",
+            notificationResult.error
+          );
+        }
+      } catch (notifError) {
+        console.error(
+          "❌ Error sending payment notification (PT):",
+          notifError
+        );
+        // Don't fail the whole payment process if notification fails
+      }
+
+      return res.json({
+        success: true,
+        message: "PT Package payment processed successfully",
+        data: {
+          orderCode,
+          contractId,
+          status: "PAID",
+        },
+      });
+    }
+
+    // 🔥 GYM PACKAGE PAYMENT FLOW (existing logic)
     const { userId, packageId, packageDuration } = orderInfo;
 
     console.log("🔄 Updating user package:", {
@@ -212,7 +299,6 @@ export async function handlePaymentWebhook(req, res) {
     });
 
     // Get package details to retrieve NumberOfSession
-    const db = admin.firestore();
 
     console.log("🔍 Searching for package with PackageId field:", packageId);
     const packageQuery = await db
@@ -349,8 +435,9 @@ export async function handlePaymentWebhook(req, res) {
     };
 
     console.log("📝 Setting current_package_id to:", packageId);
-    console.log("  - packageId (PackageId field, e.g. PK3):", packageId);
+    console.log("  - packageId (PackageId field, e.g. PK1):", packageId);
     console.log("  - packageDocId (Firestore Doc ID):", packageDocId);
+    console.log("⚠️ CRITICAL: current_package_id WILL BE SET TO:", packageId);
 
     // Add remaining_sessions
     if (packageDetails && packageDetails.NumberOfSession) {
@@ -376,7 +463,15 @@ export async function handlePaymentWebhook(req, res) {
 
     console.log("📝 Applying update:", userUpdateData);
 
+    console.log("🔥 BEFORE UPDATE - userDocId:", userDocId);
+    console.log(
+      "🔥 BEFORE UPDATE - current_package_id in updateData:",
+      userUpdateData.current_package_id
+    );
+
     await db.collection("users").doc(userDocId).update(userUpdateData);
+
+    console.log("✅ Firestore update completed");
 
     // Verify update
     const updatedUserDoc = await db.collection("users").doc(userDocId).get();
@@ -390,6 +485,12 @@ export async function handlePaymentWebhook(req, res) {
       remaining_sessions: updatedUserData.remaining_sessions,
       membership_status: updatedUserData.membership_status,
     });
+
+    console.log(
+      "🔥 VERIFY: Is current_package_id === packageId?",
+      updatedUserData.current_package_id === packageId,
+      `(${updatedUserData.current_package_id} === ${packageId})`
+    );
 
     console.log("✅ User package updated successfully:", {
       userId,
@@ -409,6 +510,29 @@ export async function handlePaymentWebhook(req, res) {
 
     console.log("✅ Order status updated to PAID:", orderCode);
     console.log("🎉 Payment webhook processed successfully!");
+
+    // 🔔 GỬI THÔNG BÁO THANH TOÁN THÀNH CÔNG (GYM PACKAGE)
+    try {
+      console.log("📲 Sending payment success notification (Gym)...");
+      const notificationResult = await sendPaymentSuccessNotification(userId, {
+        packageName: orderInfo.packageName || "Gói tập gym",
+        amount: amount,
+        orderCode: orderCode,
+        paymentType: "gym_package",
+      });
+
+      if (notificationResult.success) {
+        console.log("✅ Payment notification sent successfully (Gym)");
+      } else {
+        console.warn(
+          "⚠️ Failed to send payment notification (Gym):",
+          notificationResult.error
+        );
+      }
+    } catch (notifError) {
+      console.error("❌ Error sending payment notification (Gym):", notifError);
+      // Don't fail the whole payment process if notification fails
+    }
 
     // ✅ 9. Send success response to PayOS
     return res.json({
@@ -552,7 +676,87 @@ export async function confirmPaymentManual(req, res) {
       console.log("⚠️ Proceeding anyway (LOCAL DEV MODE)");
     }
 
-    // ✅ 4. Update user package
+    // ✅ 4. Check payment type and process accordingly
+    const paymentType = orderInfo.paymentType || "gym_package";
+    const db = admin.firestore();
+
+    if (paymentType === "pt_package") {
+      // 🔥 PT PACKAGE PAYMENT FLOW
+      console.log("🎯 Processing PT Package payment...");
+
+      const { contractId } = orderInfo;
+
+      if (!contractId) {
+        console.error("❌ Missing contractId in order info");
+        return res.status(400).json({
+          success: false,
+          message: "Missing contractId in order information",
+        });
+      }
+
+      // Update contract status
+      console.log("📝 Updating contract:", contractId);
+      await db.collection("contracts").doc(contractId).update({
+        status: "paid",
+        paymentStatus: "PAID",
+        paidAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log("✅ Contract updated to PAID status");
+
+      // Update order status
+      await updateOrderStatus(orderCode, {
+        status: "PAID",
+        paymentTime: new Date().toISOString(),
+      });
+
+      console.log("✅ PT Package payment processed successfully");
+
+      // 🔔 GỬI THÔNG BÁO THANH TOÁN THÀNH CÔNG (PT PACKAGE - Manual)
+      try {
+        console.log("📲 Sending payment success notification (PT - Manual)...");
+        const notificationResult = await sendPaymentSuccessNotification(
+          orderInfo.userId,
+          {
+            packageName: orderInfo.ptPackageName || "Gói tập PT",
+            amount: orderInfo.amount,
+            orderCode: orderCode,
+            contractId: contractId,
+            paymentType: "pt_package",
+          }
+        );
+
+        if (notificationResult.success) {
+          console.log(
+            "✅ Payment notification sent successfully (PT - Manual)"
+          );
+        } else {
+          console.warn(
+            "⚠️ Failed to send payment notification (PT - Manual):",
+            notificationResult.error
+          );
+        }
+      } catch (notifError) {
+        console.error(
+          "❌ Error sending payment notification (PT - Manual):",
+          notifError
+        );
+        // Don't fail the whole payment process if notification fails
+      }
+
+      return res.json({
+        success: true,
+        message: "PT Package payment confirmed successfully",
+        data: {
+          orderCode,
+          contractId,
+        },
+      });
+    }
+
+    // 🔥 GYM PACKAGE PAYMENT FLOW
+    console.log("🎯 Processing Gym Package payment...");
     const { userId, packageId, packageDuration } = orderInfo;
 
     console.log("🔄 Updating user package:", {
@@ -561,7 +765,23 @@ export async function confirmPaymentManual(req, res) {
       packageDuration,
     });
 
-    const db = admin.firestore();
+    // Validate required fields
+    if (!userId) {
+      console.error("❌ Missing userId in order info");
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId in order information",
+      });
+    }
+
+    if (!packageId) {
+      console.error("❌ Missing packageId in order info");
+      return res.status(400).json({
+        success: false,
+        message:
+          "Missing packageId in order information. Payment was successful but package assignment failed. Please contact support.",
+      });
+    }
 
     // Get package details
     console.log("🔍 Searching for package with PackageId field:", packageId);
@@ -737,6 +957,32 @@ export async function confirmPaymentManual(req, res) {
     console.log("✅ Order status updated to PAID");
     console.log("🎉 Manual confirmation completed!");
 
+    // 🔔 GỬI THÔNG BÁO THANH TOÁN THÀNH CÔNG (GYM PACKAGE - Manual)
+    try {
+      console.log("📲 Sending payment success notification (Gym - Manual)...");
+      const notificationResult = await sendPaymentSuccessNotification(userId, {
+        packageName: orderInfo.packageName || "Gói tập gym",
+        amount: orderInfo.amount,
+        orderCode: orderCode,
+        paymentType: "gym_package",
+      });
+
+      if (notificationResult.success) {
+        console.log("✅ Payment notification sent successfully (Gym - Manual)");
+      } else {
+        console.warn(
+          "⚠️ Failed to send payment notification (Gym - Manual):",
+          notificationResult.error
+        );
+      }
+    } catch (notifError) {
+      console.error(
+        "❌ Error sending payment notification (Gym - Manual):",
+        notifError
+      );
+      // Don't fail the whole payment process if notification fails
+    }
+
     return res.json({
       success: true,
       message: "Payment confirmed and user package updated successfully",
@@ -752,6 +998,184 @@ export async function confirmPaymentManual(req, res) {
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to confirm payment",
+    });
+  }
+}
+
+/**
+ * Controller: Tạo payment link cho gói PT (PT Package)
+ */
+export async function createPTPackagePayment(req, res) {
+  try {
+    console.log("🎯 [PayOS Controller] Nhận request tạo PT package payment");
+    console.log("📦 Request body:", JSON.stringify(req.body, null, 2));
+
+    const {
+      ptPackageId,
+      ptPackageName,
+      ptPackagePrice,
+      userId,
+      userName,
+      ptId,
+      ptName,
+      selectedTimeSlots,
+      startDate,
+      endDate,
+      userEmail,
+      userPhone,
+      returnUrl,
+      cancelUrl,
+    } = req.body;
+
+    // Validate required fields
+    if (!ptPackageId || !ptPackageName || !ptPackagePrice) {
+      console.error("❌ Thiếu thông tin gói PT");
+      return res.status(400).json({
+        success: false,
+        message:
+          "Thiếu thông tin gói PT (ptPackageId, ptPackageName, ptPackagePrice)",
+      });
+    }
+
+    if (!userId || !ptId) {
+      console.error("❌ Thiếu userId hoặc ptId");
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu thông tin người dùng hoặc PT (userId, ptId)",
+      });
+    }
+
+    if (!selectedTimeSlots || selectedTimeSlots.length === 0) {
+      console.error("❌ Thiếu selectedTimeSlots");
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu thông tin khung giờ đã chọn (selectedTimeSlots)",
+      });
+    }
+
+    console.log("✅ Validation passed");
+
+    // ✅ 1. Tạo contract trước
+    console.log("📝 Tạo contract...");
+
+    // Chuyển đổi selectedTimeSlots (array) thành weeklySchedule (map)
+    // Đây sẽ là lịch chính thức mà user có thể cập nhật sau
+    const weeklySchedule = {};
+    selectedTimeSlots.forEach((slot) => {
+      weeklySchedule[slot.dayOfWeek.toString()] = {
+        timeSlotId: slot.timeSlotId,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        note: slot.note || "",
+      };
+    });
+    console.log("📅 WeeklySchedule created:", weeklySchedule);
+
+    const contractData = {
+      userId,
+      ptId,
+      ptPackageId,
+      weeklySchedule, // Chỉ lưu weeklySchedule, không lưu selectedTimeSlots
+      status: "pending_payment",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Thêm startDate và endDate nếu có
+    if (startDate) {
+      contractData.startDate = admin.firestore.Timestamp.fromDate(
+        new Date(startDate)
+      );
+      console.log("📅 Start Date:", startDate);
+    }
+    if (endDate) {
+      contractData.endDate = admin.firestore.Timestamp.fromDate(
+        new Date(endDate)
+      );
+      console.log("📅 End Date:", endDate);
+    }
+
+    const contractRef = await admin
+      .firestore()
+      .collection("contracts")
+      .add(contractData);
+
+    const contractId = contractRef.id;
+    console.log("✅ Contract created with ID:", contractId);
+
+    // ✅ 2. Tạo orderCode unique
+    const orderCode = Date.now();
+    console.log("🔢 OrderCode:", orderCode);
+
+    // ✅ 3. Tạo description (max 25 ký tự)
+    const shortPackageName =
+      ptPackageName.length > 20
+        ? ptPackageName.substring(0, 20)
+        : ptPackageName;
+    const description = `PT ${shortPackageName}`.substring(0, 25);
+
+    // ✅ 4. Tạo return URL mặc định
+    const defaultReturnUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/payment/success`;
+    const defaultCancelUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/payment/cancel`;
+
+    // ✅ 5. Metadata để lưu thông tin
+    const metadata = {
+      ptPackageId,
+      ptPackageName,
+      userId,
+      ptId,
+      contractId,
+      paymentType: "pt_package",
+    };
+
+    // ✅ 6. Thông tin người mua
+    const buyerInfo = {
+      name: userName,
+      email: userEmail,
+      phone: userPhone,
+    };
+
+    // ✅ 7. Tạo payment link
+    const result = await createGymPackagePayment({
+      amount: ptPackagePrice,
+      description,
+      returnUrl: returnUrl || defaultReturnUrl,
+      cancelUrl: cancelUrl || defaultCancelUrl,
+      orderCode,
+      buyerInfo,
+      metadata,
+    });
+
+    // ✅ 8. Update contract với payment info
+    await contractRef.update({
+      paymentOrderCode: orderCode.toString(),
+      paymentAmount: ptPackagePrice,
+      paymentStatus: "PENDING",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log("✅ Contract updated with payment info");
+
+    // ✅ 9. Return response với contractId
+    res.json({
+      success: true,
+      message: "Tạo link thanh toán gói PT thành công",
+      data: {
+        ...result,
+        contractId,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error in createPTPackagePayment:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi khi tạo link thanh toán gói PT",
+      error: error,
     });
   }
 }

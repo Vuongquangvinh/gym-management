@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import '../../model/contract.mode.dart';
 import '../../../theme/colors.dart';
 
-/// Widget hiển thị các khung giờ tập đã chọn
+/// Widget hiển thị lịch tập hàng tuần từ WeeklySchedule
 class TimeSlotsWidget extends StatelessWidget {
-  final List<SelectedTimeSlot> timeSlots;
+  final WeeklySchedule weeklySchedule;
   final VoidCallback? onEdit;
   final bool canEdit;
 
   const TimeSlotsWidget({
     Key? key,
-    required this.timeSlots,
+    required this.weeklySchedule,
     this.onEdit,
     this.canEdit = false,
   }) : super(key: key);
@@ -19,20 +19,12 @@ class TimeSlotsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Nhóm time slots theo ngày trong tuần
-    final groupedSlots = <int, List<SelectedTimeSlot>>{};
-    for (var slot in timeSlots) {
-      if (!groupedSlots.containsKey(slot.dayOfWeek)) {
-        groupedSlots[slot.dayOfWeek] = [];
-      }
-      groupedSlots[slot.dayOfWeek]!.add(slot);
-    }
-
-    // Sắp xếp theo ngày
-    final sortedDays = groupedSlots.keys.toList()..sort();
+    // Lấy danh sách ngày đã có lịch và sắp xếp
+    final sortedDays = weeklySchedule.schedule.keys.toList()..sort();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
@@ -54,7 +46,7 @@ class TimeSlotsWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Thời gian bạn đăng ký',
+                  'Khung thời gian',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -74,8 +66,8 @@ class TimeSlotsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...sortedDays.map((dayOfWeek) {
-            final slots = groupedSlots[dayOfWeek]!;
-            return _buildDaySection(context, dayOfWeek, slots);
+            final slot = weeklySchedule.schedule[dayOfWeek]!;
+            return _buildDaySection(context, dayOfWeek, slot);
           }),
         ],
       ),
@@ -85,7 +77,7 @@ class TimeSlotsWidget extends StatelessWidget {
   Widget _buildDaySection(
     BuildContext context,
     int dayOfWeek,
-    List<SelectedTimeSlot> slots,
+    SelectedTimeSlot slot,
   ) {
     final dayName = _getDayName(dayOfWeek);
     final dayColor = _getDayColor(dayOfWeek);
@@ -121,8 +113,8 @@ class TimeSlotsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Các khung giờ trong ngày
-          ...slots.map((slot) => _buildTimeSlotCard(context, slot, dayColor)),
+          // Khung giờ trong ngày
+          _buildTimeSlotCard(context, slot, dayColor),
         ],
       ),
     );
@@ -225,8 +217,6 @@ class TimeSlotsWidget extends StatelessWidget {
 
   String _getDayName(int dayOfWeek) {
     switch (dayOfWeek) {
-      case 0:
-        return 'Chủ nhật';
       case 1:
         return 'Thứ hai';
       case 2:
@@ -239,6 +229,8 @@ class TimeSlotsWidget extends StatelessWidget {
         return 'Thứ sáu';
       case 6:
         return 'Thứ bảy';
+      case 7:
+        return 'Chủ nhật';
       default:
         return 'N/A';
     }
