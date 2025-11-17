@@ -7,12 +7,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// - text: Nội dung tin nhắn
 /// - timestamp: Thời gian gửi
 /// - is_read: Đã đọc chưa
+/// - image_url: URL hình ảnh (optional)
 class ChatMessage {
   final String id;
   final String senderId;
   final String text;
   final DateTime timestamp;
   final bool isRead;
+  final String? imageUrl; // ← Thêm field này
 
   ChatMessage({
     required this.id,
@@ -20,6 +22,7 @@ class ChatMessage {
     required this.text,
     required this.timestamp,
     required this.isRead,
+    this.imageUrl, // ← Thêm parameter này
   });
 
   /// Tạo ChatMessage từ Firestore DocumentSnapshot
@@ -44,17 +47,25 @@ class ChatMessage {
       text: data['text'] ?? '',
       timestamp: timestamp,
       isRead: data['is_read'] ?? false,
+      imageUrl: data['image_url'], // ← Thêm field này
     );
   }
 
   /// Convert to Firestore document (snake_case fields)
   Map<String, dynamic> toFirestore() {
-    return {
+    final data = {
       'sender_id': senderId,
       'text': text,
       'timestamp': FieldValue.serverTimestamp(),
       'is_read': isRead,
     };
+
+    // Thêm image_url nếu có
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      data['image_url'] = imageUrl!;
+    }
+
+    return data;
   }
 
   /// Copy with
@@ -64,6 +75,7 @@ class ChatMessage {
     String? text,
     DateTime? timestamp,
     bool? isRead,
+    String? imageUrl,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -71,6 +83,7 @@ class ChatMessage {
       text: text ?? this.text,
       timestamp: timestamp ?? this.timestamp,
       isRead: isRead ?? this.isRead,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

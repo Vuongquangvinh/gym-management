@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../services/chat_service.dart';
+import '../services/chat_notification_service.dart';
 import '../models/chat_message.dart';
 
 /// ChatScreen - Màn hình chat giữa Client và PT
 ///
 /// REALTIME: Tự động cập nhật khi có tin nhắn mới
+/// Hỗ trợ gửi text và hình ảnh
 class ChatScreen extends StatefulWidget {
   final String ptId;
   final String ptName;
@@ -17,7 +22,7 @@ class ChatScreen extends StatefulWidget {
     Key? key,
     required this.ptId,
     required this.ptName,
-    this.clientId, // ← Thêm parameter này
+    this.clientId,
   }) : super(key: key);
 
   @override
@@ -26,17 +31,30 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final ChatService _chatService = ChatService();
+  final ChatNotificationService _notificationService =
+      ChatNotificationService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _imagePicker = ImagePicker();
 
   String? _currentUserId;
   String? _chatId;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
+  int _lastMessageCount = 0; // Theo dõi số lượng tin nhắn
 
   @override
   void initState() {
     super.initState();
     _initializeChat();
+    _initializeNotifications();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeChat() async {
@@ -58,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Nếu không có clientId được truyền vào, thử các cách query
       if (clientId == null) {
-        // CÁCH 1: Thử query users bằng email hoặc uid field
+        // CÁCH 1: Thử query users bằng email
         try {
           print('🔍 Trying to find user by email...');
           final queryByEmail = await FirebaseFirestore.instance
@@ -150,6 +168,57 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Khởi tạo notification service
+  Future<void> _initializeNotifications() async {
+    try {
+      await _notificationService.initialize();
+
+      // Lưu FCM token vào Firestore để backend có thể gửi notification
+      if (_currentUserId != null) {
+        await _notificationService.saveFCMTokenToFirestore(_currentUserId!);
+      }
+
+      // Lắng nghe foreground messages
+      _notificationService.listenForegroundMessages();
+
+      print('✅ Notification service initialized');
+    } catch (e) {
+      print('⚠️ Failed to initialize notifications: $e');
+    }
+  }
+
+  /// Hiển thị notification khi nhận tin nhắn mới (không phải của mình)
+  void _showNotificationForMessage(ChatMessage message) {
+    // Không hiển thị notification cho tin nhắn của chính mình
+    if (message.senderId == _currentUserId) {
+      return;
+    }
+
+    // Lấy tên người gửi (PT name)
+    final senderName = widget.ptName;
+
+    // Tạo text cho notification
+    String notificationText;
+    if (message.imageUrl != null && message.imageUrl!.isNotEmpty) {
+      // Tin nhắn có hình
+      if (message.text.isNotEmpty) {
+        notificationText = '📷 ${message.text}';
+      } else {
+        notificationText = '📷 Đã gửi một hình ảnh';
+      }
+    } else {
+      // Tin nhắn text thường
+      notificationText = message.text;
+    }
+
+    // Hiển thị notification
+    _notificationService.showChatNotification(
+      chatId: _chatId!,
+      senderName: senderName,
+      messageText: notificationText,
+    );
+  }
+
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty ||
         _chatId == null ||
@@ -167,63 +236,118 @@ class _ChatScreenState extends State<ChatScreen> {
         text: text,
       );
 
-      // Scroll to bottom
       _scrollToBottom();
     } catch (e) {
       print('❌ Error sending message: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi gửi tin nhắn: $e')));
+      }
+    }
+  }
+
+  /// Chọn ảnh từ gallery và gửi
+  Future<void> _pickAndSendImage() async {
+    if (_chatId == null || _currentUserId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Không thể gửi tin nhắn: $e')));
+      ).showSnackBar(const SnackBar(content: Text('Chat chưa sẵn sàng')));
+      return;
+    }
+
+    try {
+      // Chọn ảnh từ gallery
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) {
+        print('User cancelled image picker');
+        return;
+      }
+
+      setState(() => _isUploadingImage = true);
+
+      // Upload ảnh lên Firebase Storage
+      final String fileName =
+          'chat_images/${_chatId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final Reference storageRef = FirebaseStorage.instance.ref().child(
+        fileName,
+      );
+
+      final File imageFile = File(pickedFile.path);
+      final UploadTask uploadTask = storageRef.putFile(imageFile);
+
+      // Đợi upload hoàn thành
+      final TaskSnapshot snapshot = await uploadTask;
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      print('✅ Image uploaded: $downloadUrl');
+
+      // Gửi tin nhắn với image_url
+      await _chatService.sendMessage(
+        chatId: _chatId!,
+        senderId: _currentUserId!,
+        text: '[Hình ảnh]', // Text mặc định cho tin nhắn hình
+        imageUrl: downloadUrl,
+      );
+
+      setState(() => _isUploadingImage = false);
+      _scrollToBottom();
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã gửi hình ảnh')));
+      }
+    } catch (e) {
+      print('❌ Error picking/sending image: $e');
+      setState(() => _isUploadingImage = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi gửi hình: $e')));
+      }
     }
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
     }
   }
 
   @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor,
-              child: Text(
-                widget.ptName.substring(0, 1).toUpperCase(),
-                style: const TextStyle(color: Colors.white),
-              ),
+            Text(
+              widget.ptName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.ptName, style: const TextStyle(fontSize: 16)),
-                  const Text(
-                    'Huấn luyện viên',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+            const Text(
+              'Chat với PT',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
             ),
           ],
         ),
+        elevation: 1,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -249,6 +373,15 @@ class _ChatScreenState extends State<ChatScreen> {
                             }
 
                             final messages = snapshot.data!;
+
+                            // Kiểm tra tin nhắn mới và hiển thị notification
+                            if (messages.isNotEmpty &&
+                                messages.length > _lastMessageCount) {
+                              // Có tin nhắn mới
+                              final latestMessage = messages.last;
+                              _showNotificationForMessage(latestMessage);
+                            }
+                            _lastMessageCount = messages.length;
 
                             if (messages.isEmpty) {
                               return const Center(
@@ -293,6 +426,25 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                 ),
 
+                // Loading indicator khi upload ảnh
+                if (_isUploadingImage)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.blue[50],
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Đang gửi hình ảnh...'),
+                      ],
+                    ),
+                  ),
+
                 // Message Input
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -309,6 +461,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: SafeArea(
                     child: Row(
                       children: [
+                        // Nút chọn hình ảnh
+                        IconButton(
+                          icon: const Icon(Icons.image, color: Colors.blue),
+                          onPressed: _isUploadingImage
+                              ? null
+                              : _pickAndSendImage,
+                          tooltip: 'Gửi hình ảnh',
+                        ),
+                        // Text input
                         Expanded(
                           child: TextField(
                             controller: _messageController,
@@ -331,6 +492,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        // Nút gửi tin nhắn
                         CircleAvatar(
                           backgroundColor: Theme.of(context).primaryColor,
                           child: IconButton(
@@ -352,7 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-/// MessageBubble - Bong bóng tin nhắn
+/// MessageBubble - Bong bóng tin nhắn (hỗ trợ cả text và hình ảnh)
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
@@ -386,6 +548,44 @@ class _MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Hiển thị hình ảnh nếu có
+                  if (message.imageUrl != null &&
+                      message.imageUrl!.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        message.imageUrl!,
+                        width: 200,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 200,
+                            height: 200,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.error),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  // Hiển thị text
                   Text(
                     message.text,
                     style: TextStyle(

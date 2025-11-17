@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/chat_message.dart';
 import '../models/chat_room.dart';
 
@@ -70,14 +72,18 @@ class ChatService {
         });
   }
 
-  /// Gửi tin nhắn
+  /// Gửi tin nhắn (hỗ trợ cả text và hình ảnh)
   Future<void> sendMessage({
     required String chatId,
     required String senderId,
     required String text,
+    String? imageUrl, // ← Thêm parameter này
   }) async {
     try {
       print('📤 Sending message to chat: $chatId');
+      if (imageUrl != null) {
+        print('🖼️ Message includes image: $imageUrl');
+      }
 
       final messagesRef = _firestore
           .collection('chats')
@@ -90,6 +96,7 @@ class ChatService {
         text: text,
         timestamp: DateTime.now(),
         isRead: false,
+        imageUrl: imageUrl, // ← Thêm field này
       );
 
       // Thêm tin nhắn vào subcollection
@@ -107,10 +114,63 @@ class ChatService {
         'updated_at': FieldValue.serverTimestamp(),
       });
 
+      // Gửi notification qua backend API
+      await _sendNotification(
+        chatId: chatId,
+        senderId: senderId,
+        messageText: text,
+        imageUrl: imageUrl,
+      );
+
       print('✅ Message sent successfully');
     } catch (e) {
       print('❌ Error sending message: $e');
       rethrow;
+    }
+  }
+
+  /// Gửi notification qua backend API
+  Future<void> _sendNotification({
+    required String chatId,
+    required String senderId,
+    required String messageText,
+    String? imageUrl,
+  }) async {
+    try {
+      // Parse chatId để lấy receiverId
+      // chatId format: "ptId_clientId"
+      final participants = chatId.split('_');
+      final receiverId = participants.firstWhere(
+        (id) => id != senderId,
+        orElse: () => '',
+      );
+
+      if (receiverId.isEmpty) {
+        print('⚠️ Could not determine receiver from chatId: $chatId');
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/chat/notification'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'chatId': chatId,
+          'senderId': senderId,
+          'receiverId': receiverId,
+          'messageText': messageText,
+          if (imageUrl != null) 'imageUrl': imageUrl,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final result = json.decode(response.body);
+        print('✅ Notification sent: ${result['message']}');
+      } else {
+        print('⚠️ Notification failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error sending notification: $e');
+      // Don't throw - notification failure shouldn't block message sending
     }
   }
 

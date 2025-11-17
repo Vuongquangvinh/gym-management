@@ -6,6 +6,7 @@ import payosRoutes from "./features/payos/payos.routes.js";
 import uploadRoutes from "./features/upload/upload.routes.js";
 import faceRoutes from "./features/face/face.routes.js";
 import employeeRoutes from "./features/employees/employee.routes.js";
+import chatRoutes from "./features/chat/chat.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
@@ -41,6 +42,7 @@ app.use("/api/payos", payosRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/face", faceRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Serve PayOS test page
 app.get("/payos-test", (req, res) => {

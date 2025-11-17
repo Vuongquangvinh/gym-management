@@ -118,9 +118,12 @@ export class ChatService {
   /**
    * Gửi tin nhắn
    */
-  static async sendMessage(chatId, senderId, text) {
+  static async sendMessage(chatId, senderId, text, imageUrl = null) {
     try {
       console.log("📤 Sending message to chat:", chatId);
+      if (imageUrl) {
+        console.log("🖼️ Message includes image:", imageUrl);
+      }
 
       const messagesRef = collection(db, "chats", chatId, "messages");
       const message = {
@@ -130,29 +133,93 @@ export class ChatService {
         is_read: false,
       };
 
+      // Thêm image_url nếu có
+      if (imageUrl) {
+        message.image_url = imageUrl;
+      }
+
       await addDoc(messagesRef, message);
 
       // Cập nhật lastMessage trong chat document
       // Dùng setDoc với merge: true để tránh lỗi "No document to update"
       const chatRef = doc(db, "chats", chatId);
+      const lastMessageData = {
+        text: text,
+        sender_id: senderId,
+        timestamp: serverTimestamp(),
+        is_read: false,
+      };
+
+      if (imageUrl) {
+        lastMessageData.image_url = imageUrl;
+      }
+
       await setDoc(
         chatRef,
         {
-          last_message: {
-            text: text,
-            sender_id: senderId,
-            timestamp: serverTimestamp(),
-            is_read: false,
-          },
+          last_message: lastMessageData,
           updated_at: serverTimestamp(),
         },
         { merge: true } // ← Quan trọng: merge vào document hiện có
       );
 
+      // Gửi notification qua backend API
+      await this.sendNotification(chatId, senderId, text, imageUrl);
+
       console.log("✅ Message sent successfully");
     } catch (error) {
       console.error("❌ Error sending message:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Gửi notification qua backend API
+   */
+  static async sendNotification(
+    chatId,
+    senderId,
+    messageText,
+    imageUrl = null
+  ) {
+    try {
+      // Parse chatId để lấy receiverId
+      // chatId format: "ptId_clientId" hoặc "clientId_ptId"
+      const participants = chatId.split("_");
+      const receiverId = participants.find((id) => id !== senderId);
+
+      if (!receiverId) {
+        console.warn("⚠️ Could not determine receiver from chatId:", chatId);
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:3000/api/chat/notification",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chatId,
+            senderId,
+            receiverId,
+            messageText,
+            imageUrl: imageUrl || undefined,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("✅ Notification sent:", result.message);
+      } else {
+        console.warn("⚠️ Notification failed:", result.message);
+      }
+    } catch (error) {
+      console.error("❌ Error sending notification:", error);
+      // Don't throw - notification failure shouldn't block message sending
     }
   }
 
@@ -177,6 +244,7 @@ export class ChatService {
               text: data.text,
               timestamp: data.timestamp,
               is_read: data.is_read || false,
+              image_url: data.image_url || null, // ← Thêm field này
             };
           });
           console.log("📨 🔥 REALTIME: Messages updated:", messages.length);

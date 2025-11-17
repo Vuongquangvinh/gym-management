@@ -27,6 +27,7 @@ import 'features/notifications/screens/notifications_screen.dart';
 import 'services/notification_service.dart';
 import 'services/pt_schedule_notification_service.dart';
 import 'services/fcm_service.dart';
+import 'features/chat/services/chat_notification_service.dart';
 import 'screens/fcm_test_screen.dart';
 import 'utils/page_transitions.dart';
 
@@ -59,6 +60,18 @@ void main() async {
   // Khởi tạo FCM service
   await FCMService().initialize();
 
+  // Khởi tạo Chat notification service
+  await ChatNotificationService().initialize();
+
+  // Handle notification tap khi app được mở từ terminated state
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    _handleNotificationTap(initialMessage);
+  }
+
+  // Handle notification tap khi app ở background
+  FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
   runApp(
     MultiProvider(
       providers: [
@@ -71,6 +84,20 @@ void main() async {
       child: MyApp(),
     ),
   );
+}
+
+/// Handler khi user tap vào notification
+void _handleNotificationTap(RemoteMessage message) {
+  print('🔔 Notification tapped!');
+  print('Data: ${message.data}');
+
+  // TODO: Navigate to ChatScreen with chatId from message.data
+  // This will be handled in MyApp's navigatorKey
+  final chatId = message.data['chatId'];
+  if (chatId != null) {
+    print('📱 Navigate to chat: $chatId');
+    // Navigation will be implemented in MyApp
+  }
 }
 
 class MyApp extends StatefulWidget {

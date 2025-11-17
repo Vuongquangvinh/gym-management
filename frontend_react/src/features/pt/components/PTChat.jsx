@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatService } from '../services/ChatService';
-import { auth } from '../../../firebase/lib/config/firebase';
+import { auth, storage } from '../../../firebase/lib/config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './PTChat.css';
 
 export default function PTChat({ initialClient, onClose }) {
@@ -10,9 +11,11 @@ export default function PTChat({ initialClient, onClose }) {
   const [clients, setClients] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const messagesEndRef = useRef(null);
   const unsubscribeMessages = useRef(null);
   const unsubscribeChats = useRef(null);
+  const fileInputRef = useRef(null);
 
   const currentUserId = auth.currentUser?.uid;
 
@@ -123,6 +126,46 @@ export default function PTChat({ initialClient, onClose }) {
     }
   };
 
+  // Chọn và gửi hình ảnh
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentChatId || !currentUserId) return;
+
+    // Kiểm tra file type
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file hình ảnh!');
+      return;
+    }
+
+    // Kiểm tra file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Hình ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+
+      // Upload to Firebase Storage
+      const fileName = `chat_images/${currentChatId}_${Date.now()}.jpg`;
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      console.log('✅ Image uploaded:', downloadURL);
+
+      // Send message with image URL
+      await ChatService.sendMessage(currentChatId, currentUserId, '[Hình ảnh]', downloadURL);
+      
+      setUploadingImage(false);
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('❌ Error uploading image:', error);
+      setUploadingImage(false);
+      alert('Không thể gửi hình ảnh. Vui lòng thử lại!');
+    }
+  };
+
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     let date;
@@ -194,6 +237,12 @@ export default function PTChat({ initialClient, onClose }) {
                     {messages.map((msg) => (
                       <div key={msg.id} className={`message ${msg.isFromPT ? 'message-pt' : 'message-client'}`}>
                         <div className="message-bubble">
+                          {/* Hiển thị hình ảnh nếu có */}
+                          {msg.image_url && (
+                            <div className="message-image">
+                              <img src={msg.image_url} alt="Hình ảnh" style={{ maxWidth: '200px', borderRadius: '8px' }} />
+                            </div>
+                          )}
                           <div className="message-text">{msg.text}</div>
                           <div className="message-time">{formatTime(msg.timestamp)}</div>
                         </div>
@@ -210,14 +259,35 @@ export default function PTChat({ initialClient, onClose }) {
               </div>
 
               <form className="chat-input-form" onSubmit={handleSendMessage}>
+                {/* Hidden file input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+                
+                {/* Nút chọn hình ảnh */}
+                <button
+                  type="button"
+                  className="chat-image-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  title="Gửi hình ảnh"
+                >
+                  {uploadingImage ? '⏳' : '🖼️'}
+                </button>
+
                 <input
                   type="text"
                   className="chat-input"
-                  placeholder="Nhập tin nhắn..."
+                  placeholder={uploadingImage ? 'Đang gửi hình...' : 'Nhập tin nhắn...'}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={uploadingImage}
                 />
-                <button type="submit" className="chat-send-btn">
+                <button type="submit" className="chat-send-btn" disabled={uploadingImage}>
                   <span>➤</span>
                 </button>
               </form>
