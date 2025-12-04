@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { signIn } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
-
+import notificationService from '../../../services/notificationService';
 
 import { cssVars } from '../../../shared/theme/colors';
 import './login.css';
@@ -23,77 +23,72 @@ export default function LoginPage() {
     }
   }, []);
 
-  // function handleSubmit(e) {
-  //   e.preventDefault();
-  //   setError(null);
-  //   setLoading(true);
-
-  //   // simulate authentication
-  //   setTimeout(() => {
-  //     setLoading(false);
-  //     if (!email.includes('@') || password.length < 6) {
-  //       setError('Vui lòng nhập email hợp lệ và mật khẩu ít nhất 6 ký tự.');
-  //       return;
-  //     }
-  //     alert('Đăng nhập thành công (mô phỏng)');
-  //   }, 900);
-  // }
-
   const handleLogin = async (event) => {
-          event.preventDefault();
-          setError(null);
-          setLoading(true);
-  
-          try {
-              
-          const result = await signIn(email,password);
-          const jwtToken = result.token;
-          const userData = result.user;
-          localStorage.setItem('token', jwtToken); // Lưu token vào localStorage
-  
-          // Lấy thông tin employee để check role
-          try {
-            const { db } = await import('../../../firebase/lib/config/firebase');
-            const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
-            
-            const employeesRef = collection(db, 'employees');
-            const q = query(employeesRef, where('email', '==', userData.email), limit(1));
-            const snapshot = await getDocs(q);
-            
-            if (!snapshot.empty) {
-              const employee = snapshot.docs[0].data();
-              
-              // Redirect dựa vào role/position
-              if (employee.role === 'pt' || employee.position === 'PT') {
-                navigate('/pt'); // PT dashboard
-              } else if (employee.role === 'admin' || employee.position === 'Manager') {
-                navigate('/admin'); // Admin dashboard
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await signIn(email, password);
+      const jwtToken = result.token;
+      const userData = result.user;
+      localStorage.setItem('token', jwtToken);
+
+      // Lấy thông tin employee để check role
+      try {
+        const { db } = await import('../../../firebase/lib/config/firebase');
+        const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, where('email', '==', userData.email), limit(1));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const employeeDoc = snapshot.docs[0];
+          const employee = employeeDoc.data();
+          const ptId = employeeDoc.id;
+
+          // Bật notification real-time cho PT
+          if (employee.role === 'pt' || employee.position === 'PT') {
+            try {
+              // Yêu cầu quyền notification
+              const hasPermission = await notificationService.requestPermission();
+              if (hasPermission) {
+                console.log('Notification permission granted for PT:', ptId);
+                // Notification service sẽ được start sau khi navigate đến PT dashboard
               } else {
-                // Staff/other roles -> default to admin for now
-                navigate('/admin');
+                console.warn('Notification permission denied');
               }
-            } else {
-              // Không tìm thấy employee -> default to admin
-              navigate('/admin');
+            } catch (err) {
+              console.error('Lỗi yêu cầu quyền notification:', err);
             }
-          } catch (roleError) {
-            console.error('Error checking role:', roleError);
-            // Nếu lỗi khi check role, redirect về admin
+          }
+
+          // Redirect dựa vào role/position
+          if (employee.role === 'pt' || employee.position === 'PT') {
+            navigate('/pt');
+          } else if (employee.role === 'admin' || employee.position === 'Manager') {
+            navigate('/admin');
+          } else {
             navigate('/admin');
           }
-          } catch (err) {
-              // Chuyển đổi mã lỗi của Firebase thành thông báo thân thiện
-              let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
-              if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                  friendlyMessage = "Email hoặc mật khẩu không chính xác.";
-              } else if (err.code === 'auth/invalid-email') {
-                  friendlyMessage = "Địa chỉ email không hợp lệ.";
-              }
-              setError(friendlyMessage);
-          } finally {
-              setLoading(false);
-          }
-      };
+        } else {
+          navigate('/admin');
+        }
+      } catch (roleError) {
+        console.error('Error checking role:', roleError);
+        navigate('/admin');
+      }
+    } catch (err) {
+      let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        friendlyMessage = "Email hoặc mật khẩu không chính xác.";
+      } else if (err.code === 'auth/invalid-email') {
+        friendlyMessage = "Địa chỉ email không hợp lệ.";
+      }
+      setError(friendlyMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="login-page">

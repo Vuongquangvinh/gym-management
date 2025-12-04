@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../theme/colors.dart';
 import '../widgets/member_card_widget.dart';
 import '../widgets/quick_actions_widget.dart';
+import '../widgets/stats_summary_widget.dart';
 import "package:logger/logger.dart";
 import '../../model/user.model.dart';
 import '../../../services/notification_service.dart';
@@ -39,42 +40,55 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final notificationService = NotificationService();
       final pending = await notificationService.getPendingNotifications();
-      setState(() {
-        _pendingNotificationCount = pending.length;
-      });
+      if (mounted) {
+        setState(() {
+          _pendingNotificationCount = pending.length;
+        });
+      }
       print('🔔 Pending notifications loaded: $_pendingNotificationCount');
     } catch (e) {
       print('❌ Error loading pending notifications: $e');
     }
   }
 
+  Future<void> _refreshData() async {
+    await _loadUserInfo();
+    await _loadPendingNotifications();
+  }
+
   Future<void> _loadUserInfo() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
       // Sử dụng UserModel để lấy thông tin user kèm package
       final userPackageInfo = await UserModel.getCurrentUserWithPackage();
 
-      if (userPackageInfo != null) {
-        setState(() {
-          _fullName = userPackageInfo.user.fullName;
-          _avatarUrl = userPackageInfo.user.avatarUrl;
-          _userPackageInfo = userPackageInfo;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-        logger.w('Không tìm thấy thông tin user');
+      if (mounted) {
+        if (userPackageInfo != null) {
+          setState(() {
+            _fullName = userPackageInfo.user.fullName;
+            _avatarUrl = userPackageInfo.user.avatarUrl;
+            _userPackageInfo = userPackageInfo;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+          logger.w('Không tìm thấy thông tin user');
+        }
       }
     } catch (e) {
       logger.e('Lỗi khi lấy thông tin user: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -82,29 +96,18 @@ class _HomeScreenState extends State<HomeScreen> {
     // Tổng số thông báo = Firestore unread + Pending notifications
     final totalUnreadCount = firestoreUnreadCount + _pendingNotificationCount;
 
-    print(
-      '🔔 Banner check: firestoreUnread=$firestoreUnreadCount, pending=$_pendingNotificationCount, total=$totalUnreadCount, _lastUnreadCount=$_lastUnreadCount, _showBanner=$_showBanner',
-    );
-
     // Hiển thị banner nếu có thông báo mới (số lượng tăng so với lần trước)
     if (totalUnreadCount > _lastUnreadCount && !_showBanner) {
-      print(
-        '🔔 Banner: Hiển thị vì có $totalUnreadCount thông báo (Firestore: $firestoreUnreadCount, Pending: $_pendingNotificationCount)',
-      );
       setState(() {
         _showBanner = true;
         _lastUnreadCount = totalUnreadCount;
       });
       Future.delayed(const Duration(seconds: 5), () {
         if (mounted) {
-          print('🔔 Banner: Tự động ẩn sau 5 giây');
           setState(() => _showBanner = false);
         }
       });
     } else {
-      print(
-        '🔔 Banner: Không hiển thị (total: $totalUnreadCount <= lastCount: $_lastUnreadCount hoặc đang show: $_showBanner)',
-      );
       // Chỉ cập nhật count, không hiển thị banner
       if (totalUnreadCount > _lastUnreadCount) {
         _lastUnreadCount = totalUnreadCount;
@@ -118,14 +121,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
   }
 
   Widget _buildLoadingCard() {
@@ -159,33 +154,27 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: context.surface,
+        // Lưu ý: Đảm bảo context.surface v.v... tồn tại trong extension của bạn
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: context.border, width: 1.5),
+        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1.5),
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.card_membership_outlined,
-            size: 56,
-            color: context.textSecondary,
-          ),
+          Icon(Icons.card_membership_outlined, size: 56, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
             'Chưa có thông tin thẻ tập',
             style: GoogleFonts.inter(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: context.textPrimary,
+              // color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Hãy đăng ký gói tập để bắt đầu',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: context.textSecondary,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
           ),
         ],
       ),
@@ -197,249 +186,271 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     final dateString =
         '${now.day.toString().padLeft(2, '0')} Tháng ${now.month}, ${now.year}';
-    final isDarkMode = context.isDarkMode;
+
+    // Giả sử bạn có extension kiểm tra dark mode, nếu không dùng Theme.of(context)
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: context.background,
-          body: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              // Modern Sporty AppBar
-              SliverAppBar(
-                automaticallyImplyLeading: false,
-                expandedHeight: 180,
-                floating: false,
-                pinned: true,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDarkMode
-                            ? [AppColors.surfaceDark, AppColors.cardDark]
-                            : [AppColors.primary, AppColors.primaryLight],
+          backgroundColor: isDarkMode ? AppColors.surfaceDark : Colors.grey[50],
+          body: RefreshIndicator(
+            onRefresh: _refreshData,
+            color: AppColors.primary,
+            backgroundColor: isDarkMode ? AppColors.surfaceDark : Colors.white,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Modern Sporty AppBar
+                SliverAppBar(
+                  automaticallyImplyLeading: false,
+                  expandedHeight: 180,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDarkMode
+                              ? [AppColors.surfaceDark, AppColors.cardDark]
+                              : [AppColors.primary, AppColors.primaryLight],
+                        ),
                       ),
-                    ),
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 20,
-                      left: 20,
-                      right: 20,
-                      bottom: 20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Avatar & Info
-                            Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.4),
-                                      width: 3,
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        left: 20,
+                        right: 20,
+                        bottom: 20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header Row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Avatar & Info
+                              Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.4),
+                                        width: 3,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 10,
-                                        offset: Offset(0, 4),
+                                    child: CircleAvatar(
+                                      radius: 28,
+                                      backgroundImage: NetworkImage(
+                                        _avatarUrl ??
+                                            'https://www.gravatar.com/avatar/placeholder',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Xin chào 👋',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          color: isDarkMode
+                                              ? Colors.white70
+                                              : Colors.white.withOpacity(0.9),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _fullName ?? "...",
+                                        style: GoogleFonts.inter(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  child: CircleAvatar(
-                                    radius: 28,
-                                    backgroundImage: NetworkImage(
-                                      _avatarUrl ??
-                                          'https://www.gravatar.com/avatar/placeholder',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Xin chào 👋',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        color: isDarkMode
-                                            ? Colors.white70
-                                            : Colors.white.withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _fullName ?? "...",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            // Notification Bell
-                            StreamBuilder<QuerySnapshot>(
-                              stream: FirebaseFirestore.instance
-                                  .collection('notifications')
-                                  .where(
-                                    'userId',
-                                    isEqualTo:
-                                        FirebaseAuth
-                                            .instance
-                                            .currentUser
-                                            ?.uid ??
-                                        '',
-                                  )
-                                  .where('isRead', isEqualTo: false)
-                                  .snapshots(),
-                              builder: (context, snapshot) {
-                                final firestoreUnreadCount =
-                                    snapshot.data?.docs.length ?? 0;
-                                final totalUnreadCount =
-                                    firestoreUnreadCount +
-                                    _pendingNotificationCount;
+                                ],
+                              ),
+                              // Notification Bell
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('notifications')
+                                    .where(
+                                      'userId',
+                                      isEqualTo:
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser
+                                              ?.uid ??
+                                          '',
+                                    )
+                                    .where('isRead', isEqualTo: false)
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  final firestoreUnreadCount =
+                                      snapshot.data?.docs.length ?? 0;
+                                  final totalUnreadCount =
+                                      firestoreUnreadCount +
+                                      _pendingNotificationCount;
 
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  _showNotificationBanner(firestoreUnreadCount);
-                                });
+                                  // Lưu ý: Gọi setState trong build có thể gây lỗi nếu không cẩn thận.
+                                  // addPostFrameCallback giúp tránh lỗi "setState during build"
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    _showNotificationBanner(
+                                      firestoreUnreadCount,
+                                    );
+                                  });
 
-                                return GestureDetector(
-                                  onTap: () => Navigator.pushNamed(
-                                    context,
-                                    '/notifications',
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                        width: 1.5,
-                                      ),
+                                  return GestureDetector(
+                                    onTap: () => Navigator.pushNamed(
+                                      context,
+                                      '/notifications',
                                     ),
-                                    child: Stack(
-                                      children: [
-                                        Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.white,
-                                          size: 24,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 1.5,
                                         ),
-                                        if (totalUnreadCount > 0)
-                                          Positioned(
-                                            right: 0,
-                                            top: 0,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.error,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              constraints: const BoxConstraints(
-                                                minWidth: 16,
-                                                minHeight: 16,
-                                              ),
-                                              child: Text(
-                                                totalUnreadCount > 9
-                                                    ? '9+'
-                                                    : '$totalUnreadCount',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Icon(
+                                            Icons.notifications_outlined,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                          if (totalUnreadCount > 0)
+                                            Positioned(
+                                              right: 0,
+                                              top: 0,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  4,
                                                 ),
-                                                textAlign: TextAlign.center,
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.error,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      minWidth: 16,
+                                                      minHeight: 16,
+                                                    ),
+                                                child: Text(
+                                                  totalUnreadCount > 9
+                                                      ? '9+'
+                                                      : '$totalUnreadCount',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          // Date
+                          Text(
+                            dateString,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: isDarkMode
+                                  ? Colors.white60
+                                  : Colors.white.withOpacity(0.85),
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
-                        const Spacer(),
-                        // Date
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Content Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        // Member Card
+                        _isLoading
+                            ? _buildLoadingCard()
+                            : _userPackageInfo != null
+                            ? MemberCardWidget(
+                                memberName: _userPackageInfo!.user.fullName,
+                                cardType: _userPackageInfo!.getPackageName(),
+                                expiryDate: _userPackageInfo!
+                                    .getFormattedEndDate(),
+                                isActive: _userPackageInfo!.hasActivePackage(),
+                                onScanQR: () {},
+                              )
+                            : _buildNoCardWidget(),
+
+                        const SizedBox(height: 16),
+
+                        // Stats Summary - Thống kê động lực
+                        if (_userPackageInfo != null &&
+                            _userPackageInfo!.hasActivePackage())
+                          StatsSummaryWidget(userId: _userPackageInfo!.user.id),
+
+                        const SizedBox(height: 24),
+
+                        // Section Title
                         Text(
-                          dateString,
+                          'Hoạt động nhanh',
                           style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: isDarkMode
-                                ? Colors.white60
-                                : Colors.white.withOpacity(0.85),
-                            fontWeight: FontWeight.w500,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            // color: context.textPrimary,
                           ),
                         ),
+                        const SizedBox(height: 16),
+
+                        // Quick Actions
+                        QuickActionsWidget(userPackageInfo: _userPackageInfo),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
                 ),
-              ),
-
-              // Content Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      // Member Card
-                      _isLoading
-                          ? _buildLoadingCard()
-                          : _userPackageInfo != null
-                          ? MemberCardWidget(
-                              memberName: _userPackageInfo!.user.fullName,
-                              cardType: _userPackageInfo!.getPackageName(),
-                              expiryDate: _userPackageInfo!
-                                  .getFormattedEndDate(),
-                              isActive: _userPackageInfo!.hasActivePackage(),
-                              onScanQR: () {},
-                            )
-                          : _buildNoCardWidget(),
-
-                      const SizedBox(height: 32),
-
-                      // Section Title
-                      Text(
-                        'Hoạt động nhanh',
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: context.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Quick Actions
-                      QuickActionsWidget(userPackageInfo: _userPackageInfo),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          // Bottom Navigation Bar - Modern with Floating QR Button
+          // Bottom Navigation Bar nằm trong Scaffold
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
               color: isDarkMode ? AppColors.surfaceDark : Colors.white,
@@ -454,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SafeArea(
               child: Container(
                 height: 65,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -496,8 +507,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     // Floating QR Button ở giữa
                     Positioned(
-                      left: MediaQuery.of(context).size.width / 2 - 42,
-                      top: -6,
+                      left: MediaQuery.of(context).size.width / 2 - 31,
+                      top: -20, // Nổi lên trên một chút
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -574,7 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: const Icon(
                                 Icons.qr_code_scanner_rounded,
                                 color: Colors.white,
-                                size: 30,
+                                size: 24,
                               ),
                             ),
                           ),
@@ -678,25 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
               break;
             case 2:
-              final userId =
-                  _userPackageInfo?.user.id ??
-                  FirebaseAuth.instance.currentUser?.uid;
-              Navigator.pushNamed(
-                context,
-                '/qr',
-                arguments: {
-                  'qrData': userId ?? 'default_qr_code',
-                  'userId': userId,
-                  'fullName': _userPackageInfo?.user.fullName ?? _fullName,
-                  'email':
-                      _userPackageInfo?.user.email ??
-                      FirebaseAuth.instance.currentUser?.email,
-                  'phoneNumber': _userPackageInfo?.user.phoneNumber,
-                  'packageName': _userPackageInfo?.getPackageName(),
-                  'hasActivePackage':
-                      _userPackageInfo?.hasActivePackage() ?? false,
-                },
-              );
+              // QR logic handled by floating button
               break;
             case 3:
               Navigator.pushNamed(context, '/notifications');
@@ -707,42 +700,78 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected
-                ? (isDarkMode
-                      ? AppColors.primary.withOpacity(0.15)
-                      : AppColors.primary.withOpacity(0.1))
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            // Nền nổi bật hơn khi được chọn
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [
+                      AppColors.primary.withOpacity(0.12),
+                      AppColors.primaryLight.withOpacity(0.08),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(14),
+            // Border khi active
+            border: isSelected
+                ? Border.all(
+                    color: AppColors.primary.withOpacity(0.3),
+                    width: 1.5,
+                  )
+                : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDarkMode
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight),
-                size: 19,
+              // Icon với container nổi bật khi active
+              Container(
+                // Sửa lỗi padding ở đây: all(0) giống zero, tăng lên để thấy background
+                padding: isSelected
+                    ? const EdgeInsets.all(10)
+                    : EdgeInsets.zero,
+                decoration: isSelected
+                    ? BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.11),
+                        shape: BoxShape.circle,
+                      )
+                    : null,
+                child: Icon(
+                  isSelected ? activeIcon : inactiveIcon,
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDarkMode ? Colors.white70 : Colors.black54),
+                  // Sửa lỗi size: 14 quá nhỏ
+                  size: 24,
+                ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
+              // Label với font đậm hơn khi active
               Text(
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected
                       ? AppColors.primary
-                      : (isDarkMode
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight),
+                      : (isDarkMode ? Colors.white70 : Colors.black54),
+                  letterSpacing: isSelected ? 0.2 : 0,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              // Dot indicator khi active
+              if (isSelected)
+                Container(
+                  margin: const EdgeInsets.only(top: 3),
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
             ],
           ),
         ),

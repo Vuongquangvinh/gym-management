@@ -233,25 +233,68 @@ class CheckinModel {
         return 0;
       }
 
-      // Query checkin trong tháng
+      // Query checkin trong tháng - sử dụng local time
       final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+      final startOfMonth = DateTime(now.year, now.month, 1, 0, 0, 0);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999);
 
-      final snapshot = await FirebaseFirestore.instance
-          .collection('checkins')
-          .where('memberId', isEqualTo: memberId)
-          .where(
-            'checkedAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-          )
-          .where(
-            'checkedAt',
-            isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth),
-          )
-          .get();
+      logger.i(
+        '[CheckinModel] Querying checkins from $startOfMonth to $endOfMonth',
+      );
 
-      return snapshot.docs.length;
+      try {
+        // Thử query với range trước
+        final snapshot = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .where(
+              'checkedAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+            )
+            .where(
+              'checkedAt',
+              isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth),
+            )
+            .get();
+
+        logger.i(
+          '[CheckinModel] Found ${snapshot.docs.length} checkins this month',
+        );
+        return snapshot.docs.length;
+      } catch (e) {
+        // Fallback: lấy tất cả checkins và filter ở client
+        logger.w(
+          '[CheckinModel] Range query failed, using client-side filter: $e',
+        );
+        final allCheckins = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .get();
+
+        final thisMonthCheckins = allCheckins.docs.where((doc) {
+          final data = doc.data();
+          final checkedAtValue = data['checkedAt'];
+          DateTime? checkedAt;
+
+          if (checkedAtValue is Timestamp) {
+            checkedAt = checkedAtValue.toDate();
+          } else if (checkedAtValue is String) {
+            checkedAt = DateTime.tryParse(checkedAtValue);
+          }
+
+          if (checkedAt == null) return false;
+
+          return checkedAt.isAfter(
+                startOfMonth.subtract(const Duration(seconds: 1)),
+              ) &&
+              checkedAt.isBefore(endOfMonth.add(const Duration(seconds: 1)));
+        }).length;
+
+        logger.i(
+          '[CheckinModel] Client-side filter found $thisMonthCheckins checkins',
+        );
+        return thisMonthCheckins;
+      }
     } catch (e) {
       logger.e('Lỗi khi đếm checkin trong tháng: $e');
       return 0;
@@ -267,30 +310,63 @@ class CheckinModel {
         return 0;
       }
 
-      // Query checkin trong tuần
+      // Query checkin trong tuần - sử dụng local time
       final now = DateTime.now();
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
       final startOfWeekDate = DateTime(
         startOfWeek.year,
         startOfWeek.month,
         startOfWeek.day,
+        0,
+        0,
+        0,
       );
-      final endOfWeek = startOfWeekDate.add(const Duration(days: 7));
+      final endOfWeek = startOfWeekDate
+          .add(const Duration(days: 7))
+          .subtract(const Duration(milliseconds: 1));
 
-      final snapshot = await FirebaseFirestore.instance
-          .collection('checkins')
-          .where('memberId', isEqualTo: memberId)
-          .where(
-            'checkedAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfWeekDate),
-          )
-          .where(
-            'checkedAt',
-            isLessThanOrEqualTo: Timestamp.fromDate(endOfWeek),
-          )
-          .get();
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .where(
+              'checkedAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfWeekDate),
+            )
+            .where(
+              'checkedAt',
+              isLessThanOrEqualTo: Timestamp.fromDate(endOfWeek),
+            )
+            .get();
 
-      return snapshot.docs.length;
+        return snapshot.docs.length;
+      } catch (e) {
+        // Fallback: client-side filter
+        logger.w('[CheckinModel] Week range query failed, using client filter');
+        final allCheckins = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .get();
+
+        return allCheckins.docs.where((doc) {
+          final data = doc.data();
+          final checkedAtValue = data['checkedAt'];
+          DateTime? checkedAt;
+
+          if (checkedAtValue is Timestamp) {
+            checkedAt = checkedAtValue.toDate();
+          } else if (checkedAtValue is String) {
+            checkedAt = DateTime.tryParse(checkedAtValue);
+          }
+
+          if (checkedAt == null) return false;
+
+          return checkedAt.isAfter(
+                startOfWeekDate.subtract(const Duration(seconds: 1)),
+              ) &&
+              checkedAt.isBefore(endOfWeek.add(const Duration(seconds: 1)));
+        }).length;
+      }
     } catch (e) {
       logger.e('Lỗi khi đếm checkin trong tuần: $e');
       return 0;
@@ -306,23 +382,53 @@ class CheckinModel {
         return false;
       }
 
-      // Kiểm tra checkin hôm nay
+      // Kiểm tra checkin hôm nay - sử dụng local time
       final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+      final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
+      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
 
-      final snapshot = await FirebaseFirestore.instance
-          .collection('checkins')
-          .where('memberId', isEqualTo: memberId)
-          .where(
-            'checkedAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-          )
-          .where('checkedAt', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
-          .limit(1)
-          .get();
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .where(
+              'checkedAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+            )
+            .where(
+              'checkedAt',
+              isLessThanOrEqualTo: Timestamp.fromDate(endOfDay),
+            )
+            .limit(1)
+            .get();
 
-      return snapshot.docs.isNotEmpty;
+        return snapshot.docs.isNotEmpty;
+      } catch (e) {
+        // Fallback: client-side filter
+        logger.w('[CheckinModel] Today query failed, using client filter');
+        final allCheckins = await FirebaseFirestore.instance
+            .collection('checkins')
+            .where('memberId', isEqualTo: memberId)
+            .get();
+
+        return allCheckins.docs.any((doc) {
+          final data = doc.data();
+          final checkedAtValue = data['checkedAt'];
+          DateTime? checkedAt;
+
+          if (checkedAtValue is Timestamp) {
+            checkedAt = checkedAtValue.toDate();
+          } else if (checkedAtValue is String) {
+            checkedAt = DateTime.tryParse(checkedAtValue);
+          }
+
+          if (checkedAt == null) return false;
+
+          return checkedAt.year == now.year &&
+              checkedAt.month == now.month &&
+              checkedAt.day == now.day;
+        });
+      }
     } catch (e) {
       logger.e('Lỗi khi kiểm tra checkin hôm nay: $e');
       return false;

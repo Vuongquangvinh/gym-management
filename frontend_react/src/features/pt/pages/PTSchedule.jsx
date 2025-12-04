@@ -1,102 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
 import EmployeeService from '../../../firebase/lib/features/employee/employee.service';
+import ContractService from '../../../firebase/lib/features/contract/contract.service';
 import { ScheduleProvider, useSchedule } from '../../../firebase/lib/features/schedule/schedule.provider';
-import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, CheckCircle, XCircle, User, Phone, Mail, Search, Filter, X } from 'lucide-react';
 import PTFaceRegistrationModal from '../components/PTFaceRegistrationModal';
 import PTFaceCheckinModal from '../components/PTFaceCheckinModal';
 import PTCheckinStats from '../components/PTCheckinStats';
 import Swal from 'sweetalert2';
 import './PTSchedule.css';
-
-// Helper: Format time
-const formatTime = (time) => {
-  if (!time) return '-';
-  
-  try {
-    if (typeof time === 'string') {
-      if (time.includes(':') && !time.includes('T')) {
-        return time.substring(0, 5);
-      }
-      const date = new Date(time);
-      if (isNaN(date.getTime())) return '-';
-      return date.toLocaleTimeString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-    } else if (time instanceof Date) {
-      return time.toLocaleTimeString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-    }
-  } catch (error) {
-    console.error('Error formatting time:', error);
-  }
-  
-  return '-';
-};
-
-// Helper: Convert timestamp to Date
-const convertToDate = (timestamp) => {
-  if (!timestamp) return null;
-  
-  if (timestamp instanceof Date) {
-    return timestamp;
-  } else if (timestamp?.seconds) {
-    // Firestore Timestamp
-    return new Date(timestamp.seconds * 1000);
-  } else if (typeof timestamp === 'string') {
-    return new Date(timestamp);
-  } else {
-    return new Date(timestamp);
-  }
-};
-
-// Helper: Calculate working hours
-const calculateWorkingHours = (checkin, checkout) => {
-  try {
-    if (!checkin || !checkout) return '-';
-    
-    const checkinTime = convertToDate(checkin.timestamp);
-    const checkoutTime = convertToDate(checkout.timestamp);
-    
-    // Check if dates are valid
-    if (!checkinTime || !checkoutTime || isNaN(checkinTime.getTime()) || isNaN(checkoutTime.getTime())) {
-      console.warn('Invalid timestamps:', { checkin: checkin.timestamp, checkout: checkout.timestamp });
-      return '-';
-    }
-    
-    // Calculate difference
-    const diffMs = checkoutTime - checkinTime;
-    
-    // Check if difference is negative (invalid)
-    if (diffMs < 0) {
-      console.warn('Negative time difference - checkout before checkin:', { 
-        checkinTime: checkinTime.toISOString(), 
-        checkoutTime: checkoutTime.toISOString() 
-      });
-      return '-';
-    }
-    
-    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    console.log('✅ Working hours calculated:', {
-      checkin: checkinTime.toLocaleString('vi-VN'),
-      checkout: checkoutTime.toLocaleString('vi-VN'),
-      hours: diffHrs,
-      minutes: diffMins
-    });
-    
-    return `${diffHrs}h ${diffMins}m`;
-  } catch (error) {
-    console.error('❌ Error calculating working hours:', error);
-    return '-';
-  }
-};
 
 // WeeklyDatePicker Component (simplified for PT view)
 const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
@@ -206,17 +118,202 @@ const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
   );
 };
 
+// Member Detail Modal Component
+const MemberDetailModal = ({ member, isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  const contract = member.contract;
+  const user = member.user;
+
+  return (
+    <div className="member-detail-modal-overlay" onClick={onClose}>
+      <div className="member-detail-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>
+            <User size={20} />
+            Thông tin học viên
+          </h3>
+          <button className="close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {/* Avatar & Basic Info */}
+          <div className="member-profile">
+            <div className="member-avatar-large">
+              {user?.photoURL || user?.avatar ? (
+                <img src={user.photoURL || user.avatar} alt={member.fullName} />
+              ) : (
+                <span>{member.fullName.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="member-profile-info">
+              <h4>{member.fullName}</h4>
+              {user?.email && (
+                <div className="info-row">
+                  <Mail size={16} />
+                  <span>{user.email}</span>
+                </div>
+              )}
+              {user?.phone && (
+                <div className="info-row">
+                  <Phone size={16} />
+                  <span>{user.phone}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Contract Info */}
+          <div className="info-section">
+            <h5>📋 Thông tin gói tập</h5>
+            <div className="info-grid">
+              <div className="info-item">
+                <span className="label">Loại gói:</span>
+                <span className="value">{contract?.packageId?.name || 'N/A'}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Số buổi còn lại:</span>
+                <span className="value highlight">{contract?.sessionsRemaining || 0} buổi</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Trạng thái:</span>
+                <span className={`value status ${contract?.status}`}>
+                  {contract?.status === 'active' ? '✅ Đang hoạt động' : 
+                   contract?.status === 'expired' ? '⏰ Hết hạn' : 
+                   contract?.status === 'cancelled' ? '❌ Đã hủy' : 'N/A'}
+                </span>
+              </div>
+              {contract?.startDate && (
+                <div className="info-item">
+                  <span className="label">Ngày bắt đầu:</span>
+                  <span className="value">
+                    {new Date(contract.startDate.toDate?.() || contract.startDate).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+              )}
+              {contract?.endDate && (
+                <div className="info-item">
+                  <span className="label">Ngày kết thúc:</span>
+                  <span className="value">
+                    {new Date(contract.endDate.toDate?.() || contract.endDate).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Weekly Schedule */}
+          {contract?.weeklySchedule?.schedule && (
+            <div className="info-section">
+              <h5>📅 Lịch tập trong tuần</h5>
+              <div className="weekly-schedule-grid">
+                {Object.entries(contract.weeklySchedule.schedule).map(([day, slot]) => {
+                  const dayNames = { 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7', 7: 'CN' };
+                  return (
+                    <div key={day} className="schedule-slot">
+                      <span className="day-label">{dayNames[day]}</span>
+                      <span className="time-label">{slot.startTime} - {slot.endTime}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {contract?.notes && (
+            <div className="info-section">
+              <h5>📝 Ghi chú</h5>
+              <p className="notes-text">{contract.notes}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Time Slot Component
+const TimeSlotSection = ({ timeSlot, members, onMemberClick, slotDate }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // slotDate là ngày đang render (Date object)
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const slotDay = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate());
+
+  // So sánh giờ
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const endTime = timeSlot.split('-')[1]?.trim();
+
+  let isPast = false;
+  if (slotDay < today) {
+    isPast = true;
+  } else if (slotDay.getTime() === today.getTime()) {
+    // Nếu là hôm nay, so sánh giờ
+    isPast = endTime && endTime <= currentTime;
+  }
+
+  return (
+    <div className={`time-slot-section${isPast ? ' past' : ''}`}>
+      <div className="time-slot-header" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="time-slot-info">
+          <Clock size={18} />
+          <span className="time-range">{timeSlot}</span>
+          <span className="member-count-badge">{members.length}</span>
+        </div>
+        <ChevronRight size={18} className={isExpanded ? 'rotated' : ''} />
+      </div>
+
+      {isExpanded && (
+        <div className="time-slot-members">
+          {members.map((member, idx) => (
+            <div 
+              key={idx} 
+              className="member-card"
+              onClick={() => onMemberClick(member)}
+            >
+              <div className="member-card-avatar">
+                {member.user?.photoURL || member.user?.avatar ? (
+                  <img src={member.user.photoURL || member.user.avatar} alt={member.fullName} />
+                ) : (
+                  <span>{member.fullName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="member-card-info">
+                <div className="member-card-name">{member.fullName}</div>
+                <div className="member-card-meta">
+                  <span className="member-time">{member.startTime} - {member.endTime}</span>
+                  {member.contract?.sessionsRemaining !== undefined && (
+                    <span className="sessions-remaining">
+                      {member.contract.sessionsRemaining} buổi còn lại
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="member-card-status">
+                <span className={`status-badge ${member.contract?.status}`}>
+                  {member.contract?.status === 'active' ? '✓' : 
+                   member.contract?.status === 'expired' ? '⏰' : '?'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Main Content Component
 const PTScheduleContent = () => {
   const { currentUser } = useAuth();
   const { 
-    schedules, 
-    checkins, 
     loading: scheduleLoading, 
     selectedDate, 
     changeDate,
-    getCheckinInfo,
-    getDateString,
     getStartOfWeek,
     getWeekDays
   } = useSchedule();
@@ -225,6 +322,35 @@ const PTScheduleContent = () => {
   const [employeeLoading, setEmployeeLoading] = useState(true);
   const [showFaceRegistrationModal, setShowFaceRegistrationModal] = useState(false);
   const [showFaceCheckinModal, setShowFaceCheckinModal] = useState(false);
+  const [expandedDay, setExpandedDay] = useState(null); // Track which day is expanded
+  const [ptContracts, setPtContracts] = useState([]);
+  const [contractsLoading, setContractsLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [showMemberDetail, setShowMemberDetail] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, active, expired
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Load PT contracts and member schedules
+  useEffect(() => {
+    const fetchContracts = async () => {
+      if (!employee?._id) return;
+      setContractsLoading(true);
+      try {
+        const res = await ContractService.getPTClientsWithContracts(employee._id);
+        if (res.success && Array.isArray(res.data)) {
+          setPtContracts(res.data);
+        } else {
+          setPtContracts([]);
+        }
+      } catch {
+        setPtContracts([]);
+      } finally {
+        setContractsLoading(false);
+      }
+    };
+    fetchContracts();
+  }, [employee?._id]);
 
   // Handle delete Face ID
   const handleDeleteFaceID = async () => {
@@ -313,35 +439,84 @@ const PTScheduleContent = () => {
   // Get current week days
   const weekDays = getWeekDays(getStartOfWeek(selectedDate));
 
-  // Get schedule for specific day
-  const getScheduleForDay = (date) => {
-    const dateStr = getDateString(date);
-    return schedules[dateStr]?.find(s => s.employeeId === employee?._id);
+  // Group members by time slots
+  const groupMembersByTimeSlot = (members) => {
+    const groups = {};
+    members.forEach(member => {
+      const timeSlot = `${member.startTime} - ${member.endTime}`;
+      if (!groups[timeSlot]) {
+        groups[timeSlot] = [];
+      }
+      groups[timeSlot].push(member);
+    });
+    // Sort by start time
+    return Object.entries(groups).sort((a, b) => {
+      const timeA = a[0].split(' - ')[0];
+      const timeB = b[0].split(' - ')[0];
+      return timeA.localeCompare(timeB);
+    });
   };
 
-  // Get status icon based on checkin status
-  const getStatusIcon = (checkin, checkout) => {
-    if (checkin && checkout) {
-      return <CheckCircle className="status-icon completed" size={20} />;
-    } else if (checkin) {
-      return <Clock className="status-icon in-progress" size={20} />;
-    } else {
-      return <XCircle className="status-icon not-started" size={20} />;
+  // Filter and search members
+  const filterMembers = (members) => {
+    let filtered = members;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(m => 
+        m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.user?.phone?.includes(searchTerm)
+      );
     }
-  };
 
-  // Get status text
-  const getStatusText = (checkin, checkout) => {
-    if (checkin && checkout) {
-      return 'Hoàn thành';
-    } else if (checkin) {
-      return 'Đang làm';
-    } else {
-      return 'Chưa check-in';
+    // Status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(m => m.contract?.status === filterStatus);
     }
+
+    return filtered;
   };
 
-  const loading = employeeLoading || scheduleLoading;
+  // Calculate daily statistics
+  const calculateDayStats = (members, currentDay) => {
+    const total = members.length;
+    const expired = members.filter(m => m.contract?.status === 'expired').length;
+    
+    // Đếm tổng số khung giờ khác nhau trong ngày
+    const uniqueTimeSlots = new Set(members.map(m => `${m.startTime}-${m.endTime}`));
+    const totalTimeSlots = uniqueTimeSlots.size;
+    
+    // Đếm số khung giờ còn lại (chưa qua endTime)
+    const now = new Date();
+    const isToday = currentDay.toDateString() === now.toDateString();
+    
+    let remainingTimeSlots = totalTimeSlots;
+    if (isToday) {
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      remainingTimeSlots = Array.from(uniqueTimeSlots).filter(slot => {
+        const endTime = slot.split('-')[1];
+        return endTime > currentTime;
+      }).length;
+    } else if (currentDay > now) {
+      // Ngày trong tương lai - tất cả khung giờ đều còn lại
+      remainingTimeSlots = totalTimeSlots;
+    } else {
+      // Ngày trong quá khứ - không còn khung giờ nào
+      remainingTimeSlots = 0;
+    }
+    
+    return { total, expired, totalTimeSlots, remainingTimeSlots };
+  };
+
+  // Open member detail modal
+  const handleMemberClick = (member) => {
+    setSelectedMember(member);
+    setShowMemberDetail(true);
+  };
+
+  const loading = employeeLoading || scheduleLoading || contractsLoading;
 
   if (loading) {
     return (
@@ -473,95 +648,136 @@ const PTScheduleContent = () => {
       {/* Checkin Statistics */}
       <PTCheckinStats employee={employee} />
 
-      {/* Weekly Schedule Grid */}
-      <div className="pt-schedule-grid">
+     
+
+      {/* Filter Options */}
+     
+
+      {/* Weekly Schedule Accordion */}
+      <div className="pt-schedule-accordion">
         {weekDays.map((day, index) => {
-          const schedule = getScheduleForDay(day);
-          const { checkin, checkout } = getCheckinInfo(employee._id, day);
-          const dateStr = getDateString(day);
+          // Lấy thứ trong tuần (1=Thứ 2, ..., 7=Chủ nhật)
+          const jsDay = day.getDay();
+          const dayOfWeek = jsDay === 0 ? 7 : jsDay; // Firestore: 1=Mon, ..., 7=Sun
+
+          // Lọc các contract có weeklySchedule cho ngày này
+          let membersForDay = ptContracts
+            .map((c) => {
+              const slot = c.contract?.weeklySchedule?.schedule?.[dayOfWeek];
+              if (slot) {
+                return {
+                  fullName: c.userName,
+                  startTime: slot.startTime,
+                  endTime: slot.endTime,
+                  user: c.user,
+                  contract: c.contract,
+                };
+              }
+              return null;
+            })
+            .filter(Boolean);
+
+          // Apply filters
+          membersForDay = filterMembers(membersForDay);
+
+          // Group by time slots
+          const timeSlotGroups = groupMembersByTimeSlot(membersForDay);
+          
+          // Calculate stats
+          const stats = calculateDayStats(membersForDay, day);
+
           const isToday = day.toDateString() === new Date().toDateString();
           const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
-          
-          // Determine if employee works on this day
-          const hasSchedule = employee.shift === 'fulltime' || schedule;
+          const dayKey = day.toDateString();
+          const isExpanded = expandedDay === dayKey;
+
+          const toggleDay = () => {
+            setExpandedDay(isExpanded ? null : dayKey);
+          };
 
           return (
-            <div 
-              key={index} 
-              className={`pt-schedule-card ${isToday ? 'today' : ''} ${isPast ? 'past' : ''} ${!hasSchedule ? 'no-schedule' : ''}`}
+            <div
+              key={index}
+              className={`pt-schedule-accordion-item ${isToday ? 'today' : ''} ${isPast ? 'past' : ''} ${isExpanded ? 'expanded' : ''}`}
             >
-              {/* Date Header */}
-              <div className="card-date-header">
-                <div className="date-day">{day.toLocaleDateString('vi-VN', { weekday: 'long' })}</div>
-                <div className="date-number">
-                  {day.getDate()}/{day.getMonth() + 1}/{day.getFullYear()}
+              {/* Accordion Header - Always visible */}
+              <div className="accordion-header" onClick={toggleDay}>
+                <div className="header-content">
+                  <div className="day-info">
+                    <div className="day-name">{day.toLocaleDateString('vi-VN', { weekday: 'long' })}</div>
+                    <div className="day-date">{day.getDate()}/{day.getMonth() + 1}/{day.getFullYear()}</div>
+                  </div>
+                  <div className="member-count">
+                    <span className="count-badge">{membersForDay.length} học viên</span>
+                    {isToday && <span className="today-badge-small">Hôm nay</span>}
+                  </div>
                 </div>
-                {isToday && <span className="today-badge">Hôm nay</span>}
+                <div className="toggle-icon">
+                  <ChevronRight size={20} className={isExpanded ? 'rotated' : ''} />
+                </div>
               </div>
 
-              {/* Schedule Info */}
-              {hasSchedule ? (
-                <div className="card-schedule-info">
-                  {/* Working Hours */}
-                  <div className="schedule-hours">
-                    <Clock size={18} />
-                    <span className="hours-text">
-                      {employee.shift === 'fulltime' 
-                        ? '08:00 - 17:00 (Fulltime)'
-                        : `${formatTime(schedule?.startTime)} - ${formatTime(schedule?.endTime)}`
-                      }
-                    </span>
-                  </div>
-
-                  {/* Check-in Status */}
-                  <div className={`checkin-status ${checkin && checkout ? 'completed' : checkin ? 'in-progress' : 'pending'}`}>
-                    {getStatusIcon(checkin, checkout)}
-                    <div className="status-details">
-                      <div className="status-label">{getStatusText(checkin, checkout)}</div>
-                      {checkin && (
-                        <div className="status-time">
-                          Check-in: {formatTime(checkin.timestamp)}
+              {/* Accordion Content - Expandable */}
+              {isExpanded && (
+                <div className="accordion-content">
+                  {membersForDay.length > 0 ? (
+                    <>
+                      {/* Day Statistics */}
+                      <div className="day-statistics">
+                        <div className="stat-item stat-total-students">
+                          <span className="stat-label">Tổng học viên:</span>
+                          <span className="stat-value">{stats.total}</span>
                         </div>
-                      )}
-                      {checkout && (
-                        <div className="status-time">
-                          Check-out: {formatTime(checkout.timestamp)}
+                        <div className="stat-item stat-total-slots">
+                          <span className="stat-label">Tổng khung giờ:</span>
+                          <span className="stat-value">{stats.totalTimeSlots}</span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  {schedule?.notes && (
-                    <div className="schedule-notes">
-                      <div className="notes-label">📝 Ghi chú:</div>
-                      <div className="notes-text">{schedule.notes}</div>
-                    </div>
-                  )}
-
-                  {/* Working Hours Summary (if completed) */}
-                  {checkin && checkout && (
-                    <div className="working-hours-summary">
-                      <div className="summary-label">⏱️ Tổng giờ làm:</div>
-                      <div className="summary-value">
-                        {calculateWorkingHours(checkin, checkout)}
+                        <div className="stat-item stat-remaining-slots">
+                          <span className="stat-label">Khung giờ còn lại:</span>
+                          <span className="stat-value highlight">{stats.remainingTimeSlots}</span>
+                        </div>
+                        {stats.expired > 0 && (
+                          <div className="stat-item">
+                            <span className="stat-label">Gói hết hạn:</span>
+                            <span className="stat-value expired">{stats.expired}</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Time Slots */}
+                      <div className="time-slots-container">
+                        {timeSlotGroups.map(([timeSlot, members]) => (
+                          <TimeSlotSection
+                            key={timeSlot}
+                            timeSlot={timeSlot}
+                            members={members}
+                            onMemberClick={handleMemberClick}
+                            slotDate={day}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="no-members-scheduled">
+                      <span className="no-member-icon">👤</span>
+                      <span className="no-member-text">
+                        {searchTerm || filterStatus !== 'all' 
+                          ? 'Không tìm thấy học viên phù hợp'
+                          : 'Chưa có học viên đăng ký'
+                        }
+                      </span>
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="card-no-schedule">
-                  <div className="no-schedule-icon">📭</div>
-                  <div className="no-schedule-text">Không có lịch làm việc</div>
-                  <div className="no-schedule-hint">
-                    {employee.shift === 'parttime' && 'Bạn không có ca làm trong ngày này'}
-                  </div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+
+      {/* Tổng hợp khung giờ & member đăng ký trong ngày */}
+      
 
       {/* Legend */}
       <div className="pt-schedule-legend">
@@ -606,6 +822,18 @@ const PTScheduleContent = () => {
           onCheckinSuccess={(checkinData) => {
             console.log('✅ Checkin success:', checkinData);
             // The schedule will auto-update via onSnapshot
+          }}
+        />
+      )}
+
+      {/* Member Detail Modal */}
+      {showMemberDetail && selectedMember && (
+        <MemberDetailModal
+          member={selectedMember}
+          isOpen={showMemberDetail}
+          onClose={() => {
+            setShowMemberDetail(false);
+            setSelectedMember(null);
           }}
         />
       )}

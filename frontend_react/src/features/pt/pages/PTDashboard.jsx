@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
 import { usePT } from '../../../firebase/lib/features/pt/pt.provider';
+import { useNotifications } from '../../../hooks/useNotifications';
+import MemberScheduleModal from '../components/MemberScheduleModal';
 import '../pt.css';
 
 export default function PTDashboard() {
   const { currentUser } = useAuth();
+  console.log('PT currentUser:', currentUser); // Kiểm tra login đúng PT
   const { ptPackages, loading } = usePT();
   const [stats, setStats] = useState({
     totalClients: 0,
@@ -12,6 +15,10 @@ export default function PTDashboard() {
     monthlyRevenue: 0,
     rating: 0
   });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalUserId, setModalUserId] = useState(null);
+  const [modalContractId, setModalContractId] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     // Tính toán thống kê từ packages
@@ -26,6 +33,10 @@ export default function PTDashboard() {
       });
     }
   }, [ptPackages]);
+
+  // --- Notification logic ---
+  const ptId = currentUser?.uid;
+  const { notifications, unreadCount, markAsRead } = useNotifications(ptId);
 
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'PT';
 
@@ -108,6 +119,53 @@ export default function PTDashboard() {
           </a>
         </div>
       </div>
+
+      {/* Notification badge */}
+      {unreadCount > 0 && (
+        <div style={{
+          position: 'fixed', top: 24, right: 24, zIndex: 1000,
+          background: '#ff6b35', color: 'white', borderRadius: 20, padding: '8px 16px', fontWeight: 600
+        }}>
+          🔔 {unreadCount} thông báo mới
+        </div>
+      )}
+
+      {/* Notification list */}
+      <div style={{ margin: '32px 0 0 0', background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001', padding: 20 }}>
+        <h3 style={{ margin: 0, fontSize: 18 }}>Thông báo mới nhất</h3>
+        {notifications.length === 0 && <div style={{ color: '#888', marginTop: 12 }}>Chưa có thông báo nào</div>}
+        {notifications.map(notif => (
+          <div key={notif.id} style={{
+            borderLeft: notif.read ? '4px solid #eee' : '4px solid #ff6b35',
+            background: notif.read ? '#fafafa' : '#fff7f3',
+            margin: '16px 0', padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
+            boxShadow: notif.read ? 'none' : '0 2px 8px #ff6b3522'
+          }}
+            onClick={() => {
+              markAsRead(notif.id);
+              if (notif.userId) {
+                setModalUserId(notif.userId);
+                setModalContractId(notif.contractId || null);
+                setSelectedNotification(notif); // Đặt notification trước khi mở modal
+                setModalOpen(true);
+              }
+            }}
+          >
+            <div style={{ fontWeight: 600 }}>{notif.title}</div>
+            <div style={{ color: '#444', margin: '4px 0 0 0' }}>{notif.body || notif.message}</div>
+            <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{notif.createdAt && notif.createdAt.toDate ? notif.createdAt.toDate().toLocaleString() : ''}</div>
+            {!notif.read && <span style={{ color: '#ff6b35', fontWeight: 700, fontSize: 12 }}>Chưa đọc</span>}
+          </div>
+        ))}
+      </div>
+      {/* MemberScheduleModal */}
+      <MemberScheduleModal 
+        open={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        userId={modalUserId} 
+        contractId={modalContractId} 
+        notification={selectedNotification} 
+      />
     </div>
   );
 }

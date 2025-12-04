@@ -114,5 +114,23 @@ service cloud.firestore {
                         request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }
     }
+    
+    // Notifications collection - Real-time notifications
+    match /notifications/{notificationId} {
+      // Cho phép đọc nếu là người nhận
+      allow read: if request.auth != null && 
+                    request.auth.uid == resource.data.recipientId;
+      
+      // Chỉ backend mới được tạo notification (qua Admin SDK)
+      allow create: if false;
+      
+      // Cho phép update để đánh dấu đã đọc
+      allow update: if request.auth != null && 
+                      request.auth.uid == resource.data.recipientId &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      
+      // Không cho phép xóa từ client
+      allow delete: if false;
+    }
   }
 }

@@ -5,6 +5,13 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './PTChat.css';
 
 export default function PTChat({ initialClient, onClose }) {
+  // State cho xem toàn màn hình ảnh
+  const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imgStart, setImgStart] = useState({ x: 0, y: 0 });
   const [selectedClient, setSelectedClient] = useState(initialClient || null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -193,6 +200,112 @@ export default function PTChat({ initialClient, onClose }) {
         {onClose && <button className="pt-chat-close" onClick={onClose}>×</button>}
       </div>
 
+      {/* Overlay xem toàn màn hình ảnh */}
+      {fullImageUrl && (
+        <div
+          className="pt-chat-image-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.95)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            userSelect: dragging ? 'none' : 'auto',
+            cursor: dragging ? 'grabbing' : 'default',
+          }}
+          onClick={() => {
+            setFullImageUrl(null);
+            setZoom(1);
+            setOffset({ x: 0, y: 0 });
+          }}
+        >
+          <img
+            src={fullImageUrl}
+            alt="Xem toàn màn hình"
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              borderRadius: '12px',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.5)',
+              transform: `scale(${zoom}) translate(${offset.x / zoom}px, ${offset.y / zoom}px)` ,
+              transition: dragging ? 'none' : 'transform 0.2s',
+              cursor: dragging ? 'grabbing' : 'grab',
+            }}
+            onClick={e => e.stopPropagation()}
+            onWheel={e => {
+              e.preventDefault();
+              let newZoom = zoom + (e.deltaY < 0 ? 0.15 : -0.15);
+              newZoom = Math.max(0.3, Math.min(newZoom, 5));
+              setZoom(newZoom);
+            }}
+            onMouseDown={e => {
+              e.preventDefault();
+              setDragging(true);
+              setDragStart({ x: e.clientX, y: e.clientY });
+              setImgStart({ ...offset });
+            }}
+            onMouseMove={e => {
+              if (!dragging) return;
+              setOffset({
+                x: imgStart.x + (e.clientX - dragStart.x),
+                y: imgStart.y + (e.clientY - dragStart.y),
+              });
+            }}
+            onMouseUp={() => setDragging(false)}
+            onMouseLeave={() => setDragging(false)}
+            draggable={false}
+          />
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              setFullImageUrl(null);
+              setZoom(1);
+              setOffset({ x: 0, y: 0 });
+            }}
+            style={{
+              position: 'fixed',
+              top: 24,
+              right: 32,
+              background: 'rgba(0,0,0,0.5)',
+              color: '#fff',
+              border: 'none',
+              fontSize: 32,
+              borderRadius: '50%',
+              width: 48,
+              height: 48,
+              cursor: 'pointer',
+              zIndex: 10000,
+            }}
+            aria-label="Đóng"
+          >
+            ×
+          </button>
+          {/* Hướng dẫn zoom */}
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 32,
+              left: 0,
+              width: '100vw',
+              textAlign: 'center',
+              color: '#fff',
+              fontSize: 16,
+              opacity: 0.7,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            Cuộn chuột để phóng to/thu nhỏ, kéo để di chuyển ảnh
+          </div>
+        </div>
+      )}
+
       <div className="pt-chat-body">
         {/* Sidebar - Client List (Horizontal) */}
         {!initialClient && (
@@ -240,7 +353,12 @@ export default function PTChat({ initialClient, onClose }) {
                           {/* Hiển thị hình ảnh nếu có */}
                           {msg.image_url && (
                             <div className="message-image">
-                              <img src={msg.image_url} alt="Hình ảnh" style={{ maxWidth: '200px', borderRadius: '8px' }} />
+                              <img
+                                src={msg.image_url}
+                                alt="Hình ảnh"
+                                style={{ maxWidth: '200px', borderRadius: '8px', cursor: 'pointer' }}
+                                onClick={() => setFullImageUrl(msg.image_url)}
+                              />
                             </div>
                           )}
                           <div className="message-text">{msg.text}</div>

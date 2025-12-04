@@ -3,6 +3,10 @@ import 'package:logger/logger.dart';
 import '../services/contract_schedule_service.dart';
 import '../../../theme/colors.dart';
 import '../../../services/pt_schedule_notification_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import '../../model/ptPackage.mode.dart';
 
 final _logger = Logger();
 
@@ -397,6 +401,9 @@ class _EditTimeSlotDialogState extends State<EditTimeSlotDialog> {
       if (success) {
         _logger.i('✅ Update thành công!');
 
+        // Gửi thông báo cho PT qua backend
+        await _notifyPTScheduleChange(widget.contractId);
+
         // Lên lịch lại thông báo sau khi cập nhật
         await PTScheduleNotificationService().scheduleAllWorkoutNotifications();
 
@@ -461,6 +468,62 @@ class _EditTimeSlotDialogState extends State<EditTimeSlotDialog> {
           _isUpdating = false;
         });
       }
+    }
+  }
+
+  /// Gọi API backend để gửi thông báo cho PT khi thay đổi lịch
+  Future<void> _notifyPTScheduleChange(String contractId) async {
+    try {
+      // Tạo một TimeSlot dummy nếu không tìm thấy
+      final dummySlot = TimeSlot(
+        id: 'none',
+        startTime: '',
+        endTime: '',
+        note: '',
+        dayOfWeek: 0,
+        isActive: false,
+      );
+      final oldSlotWithStatus = widget.availableSlots.firstWhere(
+        (s) => s.slot.id == widget.currentTimeSlotId,
+        orElse: () => TimeSlotWithStatus(slot: dummySlot, isBooked: false),
+      );
+      final newSlotWithStatus = widget.availableSlots.firstWhere(
+        (s) => s.slot.id == _selectedSlotId,
+        orElse: () => TimeSlotWithStatus(slot: dummySlot, isBooked: false),
+      );
+      final oldSlot = oldSlotWithStatus.slot;
+      final newSlot = newSlotWithStatus.slot;
+
+      final body = {
+        'contractId': contractId,
+        'oldSchedule': {
+          'id': oldSlot.id,
+          'startTime': oldSlot.startTime,
+          'endTime': oldSlot.endTime,
+          'note': oldSlot.note,
+        },
+        'newSchedule': {
+          'id': newSlot.id,
+          'startTime': newSlot.startTime,
+          'endTime': newSlot.endTime,
+          'note': newSlot.note,
+        },
+      };
+
+      final response = await http.post(
+        Uri.parse(
+          'http://192.168.3.181:3000/api/contract/notify-pt-schedule-change',
+        ),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      if (response.statusCode == 200) {
+        _logger.i('Đã gửi thông báo cho PT thành công');
+      } else {
+        _logger.w('Gửi thông báo cho PT thất bại: \\${response.body}');
+      }
+    } catch (e) {
+      _logger.e('Lỗi gửi thông báo cho PT: $e');
     }
   }
 }

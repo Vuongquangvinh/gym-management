@@ -99,16 +99,46 @@ class _CheckInHistoryScreenState extends State<CheckInHistoryScreen>
     final now = DateTime.now();
     switch (_selectedFilter) {
       case 'today':
+        // Filter chính xác ngày hôm nay (local time)
+        final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
+        final endOfDay = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          23,
+          59,
+          59,
+          999,
+        );
         return _historyData.where((h) {
-          return h.checkedAt.year == now.year &&
-              h.checkedAt.month == now.month &&
-              h.checkedAt.day == now.day;
+          return h.checkedAt.isAfter(
+                startOfDay.subtract(const Duration(milliseconds: 1)),
+              ) &&
+              h.checkedAt.isBefore(
+                endOfDay.add(const Duration(milliseconds: 1)),
+              );
         }).toList();
       case 'week':
-        final weekAgo = now.subtract(const Duration(days: 7));
+        // 7 ngày gần nhất
+        final weekAgo = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          0,
+          0,
+          0,
+        ).subtract(const Duration(days: 7));
         return _historyData.where((h) => h.checkedAt.isAfter(weekAgo)).toList();
       case 'month':
-        final monthAgo = now.subtract(const Duration(days: 30));
+        // 30 ngày gần nhất
+        final monthAgo = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          0,
+          0,
+          0,
+        ).subtract(const Duration(days: 30));
         return _historyData
             .where((h) => h.checkedAt.isAfter(monthAgo))
             .toList();

@@ -111,10 +111,17 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Lấy PT UID từ employee (không dùng contract.ptId)
                           final ptUid = provider.ptEmployee?.uid;
-                          final clientId =
-                              contract.userId; // ← Lấy client ID từ contract
+                          final clientId = contract.userId;
+                          final avatarUrl = provider.ptEmployee?.avatarUrl;
+                          // Sử dụng IP thật của máy tính thay cho localhost
+                          const String baseUrl = 'http://192.168.3.181:3000';
+                          final fullAvatarUrl =
+                              (avatarUrl != null && avatarUrl.isNotEmpty)
+                              ? (avatarUrl.startsWith('http')
+                                    ? avatarUrl
+                                    : baseUrl + avatarUrl)
+                              : null;
 
                           if (ptUid == null || ptUid.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -132,22 +139,38 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                           print(
                             '🔑 DEBUG - Client ID from contract: $clientId',
                           );
+                          print('🖼️ DEBUG - Raw Avatar URL: $avatarUrl');
+                          print('🖼️ DEBUG - Full Avatar URL: $fullAvatarUrl');
 
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ChatScreen(
-                                ptId: ptUid, // ← Dùng UID của employee
+                                ptId: ptUid,
                                 ptName:
                                     provider.ptEmployee?.fullName ??
                                     'Huấn luyện viên',
-                                clientId:
-                                    clientId, // ← Truyền client ID từ contract
+                                clientId: clientId,
+                                ptAvatarUrl:
+                                    fullAvatarUrl, // Truyền avatarUrl sang ChatScreen
                               ),
                             ),
                           );
                         },
-                        icon: const Icon(Icons.chat_bubble_outline),
+                        icon:
+                            provider.ptEmployee?.avatarUrl != null &&
+                                provider.ptEmployee!.avatarUrl.isNotEmpty
+                            ? CircleAvatar(
+                                backgroundImage: NetworkImage(
+                                  provider.ptEmployee!.avatarUrl.startsWith(
+                                        'http',
+                                      )
+                                      ? provider.ptEmployee!.avatarUrl
+                                      : 'http://192.168.3.181:3000${provider.ptEmployee!.avatarUrl}',
+                                ),
+                                radius: 14,
+                              )
+                            : const Icon(Icons.chat_bubble_outline),
                         label: const Text(
                           'Liên hệ PT',
                           style: TextStyle(

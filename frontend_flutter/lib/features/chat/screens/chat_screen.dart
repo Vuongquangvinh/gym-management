@@ -7,22 +7,26 @@ import 'dart:io';
 import '../services/chat_service.dart';
 import '../services/chat_notification_service.dart';
 import '../models/chat_message.dart';
+import '../../../config/image_config.dart';
 
 /// ChatScreen - Màn hình chat giữa Client và PT
 ///
 /// REALTIME: Tự động cập nhật khi có tin nhắn mới
 /// Hỗ trợ gửi text và hình ảnh
+
 class ChatScreen extends StatefulWidget {
   final String ptId;
   final String ptName;
   final String?
   clientId; // Optional: nếu có thì dùng trực tiếp, không cần query
+  final String? ptAvatarUrl; // Thêm avatarUrl của PT
 
   const ChatScreen({
     Key? key,
     required this.ptId,
     required this.ptName,
     this.clientId,
+    this.ptAvatarUrl,
   }) : super(key: key);
 
   @override
@@ -30,6 +34,100 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  // Hàm chọn ảnh từ camera, xác nhận và gửi
+  Future<void> _captureAndSendImage() async {
+    if (_chatId == null || _currentUserId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Chat chưa sẵn sàng')));
+      return;
+    }
+
+    try {
+      // Mở camera chụp ảnh
+      final XFile? capturedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (capturedFile == null) {
+        print('User cancelled camera');
+        return;
+      }
+
+      // Hiển thị dialog xác nhận ảnh
+      bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Xác nhận gửi ảnh'),
+            content: Image.file(File(capturedFile.path), width: 250),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Huỷ'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Gửi'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm != true) {
+        print('User cancelled sending captured image');
+        return;
+      }
+
+      setState(() => _isUploadingImage = true);
+
+      // Upload ảnh lên Firebase Storage
+      final String fileName =
+          'chat_images/${_chatId}_${DateTime.now().millisecondsSinceEpoch}_camera.jpg';
+      final Reference storageRef = FirebaseStorage.instance.ref().child(
+        fileName,
+      );
+
+      final File imageFile = File(capturedFile.path);
+      final UploadTask uploadTask = storageRef.putFile(imageFile);
+
+      // Đợi upload hoàn thành
+      final TaskSnapshot snapshot = await uploadTask;
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      print('✅ Camera image uploaded: $downloadUrl');
+
+      // Gửi tin nhắn với image_url
+      await _chatService.sendMessage(
+        chatId: _chatId!,
+        senderId: _currentUserId!,
+        text: '[Hình ảnh]',
+        imageUrl: downloadUrl,
+      );
+
+      setState(() => _isUploadingImage = false);
+      _scrollToBottom();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã gửi hình ảnh từ camera')),
+        );
+      }
+    } catch (e) {
+      print('❌ Error capturing/sending camera image: $e');
+      setState(() => _isUploadingImage = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi gửi hình từ camera: $e')));
+      }
+    }
+  }
+
   final ChatService _chatService = ChatService();
   final ChatNotificationService _notificationService =
       ChatNotificationService();
@@ -419,6 +517,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 return _MessageBubble(
                                   message: message,
                                   isMe: isMe,
+                                  ptAvatarUrl: widget.ptAvatarUrl,
                                 );
                               },
                             );
@@ -461,13 +560,24 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: SafeArea(
                     child: Row(
                       children: [
-                        // Nút chọn hình ảnh
+                        // Nút chọn hình ảnh từ gallery
                         IconButton(
                           icon: const Icon(Icons.image, color: Colors.blue),
                           onPressed: _isUploadingImage
                               ? null
                               : _pickAndSendImage,
-                          tooltip: 'Gửi hình ảnh',
+                          tooltip: 'Gửi hình ảnh từ thư viện',
+                        ),
+                        // Nút mở camera chụp ảnh
+                        IconButton(
+                          icon: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.green,
+                          ),
+                          onPressed: _isUploadingImage
+                              ? null
+                              : _captureAndSendImage,
+                          tooltip: 'Chụp ảnh bằng camera',
                         ),
                         // Text input
                         Expanded(
@@ -515,14 +625,23 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 /// MessageBubble - Bong bóng tin nhắn (hỗ trợ cả text và hình ảnh)
+
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMe;
+  final String? ptAvatarUrl;
 
-  const _MessageBubble({required this.message, required this.isMe});
+  const _MessageBubble({
+    required this.message,
+    required this.isMe,
+    this.ptAvatarUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (!isMe) {
+      print('🖼️ [MessageBubble] ptAvatarUrl: $ptAvatarUrl');
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -531,11 +650,40 @@ class _MessageBubble extends StatelessWidget {
             : MainAxisAlignment.start,
         children: [
           if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.grey[300],
-              child: const Icon(Icons.person, size: 16),
-            ),
+            ptAvatarUrl != null && ptAvatarUrl!.isNotEmpty
+                ? CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey[300],
+                    child: ClipOval(
+                      child: Image.network(
+                        ImageConfig.getImageUrl(ptAvatarUrl),
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('❌ Error loading PT avatar: $error');
+                          print('🖼️ Avatar URL was: $ptAvatarUrl');
+                          print(
+                            '🔗 Full URL tried: ${ImageConfig.getImageUrl(ptAvatarUrl)}',
+                          );
+                          return const Icon(Icons.person, size: 16);
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                : CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey[300],
+                    child: const Icon(Icons.person, size: 16),
+                  ),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -551,36 +699,116 @@ class _MessageBubble extends StatelessWidget {
                   // Hiển thị hình ảnh nếu có
                   if (message.imageUrl != null &&
                       message.imageUrl!.isNotEmpty) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        message.imageUrl!,
-                        width: 200,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return SizedBox(
-                            width: 200,
-                            height: 200,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                    : null,
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            final size = MediaQuery.of(context).size;
+                            return Dialog(
+                              backgroundColor: Colors.black.withOpacity(0.95),
+                              insetPadding: EdgeInsets.zero,
+                              child: Stack(
+                                children: [
+                                  Center(
+                                    child: InteractiveViewer(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          message.imageUrl!,
+                                          width: size.width,
+                                          height: size.height,
+                                          fit: BoxFit.contain,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Container(
+                                                  color: Colors.grey[300],
+                                                  width: size.width * 0.8,
+                                                  height: size.width * 0.8,
+                                                  child: const Icon(
+                                                    Icons.error,
+                                                    size: 48,
+                                                  ),
+                                                );
+                                              },
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return SizedBox(
+                                              width: size.width * 0.8,
+                                              height: size.width * 0.8,
+                                              child: Center(
+                                                child: CircularProgressIndicator(
+                                                  value:
+                                                      loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // (Đã bỏ nút xóa ở góc trên bên phải)
+                                  // Nút đóng ở góc trên bên trái
+                                  Positioned(
+                                    top: 16,
+                                    left: 16,
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 32,
+                                      ),
+                                      tooltip: 'Đóng',
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 200,
-                            height: 200,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.error),
-                          );
-                        },
+                            );
+                          },
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          message.imageUrl!,
+                          width: 200,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              width: 200,
+                              height: 200,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 200,
+                              height: 200,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.error),
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
