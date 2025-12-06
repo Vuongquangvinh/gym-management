@@ -419,7 +419,7 @@ export default function DetailMember({ user, isOpen, onClose, onUpdate }) {
                     <span className="btn-icon">📦</span>
                     <span>Thay đổi gói tập</span>
                   </button>
-                  <button className="section-edit" onClick={() => handleEditToggle('package')}>✏️</button>
+                 
                 </div>
               </div>
               <div className="section-grid">

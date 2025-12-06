@@ -1,0 +1,55 @@
+/* OperatingExpenses.css */
+
+.header {
+  padding: 20px 0;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0;
+}
+
+/* Summary Cards */
+.summary-card {
+  background: linear-gradient(135deg, #f5f7ff 0%, #f0f4ff 100%);
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+}
+
+/* Table Styling */
+.MuiTableCell-head {
+  background-color: #f5f5f5 !important;
+  font-weight: 600 !important;
+  color: #1a1a2e !important;
+}
+
+.MuiTableRow-root:hover {
+  background-color: #f9f9f9;
+}
+
+/* Dialog Styling */
+.MuiDialog-paper {
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header h1 {
+    width: 100%;
+  }
+}

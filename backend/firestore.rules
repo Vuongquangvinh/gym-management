@@ -132,5 +132,42 @@ service cloud.firestore {
       // Không cho phép xóa từ client
       allow delete: if false;
     }
+    
+    // Financial Management Collections - Thu chi lợi nhuận
+    
+    // Expenses collection - Chi phí
+    match /expenses/{expenseId} {
+      allow read: if true; // Cho phép admin đọc
+      allow write: if true; // Cho phép admin tạo/sửa/xóa
+      // Production: allow read, write: if request.auth != null;
+    }
+    
+    // Expense Categories collection - Danh mục chi phí
+    match /expense_categories/{categoryId} {
+      allow read: if true; // Cho phép admin đọc
+      allow write: if true; // Cho phép admin tạo/sửa/xóa
+      // Production: allow read, write: if request.auth != null;
+    }
+    
+    // Salary Configs collection - Cấu hình lương
+    match /salary_configs/{configId} {
+      allow read: if true; // Cho phép admin đọc
+      allow write: if true; // Cho phép admin tạo/sửa/xóa
+      // Production: allow read, write: if request.auth != null;
+    }
+    
+    // Budgets collection - Ngân sách
+    match /budgets/{budgetId} {
+      allow read: if true; // Cho phép admin đọc
+      allow write: if true; // Cho phép admin tạo/sửa/xóa
+      // Production: allow read, write: if request.auth != null;
+    }
+    
+    // Salary Records collection - Bảng lương thực tế hàng tháng
+    match /salary_records/{recordId} {
+      allow read: if true; // Cho phép admin đọc
+      allow write: if true; // Cho phép admin tạo/sửa/xóa
+      // Production: allow read, write: if request.auth != null;
+    }
   }
 }

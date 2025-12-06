@@ -31,6 +31,15 @@ const PTPackages = React.lazy(() => import('../features/pt/pages/PTPackages'));
 const PTClients = React.lazy(() => import('../features/pt/pages/PTClients'));
 const PTSchedule = React.lazy(() => import('../features/pt/pages/PTSchedule'));
 const PTSettings = React.lazy(() => import('../features/pt/pages/PTSettings'));
+
+// Financial Pages
+const FinancialDashboard = React.lazy(() => import('../pages/financial/FinancialDashboard'));
+const OperatingExpenses = React.lazy(() => import('../pages/expenses/OperatingExpenses'));
+
+// Salary Pages
+const SalaryConfigManagement = React.lazy(() => import('../pages/salary/SalaryConfigManagement'));
+const PayrollManagement = React.lazy(() => import('../pages/payroll/PayrollManagement'));
+
 const AppRouter = () => {
   return (
     <BrowserRouter>
@@ -64,6 +73,10 @@ const AppRouter = () => {
               <Route path="schedule" element={<SchedulePage />} />
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="financial" element={<FinancialDashboard />} />
+              <Route path="operating-expenses" element={<OperatingExpenses />} />
+              <Route path="salary-config" element={<SalaryConfigManagement />} />
+              <Route path="payroll" element={<PayrollManagement />} />
             </Route>
 
             {/* Route PT layout và các trang con */}

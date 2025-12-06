@@ -1,0 +1,117 @@
+/* SalaryConfigManagement.css */
+
+:root {
+  --primary-color: #1976d2;
+  --primary-light: #e3f2fd;
+  --success-color: #2e7d32;
+  --success-light: #e8f5e9;
+  --warning-color: #ed6c02;
+  --warning-light: #fff3e0;
+  --error-color: #d32f2f;
+  --error-light: #ffebee;
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --bg-color: #f8f9fa;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius-md: 12px;
+}
+
+.salary-config-container {
+  padding: 24px;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-add {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.config-table-container {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.config-table-head th {
+  background-color: #f1f5f9;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 16px;
+}
+
+.config-table-row:hover {
+  background-color: #f8fafc;
+}
+
+.role-chip {
+  font-weight: 600;
+}
+
+/* Dialog Styles */
+.dialog-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-section-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 16px;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.form-grid-full {
+  grid-column: span 2;
+}
+
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .form-grid, .form-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .form-grid-full {
+    grid-column: span 1;
+  }
+}
