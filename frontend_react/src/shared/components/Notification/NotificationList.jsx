@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNotifications } from '../../../firebase/lib/features/notification/notification.provider';
 import { useNavigate } from 'react-router-dom';
-import './NotificationList.css';
+import styles from './NotificationList.module.css';
 
 export const NotificationList = ({ onClose }) => {
   const { notifications, unreadCount, loading, loadingMore, hasMore, markAsRead, markAllAsRead, deleteNotification, loadMore } = useNotifications();
@@ -95,12 +95,12 @@ export const NotificationList = ({ onClose }) => {
 
   if (loading) {
     return (
-      <div className="notification-list">
-        <div className="notification-header">
+      <div className={styles.notificationList}>
+        <div className={styles.notificationHeader}>
           <h3>Thông báo</h3>
         </div>
-        <div className="notification-loading">
-          <div className="spinner"></div>
+        <div className={styles.notificationLoading}>
+          <div className={styles.spinner}></div>
           <p>Đang tải...</p>
         </div>
       </div>
@@ -108,12 +108,12 @@ export const NotificationList = ({ onClose }) => {
   }
 
   return (
-    <div className="notification-list">
-      <div className="notification-header">
+    <div className={styles.notificationList}>
+      <div className={styles.notificationHeader}>
         <h3>Thông báo</h3>
         {unreadCount > 0 && (
           <button 
-            className="mark-all-read-btn"
+            className={styles.markAllReadBtn}
             onClick={markAllAsRead}
           >
             Đánh dấu đã đọc
@@ -121,17 +121,17 @@ export const NotificationList = ({ onClose }) => {
         )}
       </div>
 
-      <div className="notification-items">
+      <div className={styles.notificationItems}>
         {notifications.length === 0 ? (
-          <div className="no-notifications">
-            <span className="no-notif-icon">🔔</span>
+          <div className={styles.noNotifications}>
+            <span className={styles.noNotifIcon}>🔔</span>
             <p>Chưa có thông báo nào</p>
           </div>
         ) : (
           notifications.map((notif) => (
             <div
               key={notif.id}
-              className={`notification-item ${!notif.read ? 'unread' : ''}`}
+              className={`${styles.notificationItem} ${!notif.read ? styles.unread : ''}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -140,20 +140,20 @@ export const NotificationList = ({ onClose }) => {
               }}
               style={{ cursor: 'pointer' }}
             >
-              <div className="notif-icon" style={{ background: getIconBackground(notif.type) }}>
+              <div className={styles.notifIcon} style={{ background: getIconBackground(notif.type) }}>
                 {getIcon(notif.type)}
               </div>
               
-              <div className="notif-content">
-                <div className="notif-title">{notif.title}</div>
-                <div className="notif-message">{notif.message}</div>
-                <div className="notif-time">{formatTime(notif.createdAt)}</div>
+              <div className={styles.notifContent}>
+                <div className={styles.notifTitle}>{notif.title}</div>
+                <div className={styles.notifMessage}>{notif.message}</div>
+                <div className={styles.notifTime}>{formatTime(notif.createdAt)}</div>
               </div>
 
-              <div className="notif-actions">
-                {!notif.read && <div className="unread-dot"></div>}
+              <div className={styles.notifActions}>
+                {!notif.read && <div className={styles.unreadDot}></div>}
                 <button 
-                  className="delete-notif-btn"
+                  className={styles.deleteNotifBtn}
                   onClick={(e) => handleDelete(e, notif.id)}
                   aria-label="Xóa thông báo"
                   title="Xóa thông báo"
@@ -168,9 +168,9 @@ export const NotificationList = ({ onClose }) => {
 
       {/* Load More Button */}
       {!loading && hasMore && (
-        <div className="notification-footer" style={{ borderTop: '1px solid #e9ecef', borderBottom: 'none' }}>
+        <div className={styles.notificationFooter} style={{ borderTop: '1px solid #e9ecef', borderBottom: 'none' }}>
           <button 
-            className="view-all-btn"
+            className={styles.viewAllBtn}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -197,9 +197,9 @@ export const NotificationList = ({ onClose }) => {
 
       {/* View All / Navigate Button */}
       {notifications.length > 0 && (
-        <div className="notification-footer">
+        <div className={styles.notificationFooter}>
           <button 
-            className="view-all-btn"
+            className={styles.viewAllBtn}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

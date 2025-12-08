@@ -1,0 +1,156 @@
+/* Members Page Styles */
+.membersPage {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  min-height: 100vh;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0B2545;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleIcon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #0D47A1 0%, #08316A 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, #0D47A1 0%, #08316A 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.2);
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13, 71, 161, 0.3);
+}
+
+.btnSecondary {
+  background: white;
+  color: #0D47A1;
+  border: 2px solid #0D47A1;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btnSecondary:hover {
+  background: #0D47A1;
+  color: white;
+}
+
+.alertBox {
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertSuccess {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alertError {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.alertIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.contentCard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(11, 37, 69, 0.08);
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .membersPage {
+    padding: 16px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    flex: 1;
+    justify-content: center;
+  }
+}

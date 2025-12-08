@@ -1,7 +1,7 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PackageModel } from '../../../firebase/lib/features/package/packages.model.js';
 import { SpendingUserModel } from '../../../firebase/lib/features/user/spendingUser.model.js';
-import './AddNewuser.css';
+import styles from './AddNewuser.module.css';
 
 export default function AddNewUser({ isOpen, onClose, onSubmit }) {
   const [form, setForm] = useState({
@@ -45,8 +45,8 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
       const activePackages = await PackageModel.getAll({ status: 'active' });
       setPackages(activePackages);
     } catch (err) {
-      console.error('Loi khi load packages:', err);
-      setError('Khong the tai danh sach goi tap');
+      console.error('Lỗi khi load packages:', err);
+      setError('Không thể tải danh sách gói tập');
     } finally {
       setLoadingPackages(false);
     }
@@ -122,7 +122,7 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
 
     if (!form.full_name || !form.phone_number || !form.date_of_birth || !form.gender || 
         !form.membership_status || !form.current_package_id || !form.package_end_date || !form.join_date) {
-      setError("Vui long nhap day du cac truong bat buoc.");
+      setError("Vui lòng nhập đầy đủ các trường bắt buộc.");
       return;
     }
 
@@ -156,10 +156,10 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
 
       if (onSubmit) {
         await onSubmit(userData);
-        // Không cần set success message ở đây vì sẽ redirect ngay
+        // Kh�ng c?n set success message ? d�y v� s? redirect ngay
       } else {
         await SpendingUserModel.create(userData);
-        setSuccessMessage("✅ Hội viên đã được tạo thành công!");
+        setSuccessMessage("Hội viên đã được tạo thành công!");
         
         setTimeout(() => {
           setForm({
@@ -190,8 +190,8 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
       }
 
     } catch (err) {
-      console.error("Loi tao nguoi dung:", err);
-      setError("Loi: " + (err.message || "Khong the tao nguoi dung"));
+      console.error("Lỗi tạo người dùng:", err);
+      setError("Lỗi: " + (err.message || "Không thể tạo người dùng"));
     } finally {
       setIsLoading(false);
     }
@@ -200,46 +200,39 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
   if (!isOpen) return null;
 
   return (
-    <div className="popup-overlay">
-      <div className="addnewuser-card">
-        <div className="addnewuser-brand">
-          <div className="addnewuser-logo">REPS</div>
-          <div className="addnewuser-brand-text">
-            <h1>Them Hoi Vien Moi</h1>
-            <p>Nhap thong tin de tao tai khoan hoi vien</p>
+    <div className={styles.popupOverlay}>
+      <div className={styles.addnewuserCard}>
+        <div className={styles.addnewuserBrand}>
+          <div className={styles.addnewuserLogo}>REPS</div>
+          <div className={styles.addnewuserBrandText}>
+            <h1>Thêm Hội Viên Mới</h1>
+            <p>Nhập thông tin để tạo tài khoản hội viên</p>
           </div>
         </div>
         
-        <form className="addnewuser-form" onSubmit={handleSubmit} noValidate>
+        <form className={styles.addnewuserForm} onSubmit={handleSubmit} noValidate>
           {successMessage && (
-            <div className="form-success" style={{ 
-              color: 'green', 
-              marginBottom: '10px',
-              padding: '10px',
-              backgroundColor: '#d4edda',
-              borderRadius: '4px',
-              textAlign: 'center'
-            }}>
+            <div className={styles.formSuccess}>
               {successMessage}
             </div>
           )}
-          {error && <div className="form-error">{error}</div>}
+          {error && <div className={styles.formError}>{error}</div>}
           
-          <div className="addnewuser-form-row">
-            <div className="addnewuser-form-col">
-              <label className="field">
-                <span>Ho va ten *</span>
+          <div className={styles.addnewuserFormRow}>
+            <div className={styles.addnewuserFormCol}>
+              <label className={styles.field}>
+                <span>Họ và tên *</span>
                 <input 
                   name="full_name" 
                   value={form.full_name} 
                   onChange={handleChange} 
-                  placeholder="Nguyen Van A"
+                  placeholder="Nguyễn Văn A"
                   required 
                 />
               </label>
 
-              <label className="field">
-                <span>So dien thoai *</span>
+              <label className={styles.field}>
+                <span>Số điện thoại *</span>
                 <input 
                   name="phone_number" 
                   value={form.phone_number} 
@@ -249,7 +242,7 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                 />
               </label>
 
-              <label className="field">
+              <label className={styles.field}>
                 <span>Email</span>
                 <input 
                   name="email" 
@@ -260,8 +253,8 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                 />
               </label>
 
-              <label className="field">
-                <span>Ngay sinh *</span>
+              <label className={styles.field}>
+                <span>Ngày sinh *</span>
                 <input 
                   name="date_of_birth" 
                   type="date" 
@@ -271,19 +264,19 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                 />
               </label>
 
-              <label className="field">
-                <span>Gioi tinh *</span>
+              <label className={styles.field}>
+                <span>Giới tính *</span>
                 <select name="gender" value={form.gender} onChange={handleChange} required>
                   <option value="male">Nam</option>
-                  <option value="female">Nu</option>
-                  <option value="other">Khac</option>
+                  <option value="female">Nữ</option>
+                  <option value="other">Khác</option>
                 </select>
               </label>
             </div>
 
-            <div className="addnewuser-form-col">
-              <label className="field">
-                <span>Ngay dang ky *</span>
+            <div className={styles.addnewuserFormCol}>
+              <label className={styles.field}>
+                <span>Ngày tham gia *</span>
                 <input 
                   name="join_date" 
                   type="date" 
@@ -293,10 +286,10 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                 />
               </label>
 
-              <label className="field">
-                <span>Goi tap *</span>
+              <label className={styles.field}>
+                <span>Gói tập *</span>
                 {loadingPackages ? (
-                  <div style={{ padding: '10px' }}>Dang tai goi tap...</div>
+                  <div style={{ padding: '10px' }}>Đang tải gói tập...</div>
                 ) : (
                   <select 
                     name="current_package_id" 
@@ -304,7 +297,7 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                     onChange={handlePackageChange} 
                     required
                   >
-                    <option value="">-- Chon goi tap --</option>
+                    <option value="">-- Chọn gói tập --</option>
                     {packages.map((pkg) => (
                       <option key={pkg.PackageId} value={pkg.PackageId}>
                         {pkg.PackageName} - {pkg.getFinalPrice().toLocaleString('vi-VN')}d 
@@ -325,113 +318,113 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
                   marginBottom: '10px'
                 }}>
                   <p style={{ margin: '2px 0' }}>
-                    {selectedPackage.PackageType === 'time' ? 'Theo thoi gian' : 'Theo buoi'}
+                    {selectedPackage.PackageType === 'time' ? 'Theo thời gian' : 'Theo buổi'}
                   </p>
                   {selectedPackage.PackageType === 'session' && (
                     <p style={{ margin: '2px 0' }}>
-                      {selectedPackage.NumberOfSession} buoi
+                      {selectedPackage.NumberOfSession} buổi
                     </p>
                   )}
                   {selectedPackage.Discount > 0 && (
                     <p style={{ margin: '2px 0', color: '#ff6b6b' }}>
-                      Giam {selectedPackage.Discount}%
+                      Giảm {selectedPackage.Discount}%
                     </p>
                   )}
                 </div>
               )}
 
-              <label className="field">
-                <span>Ngay het han goi *</span>
+              <label className={styles.field}>
+                <span>Ngày hết hạn gói *</span>
                 <input 
                   name="package_end_date" 
                   type="date" 
                   value={form.package_end_date} 
                   readOnly
                   style={{ backgroundColor: '#f5f5f5' }}
-                  title="Tu dong tinh dua tren goi tap da chon"
+                  title="Tự động tính dựa trên gói tập đã chọn"
                   required 
                 />
               </label>
 
-              <label className="field">
-                <span>Trang thai goi tap *</span>
+              <label className={styles.field}>
+                <span>Trạng thái gói tập *</span>
                 <select name="membership_status" value={form.membership_status} onChange={handleChange} required>
-                  <option value="Active">Hoat dong</option>
-                  <option value="Trial">Dung thu</option>
-                  <option value="Frozen">Tam dung</option>
-                  <option value="Expired">Het han</option>
+                  <option value="Active">Hoạt động</option>
+                  <option value="Trial">Dùng thử</option>
+                  <option value="Frozen">Tạm dừng</option>
+                  <option value="Expired">Hết hạn</option>
                 </select>
               </label>
 
-              <label className="field">
-                <span>Nguon khach hang</span>
+              <label className={styles.field}>
+                <span>Nguồn khách hàng</span>
                 <select name="lead_source" value={form.lead_source} onChange={handleChange}>
-                  <option value="">-- Chon nguon --</option>
+                  <option value="">-- Chọn nguồn --</option>
                   <option value="Facebook">Facebook</option>
                   <option value="Instagram">Instagram</option>
                   <option value="Website">Website</option>
-                  <option value="Gioi thieu">Gioi thieu</option>
-                  <option value="Khac">Khac</option>
+                  <option value="Giới thiệu">Giới thiệu</option>
+                  <option value="Khác">Khác</option>
                 </select>
               </label>
             </div>
 
-            <div className="addnewuser-form-col">
-              <label className="field">
-                <span>Nhan vien phu trach</span>
+            <div className={styles.addnewuserFormCol}>
+              <label className={styles.field}>
+                <span>Nhân viên phụ trách</span>
                 <input 
                   name="assigned_staff_id" 
                   value={form.assigned_staff_id} 
                   onChange={handleChange}
-                  placeholder="ID nhan vien"
+                  placeholder="ID nhân viên"
                 />
               </label>
 
-              <label className="field">
-                <span>Muc tieu tap luyen</span>
+              <label className={styles.field}>
+                <span>Mục tiêu tập luyện</span>
                 <input 
                   name="fitness_goal" 
                   value={form.fitness_goal} 
                   onChange={handleChange}
-                  placeholder="Giam can, Tang co"
+                  placeholder="Giảm cân, Tăng cơ"
                 />
               </label>
 
-              <label className="field">
-                <span>Van de suc khoe</span>
+              <label className={styles.field}>
+                <span>Vấn đề sức khỏe</span>
                 <input 
                   name="medical_conditions" 
                   value={form.medical_conditions} 
                   onChange={handleChange}
-                  placeholder="Benh tim, Tieu duong"
+                  placeholder="Bệnh tim, Tiểu đường"
                 />
               </label>
 
-              <label className="field">
-                <span>Can nang ban dau (kg)</span>
+              <label className={styles.field}>
+                <span>Cân nặng ban đầu (kg)</span>
                 <input 
                   name="weight" 
                   type="number" 
                   step="0.1"
                   value={form.weight} 
                   onChange={handleChange} 
-                  placeholder="Vi du: 70.5" 
+                  placeholder="Ví dụ: 70.5" 
                 />
               </label>
 
-              <label className="field">
-                <span>Chieu cao ban dau (cm)</span>
+              <label className={styles.field}>
+                <span>Chiều cao ban đầu (cm)</span>
                 <input 
                   name="height" 
                   type="number" 
                   step="0.1"
                   value={form.height} 
                   onChange={handleChange} 
-                  placeholder="Vi du: 175" 
+                  placeholder="Ví dụ: 175" 
                 />
               </label>
 
-              <label className="field">
+              <label className={styles.field}>
                 <span>Avatar URL</span>
                 <input 
                   name="avatar_url" 
@@ -444,18 +437,18 @@ export default function AddNewUser({ isOpen, onClose, onSubmit }) {
           </div>
 
           <button 
-            className="btn primary addnewuser-btn" 
+            className={`${styles.addnewuserBtn} ${styles.primary}`} 
             type="submit" 
             disabled={isLoading || loadingPackages}
           >
             {isLoading ? "Đang xử lý..." : "Thanh toán gói tập và tạo hội viên"}
           </button>
 
-          <div className="or">hoặc</div>
+          <div className={styles.or}>hoặc</div>
 
-          <button 
+          <button
             type="button" 
-            className="btn outline addnewuser-btn cancel" 
+            className={`${styles.addnewuserBtn} ${styles.cancel}`}
             onClick={onClose}
             disabled={isLoading}
           >

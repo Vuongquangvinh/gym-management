@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./EditCheckinModal.css";
+import styles from "./EditCheckinModal.module.css";
 import Swal from 'sweetalert2';
 
 export default function EditCheckinModal({ 
@@ -112,21 +112,21 @@ export default function EditCheckinModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Sửa thời gian check-in</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3>Chỉnh sửa check-in</h3>
+          <button className={styles.modalClose} onClick={onClose}>×</button>
         </div>
 
-        <div className="checkin-info">
+        <div className={styles.checkinInfo}>
           <p><strong>Thành viên:</strong> {checkinData?.memberName || 'N/A'}</p>
           <p><strong>Số điện thoại:</strong> {checkinData?.memberPhone || 'N/A'}</p>
           <p><strong>Nguồn:</strong> {checkinData?.source === 'QR' ? 'QR Code' : 'Thủ công'}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="edit-checkin-form">
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className={styles.editCheckinForm}>
+          <div className={styles.formGroup}>
             <label htmlFor="checkedAt">Thời gian check-in *</label>
             <input
               type="datetime-local"
@@ -138,19 +138,19 @@ export default function EditCheckinModal({
             />
           </div>
 
-          <div className="form-actions">
+          <div className={styles.formActions}>
             <button 
               type="button" 
-              className="btn-delete" 
+              className={styles.btnDelete} 
               onClick={handleDelete}
               disabled={isSubmitting || isDeleting}
             >
               {isDeleting ? "Đang xóa..." : "🗑️ Xóa"}
             </button>
-            <div className="right-actions">
+            <div className={styles.rightActions}>
               <button 
                 type="button" 
-                className="btn-cancel" 
+                className={styles.btnCancel} 
                 onClick={onClose}
                 disabled={isSubmitting || isDeleting}
               >
@@ -158,7 +158,7 @@ export default function EditCheckinModal({
               </button>
               <button 
                 type="submit" 
-                className="btn-save"
+                className={styles.btnSave}
                 disabled={isSubmitting || isDeleting}
               >
                 {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

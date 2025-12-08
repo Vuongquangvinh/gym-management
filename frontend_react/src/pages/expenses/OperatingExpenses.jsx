@@ -35,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import { ExpenseService } from '../../firebase/lib/features/expense/expense.service.js';
 import { EXPENSE_TYPE, EXPENSE_CATEGORY, EXPENSE_STATUS, ExpenseModel } from '../../firebase/lib/features/expense/expense.model.js';
-import './OperatingExpenses.css';
+import styles from './OperatingExpenses.module.css';
 
 /**
  * 💸 Operating Expenses Management
@@ -247,7 +247,7 @@ export default function OperatingExpenses() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box className="header" display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box className={styles.header} display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1" fontWeight="bold">
           💸 Quản lý Chi phí Vận hành
         </Typography>

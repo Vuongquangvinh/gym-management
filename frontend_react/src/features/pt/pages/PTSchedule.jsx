@@ -8,7 +8,7 @@ import PTFaceRegistrationModal from '../components/PTFaceRegistrationModal';
 import PTFaceCheckinModal from '../components/PTFaceCheckinModal';
 import PTCheckinStats from '../components/PTCheckinStats';
 import Swal from 'sweetalert2';
-import './PTSchedule.css';
+import styles  from './PTSchedule.module.css';
 
 // WeeklyDatePicker Component (simplified for PT view)
 const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
@@ -69,22 +69,22 @@ const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
   };
 
   return (
-    <div className="pt-weekly-date-picker">
-      <div className="pt-week-navigation">
+    <div className={styles.ptWeeklyDatePicker}>
+      <div className={styles.ptWeekNavigation}>
         <button 
-          className="pt-nav-button" 
+          className={styles.ptNavButton} 
           onClick={goToPreviousWeek}
           title="Tuần trước"
         >
           <ChevronLeft size={20} />
         </button>
         
-        <div className="pt-week-info">
-          <h3 className="pt-week-title">
+        <div className={styles.ptWeekInfo}>
+          <h3 className={styles.ptWeekTitle}>
             Tuần {startOfWeek.getDate()}/{startOfWeek.getMonth() + 1} - {weekDays[6].getDate()}/{weekDays[6].getMonth() + 1}/{weekDays[6].getFullYear()}
           </h3>
           <button 
-            className="pt-today-button" 
+            className={styles.ptTodayButton} 
             onClick={goToCurrentWeek}
             title="Về tuần hiện tại"
           >
@@ -94,7 +94,7 @@ const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
         </div>
         
         <button 
-          className="pt-nav-button" 
+          className={styles.ptNavButton} 
           onClick={goToNextWeek}
           title="Tuần sau"
         >
@@ -102,15 +102,15 @@ const PTWeeklyDatePicker = ({ selectedDate, onDateChange }) => {
         </button>
       </div>
 
-      <div className="pt-week-days">
+      <div className={styles.ptWeekDays}>
         {weekDays.map((day, index) => (
           <button
             key={index}
-            className={`pt-day-button ${isSelected(day) ? 'selected' : ''} ${isToday(day) ? 'today' : ''}`}
+            className={`${styles.ptDayButton} ${isSelected(day) ? styles.selected : ''} ${isToday(day) ? styles.today : ''}`}
             onClick={() => onDateChange(day)}
           >
-            <div className="pt-day-name">{formatDayName(day)}</div>
-            <div className="pt-day-number">{formatDate(day)}</div>
+            <div className={styles.ptDayName}>{formatDayName(day)}</div>
+            <div className={styles.ptDayNumber}>{formatDate(day)}</div>
           </button>
         ))}
       </div>
@@ -126,38 +126,38 @@ const MemberDetailModal = ({ member, isOpen, onClose }) => {
   const user = member.user;
 
   return (
-    <div className="member-detail-modal-overlay" onClick={onClose}>
-      <div className="member-detail-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles.memberDetailModalOverlay} onClick={onClose}>
+      <div className={styles.memberDetailModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
           <h3>
             <User size={20} />
             Thông tin học viên
           </h3>
-          <button className="close-btn" onClick={onClose}>
+          <button className={styles.closeBtn} onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className={styles.modalBody}>
           {/* Avatar & Basic Info */}
-          <div className="member-profile">
-            <div className="member-avatar-large">
+          <div className={styles.memberProfile}>
+            <div className={styles.memberAvatarLarge}>
               {user?.photoURL || user?.avatar ? (
                 <img src={user.photoURL || user.avatar} alt={member.fullName} />
               ) : (
                 <span>{member.fullName.charAt(0).toUpperCase()}</span>
               )}
             </div>
-            <div className="member-profile-info">
+            <div className={styles.memberProfileInfo}>
               <h4>{member.fullName}</h4>
               {user?.email && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <Mail size={16} />
                   <span>{user.email}</span>
                 </div>
               )}
               {user?.phone && (
-                <div className="info-row">
+                <div className={styles.infoRow}>
                   <Phone size={16} />
                   <span>{user.phone}</span>
                 </div>
@@ -166,37 +166,37 @@ const MemberDetailModal = ({ member, isOpen, onClose }) => {
           </div>
 
           {/* Contract Info */}
-          <div className="info-section">
+          <div className={styles.infoSection}>
             <h5>📋 Thông tin gói tập</h5>
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="label">Loại gói:</span>
-                <span className="value">{contract?.packageId?.name || 'N/A'}</span>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Loại gói:</span>
+                <span className={styles.value}>{contract?.packageId?.name || 'N/A'}</span>
               </div>
-              <div className="info-item">
-                <span className="label">Số buổi còn lại:</span>
-                <span className="value highlight">{contract?.sessionsRemaining || 0} buổi</span>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Số buổi còn lại:</span>
+                <span className={`${styles.value} ${styles.highlight}`}>{contract?.sessionsRemaining || 0} buổi</span>
               </div>
-              <div className="info-item">
-                <span className="label">Trạng thái:</span>
-                <span className={`value status ${contract?.status}`}>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Trạng thái:</span>
+                <span className={`${styles.value} ${styles.status} ${contract?.status}`}>
                   {contract?.status === 'active' ? '✅ Đang hoạt động' : 
                    contract?.status === 'expired' ? '⏰ Hết hạn' : 
                    contract?.status === 'cancelled' ? '❌ Đã hủy' : 'N/A'}
                 </span>
               </div>
               {contract?.startDate && (
-                <div className="info-item">
-                  <span className="label">Ngày bắt đầu:</span>
-                  <span className="value">
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>Ngày bắt đầu:</span>
+                  <span className={styles.value}>
                     {new Date(contract.startDate.toDate?.() || contract.startDate).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
               )}
               {contract?.endDate && (
-                <div className="info-item">
-                  <span className="label">Ngày kết thúc:</span>
-                  <span className="value">
+                <div className={styles.infoItem}>
+                  <span className={styles.label}>Ngày kết thúc:</span>
+                  <span className={styles.value}>
                     {new Date(contract.endDate.toDate?.() || contract.endDate).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
@@ -206,15 +206,15 @@ const MemberDetailModal = ({ member, isOpen, onClose }) => {
 
           {/* Weekly Schedule */}
           {contract?.weeklySchedule?.schedule && (
-            <div className="info-section">
+            <div className={styles.infoSection}>
               <h5>📅 Lịch tập trong tuần</h5>
-              <div className="weekly-schedule-grid">
+              <div className={styles.weeklyScheduleGrid}>
                 {Object.entries(contract.weeklySchedule.schedule).map(([day, slot]) => {
                   const dayNames = { 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7', 7: 'CN' };
                   return (
-                    <div key={day} className="schedule-slot">
-                      <span className="day-label">{dayNames[day]}</span>
-                      <span className="time-label">{slot.startTime} - {slot.endTime}</span>
+                    <div key={day} className={styles.scheduleSlot}>
+                      <span className={styles.dayLabel}>{dayNames[day]}</span>
+                      <span className={styles.timeLabel}>{slot.startTime} - {slot.endTime}</span>
                     </div>
                   );
                 })}
@@ -224,9 +224,9 @@ const MemberDetailModal = ({ member, isOpen, onClose }) => {
 
           {/* Notes */}
           {contract?.notes && (
-            <div className="info-section">
+            <div className={styles.infoSection}>
               <h5>📝 Ghi chú</h5>
-              <p className="notes-text">{contract.notes}</p>
+              <p className={styles.notesText}>{contract.notes}</p>
             </div>
           )}
         </div>
@@ -257,44 +257,44 @@ const TimeSlotSection = ({ timeSlot, members, onMemberClick, slotDate }) => {
   }
 
   return (
-    <div className={`time-slot-section${isPast ? ' past' : ''}`}>
-      <div className="time-slot-header" onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="time-slot-info">
+    <div className={`${styles.timeSlotSection}${isPast ? ' '+styles.past : ''}`}>
+      <div className={styles.timeSlotHeader} onClick={() => setIsExpanded(!isExpanded)}>
+        <div className={styles.timeSlotInfo}>
           <Clock size={18} />
-          <span className="time-range">{timeSlot}</span>
-          <span className="member-count-badge">{members.length}</span>
+          <span className={styles.timeRange}>{timeSlot}</span>
+          <span className={styles.memberCountBadge}>{members.length}</span>
         </div>
-        <ChevronRight size={18} className={isExpanded ? 'rotated' : ''} />
+        <ChevronRight size={18} className={isExpanded ? styles.rotated : ''} />
       </div>
 
       {isExpanded && (
-        <div className="time-slot-members">
+        <div className={styles.timeSlotMembers}>
           {members.map((member, idx) => (
             <div 
               key={idx} 
-              className="member-card"
+              className={styles.memberCard}
               onClick={() => onMemberClick(member)}
             >
-              <div className="member-card-avatar">
+              <div className={styles.memberCardAvatar}>
                 {member.user?.photoURL || member.user?.avatar ? (
                   <img src={member.user.photoURL || member.user.avatar} alt={member.fullName} />
                 ) : (
                   <span>{member.fullName.charAt(0).toUpperCase()}</span>
                 )}
               </div>
-              <div className="member-card-info">
-                <div className="member-card-name">{member.fullName}</div>
-                <div className="member-card-meta">
-                  <span className="member-time">{member.startTime} - {member.endTime}</span>
+              <div className={styles.memberCardInfo}>
+                <div className={styles.memberCardName}>{member.fullName}</div>
+                <div className={styles.memberCardMeta}>
+                  <span className={styles.memberTime}>{member.startTime} - {member.endTime}</span>
                   {member.contract?.sessionsRemaining !== undefined && (
-                    <span className="sessions-remaining">
+                    <span className={styles.sessionsRemaining}>
                       {member.contract.sessionsRemaining} buổi còn lại
                     </span>
                   )}
                 </div>
               </div>
-              <div className="member-card-status">
-                <span className={`status-badge ${member.contract?.status}`}>
+              <div className={styles.memberCardStatus}>
+                <span className={`${styles.statusBadge} ${member.contract?.status}`}>
                   {member.contract?.status === 'active' ? '✓' : 
                    member.contract?.status === 'expired' ? '⏰' : '?'}
                 </span>
@@ -520,9 +520,9 @@ const PTScheduleContent = () => {
 
   if (loading) {
     return (
-      <div className="pt-schedule-page">
-        <div className="pt-schedule-loading">
-          <div className="loading-spinner"></div>
+      <div className={styles.ptSchedulePage}>
+        <div className={styles.ptScheduleLoading}>
+          <div className={styles.loadingSpinner}></div>
           <p>Đang tải dữ liệu...</p>
         </div>
       </div>
@@ -531,8 +531,8 @@ const PTScheduleContent = () => {
 
   if (!employee) {
     return (
-      <div className="pt-schedule-page">
-        <div className="pt-schedule-error">
+      <div className={styles.ptSchedulePage}>
+        <div className={styles.ptScheduleError}>
           <p>Không tìm thấy thông tin nhân viên</p>
         </div>
       </div>
@@ -540,37 +540,37 @@ const PTScheduleContent = () => {
   }
 
   return (
-    <div className="pt-schedule-page">
+    <div className={styles.ptSchedulePage}>
       {/* Header */}
-      <div className="pt-schedule-header">
-        <div className="header-left">
+      <div className={styles.ptScheduleHeader}>
+        <div className={styles.headerLeft}>
           <h1>📅 Lịch làm việc của tôi</h1>
           <p>Xem lịch làm việc và trạng thái check-in/check-out</p>
         </div>
         
-        <div className="header-right">
+        <div className={styles.headerRight}>
           {/* Employee Info Badge */}
-          <div className="pt-employee-badge">
-            <div className="badge-avatar">
+          <div className={styles.ptEmployeeBadge}>
+            <div className={styles.badgeAvatar}>
               {employee.avatarUrl ? (
                 <img src={employee.avatarUrl} alt={employee.fullName || employee.name} />
               ) : (
                 <span>{(employee.fullName || employee.name).charAt(0).toUpperCase()}</span>
               )}
             </div>
-            <div className="badge-info">
-              <div className="badge-name">{employee.fullName || employee.name}</div>
-              <div className={`badge-shift ${employee.shift}`}>
+            <div className={styles.badgeInfo}>
+              <div className={styles.badgeName}>{employee.fullName || employee.name}</div>
+              <div className={`${styles.badgeShift} ${employee.shift}`}>
                 {employee.shift === 'fulltime' ? '⏰ Fulltime' : '🕐 Partime'}
               </div>
             </div>
           </div>
           
           {/* Face ID Actions */}
-          <div className="pt-face-actions">
+          <div className={styles.ptFaceActions}>
             {!employee.faceRegistered ? (
               <button 
-                className="btn-register-face-id"
+                className={styles.btnRegisterFaceId}
                 onClick={() => setShowFaceRegistrationModal(true)}
                 title="Đăng ký Face ID để check-in/checkout nhanh hơn"
               >
@@ -579,14 +579,14 @@ const PTScheduleContent = () => {
             ) : (
               <>
                 <button 
-                  className="btn-face-checkin"
+                  className={styles.btnFaceCheckin}
                   onClick={() => setShowFaceCheckinModal(true)}
                   title="Sử dụng Face ID để check-in/checkout"
                 >
                   ✨ Face Check-in
                 </button>
                 <button 
-                  className="btn-delete-face-id"
+                  className={styles.btnDeleteFaceId}
                   onClick={handleDeleteFaceID}
                   title="Xóa Face ID và đăng ký lại"
                 >
@@ -605,20 +605,20 @@ const PTScheduleContent = () => {
       />
 
       {/* Shift Type Info & Face ID Status */}
-      <div className="pt-info-cards">
+      <div className={styles.ptInfoCards}>
         {/* Shift Info */}
         {employee.shift === 'fulltime' ? (
-          <div className="shift-info-card fulltime">
-            <div className="shift-icon">⏰</div>
-            <div className="shift-details">
+          <div className={`${styles.shiftInfoCard} ${styles.fulltime}`}>
+            <div className={styles.shiftIcon}>⏰</div>
+            <div className={styles.shiftDetails}>
               <h3>Nhân viên Fulltime</h3>
               <p>Bạn làm việc toàn thời gian với lịch cố định hàng ngày (08:00 - 17:00)</p>
             </div>
           </div>
         ) : (
-          <div className="shift-info-card parttime">
-            <div className="shift-icon">🕐</div>
-            <div className="shift-details">
+          <div className={`${styles.shiftInfoCard} ${styles.parttime}`}>
+            <div className={styles.shiftIcon}>🕐</div>
+            <div className={styles.shiftDetails}>
               <h3>Nhân viên Partime</h3>
               <p>Bạn làm việc bán thời gian theo lịch được sắp xếp. Chỉ những ngày có lịch mới cần check-in.</p>
             </div>
@@ -626,9 +626,9 @@ const PTScheduleContent = () => {
         )}
 
         {/* Face ID Status */}
-        <div className={`face-id-status-card ${employee.faceRegistered ? 'registered' : 'unregistered'}`}>
-          <div className="face-id-icon">{employee.faceRegistered ? '✅' : '📷'}</div>
-          <div className="face-id-details">
+        <div className={`${styles.faceIdStatusCard} ${employee.faceRegistered ? styles.registered : styles.unregistered}`}>
+          <div className={styles.faceIdIcon}>{employee.faceRegistered ? '✅' : '📷'}</div>
+          <div className={styles.faceIdDetails}>
             <h3>{employee.faceRegistered ? 'Face ID đã đăng ký' : 'Chưa có Face ID'}</h3>
             <p>
               {employee.faceRegistered 
@@ -637,7 +637,7 @@ const PTScheduleContent = () => {
               }
             </p>
             {employee.faceRegistered && employee.faceIdCreatedAt && (
-              <p className="registration-date">
+              <p className={styles.registrationDate}>
                 Đăng ký: {new Date(employee.faceIdCreatedAt.toDate?.() || employee.faceIdCreatedAt).toLocaleDateString('vi-VN')}
               </p>
             )}
@@ -654,7 +654,7 @@ const PTScheduleContent = () => {
      
 
       {/* Weekly Schedule Accordion */}
-      <div className="pt-schedule-accordion">
+      <div className={styles.ptScheduleAccordion}>
         {weekDays.map((day, index) => {
           // Lấy thứ trong tuần (1=Thứ 2, ..., 7=Chủ nhật)
           const jsDay = day.getDay();
@@ -698,54 +698,54 @@ const PTScheduleContent = () => {
           return (
             <div
               key={index}
-              className={`pt-schedule-accordion-item ${isToday ? 'today' : ''} ${isPast ? 'past' : ''} ${isExpanded ? 'expanded' : ''}`}
+              className={`${styles.ptScheduleAccordionItem} ${isToday ? styles.today : ''} ${isPast ? styles.past : ''} ${isExpanded ? styles.expanded : ''}`}
             >
               {/* Accordion Header - Always visible */}
-              <div className="accordion-header" onClick={toggleDay}>
-                <div className="header-content">
-                  <div className="day-info">
-                    <div className="day-name">{day.toLocaleDateString('vi-VN', { weekday: 'long' })}</div>
-                    <div className="day-date">{day.getDate()}/{day.getMonth() + 1}/{day.getFullYear()}</div>
+              <div className={styles.accordionHeader} onClick={toggleDay}>
+                <div className={styles.headerContent}>
+                  <div className={styles.dayInfo}>
+                    <div className={styles.dayName}>{day.toLocaleDateString('vi-VN', { weekday: 'long' })}</div>
+                    <div className={styles.dayDate}>{day.getDate()}/{day.getMonth() + 1}/{day.getFullYear()}</div>
                   </div>
-                  <div className="member-count">
-                    <span className="count-badge">{membersForDay.length} học viên</span>
-                    {isToday && <span className="today-badge-small">Hôm nay</span>}
+                  <div className={styles.memberCount}>
+                    <span className={styles.countBadge}>{membersForDay.length} học viên</span>
+                    {isToday && <span className={styles.todayBadgeSmall}>Hôm nay</span>}
                   </div>
                 </div>
-                <div className="toggle-icon">
-                  <ChevronRight size={20} className={isExpanded ? 'rotated' : ''} />
+                <div className={styles.toggleIcon}>
+                  <ChevronRight size={20} className={isExpanded ? styles.rotated : ''} />
                 </div>
               </div>
 
               {/* Accordion Content - Expandable */}
               {isExpanded && (
-                <div className="accordion-content">
+                <div className={styles.accordionContent}>
                   {membersForDay.length > 0 ? (
                     <>
                       {/* Day Statistics */}
-                      <div className="day-statistics">
-                        <div className="stat-item stat-total-students">
-                          <span className="stat-label">Tổng học viên:</span>
-                          <span className="stat-value">{stats.total}</span>
+                      <div className={styles.dayStatistics}>
+                        <div className={`${styles.statItem} ${styles.statTotalStudents}`}>
+                          <span className={styles.statLabel}>Tổng học viên:</span>
+                          <span className={styles.statValue}>{stats.total}</span>
                         </div>
-                        <div className="stat-item stat-total-slots">
-                          <span className="stat-label">Tổng khung giờ:</span>
-                          <span className="stat-value">{stats.totalTimeSlots}</span>
+                        <div className={`${styles.statItem} ${styles.statTotalSlots}`}>
+                          <span className={styles.statLabel}>Tổng khung giờ:</span>
+                          <span className={styles.statValue}>{stats.totalTimeSlots}</span>
                         </div>
-                        <div className="stat-item stat-remaining-slots">
-                          <span className="stat-label">Khung giờ còn lại:</span>
-                          <span className="stat-value highlight">{stats.remainingTimeSlots}</span>
+                        <div className={`${styles.statItem} ${styles.statRemainingSlots}`}>
+                          <span className={styles.statLabel}>Khung giờ còn lại:</span>
+                          <span className={`${styles.statValue} ${styles.highlight}`}>{stats.remainingTimeSlots}</span>
                         </div>
                         {stats.expired > 0 && (
-                          <div className="stat-item">
-                            <span className="stat-label">Gói hết hạn:</span>
-                            <span className="stat-value expired">{stats.expired}</span>
+                          <div className={styles.statItem}>
+                            <span className={styles.statLabel}>Gói hết hạn:</span>
+                            <span className={`${styles.statValue} ${styles.expired}`}>{stats.expired}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Time Slots */}
-                      <div className="time-slots-container">
+                      <div className={styles.timeSlotsContainer}>
                         {timeSlotGroups.map(([timeSlot, members]) => (
                           <TimeSlotSection
                             key={timeSlot}
@@ -758,9 +758,9 @@ const PTScheduleContent = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="no-members-scheduled">
-                      <span className="no-member-icon">👤</span>
-                      <span className="no-member-text">
+                    <div className={styles.noMembersScheduled}>
+                      <span className={styles.noMemberIcon}>👤</span>
+                      <span className={styles.noMemberText}>
                         {searchTerm || filterStatus !== 'all' 
                           ? 'Không tìm thấy học viên phù hợp'
                           : 'Chưa có học viên đăng ký'
@@ -780,19 +780,19 @@ const PTScheduleContent = () => {
       
 
       {/* Legend */}
-      <div className="pt-schedule-legend">
-        <div className="legend-title">Chú thích:</div>
-        <div className="legend-items">
-          <div className="legend-item">
-            <CheckCircle className="legend-icon completed" size={16} />
+      <div className={styles.ptScheduleLegend}>
+        <div className={styles.legendTitle}>Chú thích:</div>
+        <div className={styles.legendItems}>
+          <div className={styles.legendItem}>
+            <CheckCircle className={`${styles.legendIcon} ${styles.completed}`} size={16} />
             <span>Hoàn thành (Đã check-in & check-out)</span>
           </div>
-          <div className="legend-item">
-            <Clock className="legend-icon in-progress" size={16} />
+          <div className={styles.legendItem}>
+            <Clock className={`${styles.legendIcon} ${styles.inProgress}`} size={16} />
             <span>Đang làm (Đã check-in)</span>
           </div>
-          <div className="legend-item">
-            <XCircle className="legend-icon not-started" size={16} />
+          <div className={styles.legendItem}>
+            <XCircle className={`${styles.legendIcon} ${styles.notStarted}`} size={16} />
             <span>Chưa check-in</span>
           </div>
         </div>

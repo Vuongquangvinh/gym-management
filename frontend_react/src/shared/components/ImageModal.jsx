@@ -1,5 +1,5 @@
 import React from 'react';
-import './ImageModal.css';
+import styles from './ImageModal.module.css';
 
 export function ImageModal({ isOpen, onClose, imageUrl, title }) {
   const [zoom, setZoom] = React.useState(1);
@@ -121,22 +121,22 @@ export function ImageModal({ isOpen, onClose, imageUrl, title }) {
   if (!isOpen) return null;
 
   return (
-    <div className="image-modal-overlay" onClick={handleOverlayClick}>
-      <div className="image-modal-container">
-        <div className="image-modal-header">
+    <div className={styles.imageModalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.imageModalContainer}>
+        <div className={styles.imageModalHeader}>
           <h3>{title || 'Xem ảnh'}</h3>
-          <div className="zoom-controls">
+          <div className={styles.zoomControls}>
             <button 
-              className="zoom-btn"
+              className={styles.zoomBtn}
               onClick={handleZoomOut}
               title="Zoom Out (-)"
               type="button"
             >
               🔍−
             </button>
-            <span className="zoom-level">{Math.round(zoom * 100)}%</span>
+            <span className={styles.zoomLevel}>{Math.round(zoom * 100)}%</span>
             <button 
-              className="zoom-btn"
+              className={styles.zoomBtn}
               onClick={handleZoomIn}
               title="Zoom In (+)"
               type="button"
@@ -144,7 +144,7 @@ export function ImageModal({ isOpen, onClose, imageUrl, title }) {
               🔍+
             </button>
             <button 
-              className="zoom-btn reset-btn"
+              className={`${styles.zoomBtn} ${styles.resetBtn}`}
               onClick={handleResetZoom}
               title="Reset Zoom (0)"
               type="button"
@@ -153,7 +153,7 @@ export function ImageModal({ isOpen, onClose, imageUrl, title }) {
             </button>
           </div>
           <button 
-            className="image-modal-close-btn"
+            className={styles.imageModalCloseBtn}
             onClick={onClose}
             aria-label="Đóng"
           >
@@ -161,14 +161,14 @@ export function ImageModal({ isOpen, onClose, imageUrl, title }) {
           </button>
         </div>
         <div 
-          className="image-modal-content"
+          className={styles.imageModalContent}
           onWheel={handleWheel}
           onClick={(e) => e.stopPropagation()}
         >
           <img 
             src={imageUrl} 
             alt={title || 'Ảnh phóng to'}
-            className="image-modal-image"
+            className={styles.imageModalImage}
             style={{
               transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
               cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
@@ -179,8 +179,8 @@ export function ImageModal({ isOpen, onClose, imageUrl, title }) {
             draggable={false}
           />
         </div>
-        <div className="image-modal-footer">
-          <p className="image-modal-tip">
+        <div className={styles.imageModalFooter}>
+          <p className={styles.imageModalTip}>
             ESC: Đóng | Scroll/+/-: Zoom (30%-1000%) | Kéo thả: Di chuyển | 0: Reset
           </p>
         </div>

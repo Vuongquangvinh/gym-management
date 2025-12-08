@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/lib/config/firebase';
-import './MemberScheduleModal.css';
+import styles from './MemberScheduleModal.module.css';
 
 export default function MemberScheduleModal({ open, onClose, userId, contractId, notification }) {
   const [member, setMember] = useState(null);
@@ -76,7 +76,7 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
     return (
       <Paper
         elevation={0}
-        className={highlight ? 'member-schedule-modal-schedule' : 'member-schedule-modal-schedule-old'}
+        className={highlight ? styles.memberScheduleModalSchedule : styles.memberScheduleModalScheduleOld}
         sx={{
           p: 2,
           mb: 1.5,
@@ -130,7 +130,7 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
         }
       }}
     >
-      <DialogTitle className="member-schedule-modal-title">
+      <DialogTitle className={styles.memberScheduleModalTitle}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h5" component="span" fontWeight={800}>
             Lịch tập của học viên
@@ -154,25 +154,25 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
         )}
         
         {error && (
-          <Alert severity="error" className="member-schedule-modal-error" sx={{ mb: 2 }}>
+          <Alert severity="error" className={styles.memberScheduleModalError} sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
         
         {member && (
-          <Paper elevation={0} className="member-schedule-modal-section" sx={{ mb: 2 }}>
+          <Paper elevation={0} className={styles.memberScheduleModalSection} sx={{ mb: 2 }}>
             <Stack spacing={1.5}>
               <Box display="flex" alignItems="center" gap={1}>
                 <PersonIcon color="primary" />
                 <Typography variant="body1">
-                  <span className="member-schedule-modal-label">Họ tên:</span>{' '}
+                  <span className={styles.memberScheduleModalLabel}>Họ tên:</span>{' '}
                   {member.full_name || member.displayName || member.email}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={1}>
                 <EmailIcon color="primary" />
                 <Typography variant="body1">
-                  <span className="member-schedule-modal-label">Email:</span>{' '}
+                  <span className={styles.memberScheduleModalLabel}>Email:</span>{' '}
                   {member.email}
                 </Typography>
               </Box>
@@ -181,10 +181,10 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
         )}
         
         {contract && (
-          <Paper elevation={0} className="member-schedule-modal-section" sx={{ mb: 2 }}>
+          <Paper elevation={0} className={styles.memberScheduleModalSection} sx={{ mb: 2 }}>
             <Stack spacing={1.5}>
               <Typography variant="body1">
-                <span className="member-schedule-modal-label">Gói tập:</span>{' '}
+                <span className={styles.memberScheduleModalLabel}>Gói tập:</span>{' '}
                 <Chip 
                   label={contract.packageName || contract.packageId} 
                   color="primary" 
@@ -206,7 +206,7 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
         )}
         
         {notification && (
-          <Box className="member-schedule-modal-section" sx={{ bgcolor: 'rgba(255, 107, 53, 0.04)', border: '1.5px solid rgba(255, 107, 53, 0.2)' }}>
+          <Box className={styles.memberScheduleModalSection} sx={{ bgcolor: 'rgba(255, 107, 53, 0.04)', border: '1.5px solid rgba(255, 107, 53, 0.2)' }}>
             <Typography 
               variant="h6" 
               fontWeight={700} 
@@ -226,7 +226,7 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
               <Alert 
                 severity="success" 
                 icon={<CheckCircleIcon />}
-                className="member-schedule-modal-success"
+                className={styles.memberScheduleModalSuccess}
                 sx={{ mt: 2 }}
               >
                 Đã cập nhật thành công!
@@ -234,7 +234,7 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
             ) : (
               <Typography 
                 variant="body2" 
-                className="member-schedule-modal-nochange"
+                className={styles.memberScheduleModalNochange}
                 sx={{ mt: 2, fontStyle: 'italic' }}
               >
                 Không có thay đổi về khung giờ.
@@ -250,11 +250,11 @@ export default function MemberScheduleModal({ open, onClose, userId, contractId,
         )}
       </DialogContent>
 
-      <DialogActions className="member-schedule-modal-footer" sx={{ p: 3, pt: 2 }}>
+      <DialogActions className={styles.memberScheduleModalFooter} sx={{ p: 3, pt: 2 }}>
         <Button 
           onClick={onClose}
           variant="contained"
-          className="member-schedule-modal-btn"
+          className={styles.memberScheduleModalBtn}
           sx={{
             textTransform: 'none',
             fontWeight: 700,

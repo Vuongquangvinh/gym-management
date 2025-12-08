@@ -1,0 +1,246 @@
+/* Image Modal Styles */
+.imageModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+}
+
+.imageModalContainer {
+  background: white;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.imageModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+  gap: 15px;
+}
+
+.imageModalHeader h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* Zoom Controls */
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border-radius: 8px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.zoomBtn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  color: #666;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoomBtn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.zoomBtn:active {
+  transform: scale(0.95);
+}
+
+.zoomBtn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.zoomLevel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  min-width: 45px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.resetBtn {
+  border-left: 1px solid #ddd;
+  padding-left: 12px;
+  margin-left: 4px;
+}
+
+.imageModalCloseBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.imageModalCloseBtn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.imageModalContent {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  max-height: calc(90vh - 140px);
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+.imageModalImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.imageModalFooter {
+  padding: 10px 20px;
+  border-top: 1px solid #eee;
+  background: #f8f9fa;
+  text-align: center;
+}
+
+.imageModalTip {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .imageModalOverlay {
+    padding: 10px;
+  }
+  
+  .imageModalContainer {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .imageModalHeader {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .imageModalHeader h3 {
+    font-size: 16px;
+  }
+  
+  .zoomControls {
+    padding: 2px 6px;
+    gap: 4px;
+  }
+  
+  .zoomBtn {
+    padding: 2px 4px;
+    font-size: 12px;
+    min-width: 24px;
+  }
+  
+  .zoomLevel {
+    font-size: 11px;
+    min-width: 32px;
+  }
+  
+  .imageModalContent {
+    padding: 15px;
+    max-height: calc(95vh - 120px);
+  }
+  
+  .imageModalFooter {
+    padding: 8px 15px;
+  }
+  
+  .imageModalTip {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .imageModalOverlay {
+    padding: 5px;
+  }
+  
+  .imageModalContainer {
+    max-width: 98vw;
+    max-height: 98vh;
+  }
+  
+  .imageModalHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .zoomControls {
+    justify-content: center;
+  }
+  
+  .imageModalTip {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+}

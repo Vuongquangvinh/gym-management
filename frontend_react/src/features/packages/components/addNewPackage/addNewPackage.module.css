@@ -1,0 +1,109 @@
+.addPackageContainer {
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(13, 71, 161, 0.1);
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.addPackageContainer h2 {
+  color: var(--color-primary);
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.addPackageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup.full {
+  grid-column: span 2;
+}
+
+.addPackageContainer label {
+  font-weight: 600;
+  color: var(--color-textSecondary);
+  font-size: 14px;
+}
+
+.addPackageContainer input,
+.addPackageContainer select,
+.addPackageContainer textarea {
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.addPackageContainer input:focus,
+.addPackageContainer select:focus,
+.addPackageContainer textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primaryVariant));
+  color: white;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 71, 161, 0.3);
+}
+
+.cancelBtn {
+  background: #F3F4F6;
+  color: var(--color-textPrimary);
+  padding: 12px 28px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background: #E5E7EB;
+}
+
+.errorText {
+  color: var(--color-error);
+  font-weight: 600;
+  text-align: center;
+}
+
+.required {
+  color: var(--color-error);
+}

@@ -5,7 +5,7 @@ import FaceCheckinModal from '../components/FaceCheckinModal.jsx';
 import EmployeeAvatar from '../../../shared/components/EmployeeAvatar/EmployeeAvatar.jsx';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import './FaceCheckinPage.css';
+import styles from './FaceCheckinPage.module.css';
 
 function FaceCheckinContent() {
   const {
@@ -152,31 +152,31 @@ function FaceCheckinContent() {
 
   if (loading) {
     return (
-      <div className="face-checkin-loading">
-        <div className="loading-spinner"></div>
+      <div className={styles.faceCheckinLoading}>
+        <div className={styles.loadingSpinner}></div>
         <p>Đang tải danh sách nhân viên...</p>
       </div>
     );
   }
 
   return (
-    <div className="face-checkin-container">
+    <div className={styles.faceCheckinContainer}>
       {/* Header */}
-      <div className="face-checkin-header">
-        <div className="header-left">
+      <div className={styles.faceCheckinHeader}>
+        <div className={styles.headerLeft}>
           <h1>🎭 Quản Lý Face Checkin</h1>
           <p>Đăng ký và quản lý hệ thống nhận diện khuôn mặt</p>
         </div>
-        <div className="header-actions">
+        <div className={styles.headerActions}>
           <button 
-            className="btn-face-checkin"
+            className={styles.btnFaceCheckin}
             onClick={() => setShowCheckinModal(true)}
           >
-            <span className="icon">📷</span>
+            <span className={styles.icon}>📷</span>
             Face Check-in
           </button>
           <button 
-            className="btn-register-face"
+            className={styles.btnRegisterFace}
             onClick={() => {
               toast.info('Vui lòng chọn nhân viên từ bảng bên dưới để đăng ký Face ID', {
                 position: "top-right",
@@ -184,50 +184,50 @@ function FaceCheckinContent() {
               });
             }}
           >
-            <span className="icon">👤</span>
+            <span className={styles.icon}>👤</span>
             Đăng ký khuôn mặt
           </button>
         </div>
       </div>
 
       {/* Info Banner */}
-      <div className="face-checkin-info-banner">
-        <div className="info-icon">ℹ️</div>
-        <div className="info-content">
+      <div className={styles.faceCheckinInfoBanner}>
+        <div className={styles.infoIcon}>ℹ️</div>
+        <div className={styles.infoContent}>
           <strong>Lưu ý quan trọng:</strong> Chỉ những nhân viên có lịch làm việc trong ngày mới có thể sử dụng Face ID để check-in/check-out. 
           Nhân viên parttime cần được xếp lịch trước, nhân viên fulltime luôn có lịch làm việc.
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="face-checkin-stats">
-        <div className="stat-card total">
-          <div className="stat-icon">👥</div>
-          <div className="stat-content">
+      <div className={styles.faceCheckinStats}>
+        <div className={`${styles.statCard} ${styles.total}`}>
+          <div className={styles.statIcon}>👥</div>
+          <div className={styles.statContent}>
             <h3>{faceStats.total}</h3>
             <p>Tổng nhân viên</p>
           </div>
         </div>
         
-        <div className="stat-card registered">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.registered}`}>
+          <div className={styles.statIcon}>✅</div>
+          <div className={styles.statContent}>
             <h3>{faceStats.registered}</h3>
             <p>Đã đăng ký Face ID</p>
           </div>
         </div>
         
-        <div className="stat-card unregistered">
-          <div className="stat-icon">❌</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.unregistered}`}>
+          <div className={styles.statIcon}>❌</div>
+          <div className={styles.statContent}>
             <h3>{faceStats.unregistered}</h3>
             <p>Chưa đăng ký Face ID</p>
           </div>
         </div>
         
-        <div className="stat-card checkins">
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.checkins}`}>
+          <div className={styles.statIcon}>📊</div>
+          <div className={styles.statContent}>
             <h3>{faceStats.todayCheckins}</h3>
             <p>Check-in hôm nay</p>
           </div>
@@ -235,19 +235,19 @@ function FaceCheckinContent() {
       </div>
 
       {/* Filters */}
-      <div className="face-checkin-filters">
-        <div className="filters-row-face-checkin">
-          <div className="search-box-face-checkin">
+      <div className={styles.faceCheckinFilters}>
+        <div className={styles.filtersRowFaceCheckin}>
+          <div className={styles.searchBoxFaceCheckin}>
             <input
               type="text"
               placeholder="Tìm kiếm nhân viên (tên, email, SĐT)..."
               value={filters.searchQuery || ''}
               onChange={handleSearchChange}
             />
-            <span className="search-icon-face-checkin">🔍</span>
+            <span className={styles.searchIconFaceCheckin}>🔍</span>
           </div>
 
-          <div className="filter-group-face-checkin">
+          <div className={styles.filterGroupFaceCheckin}>
             <select
               value={filters.status || ''}
               onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -260,7 +260,7 @@ function FaceCheckinContent() {
             </select>
           </div>
 
-          <div className="filter-group-face-checkin">
+          <div className={styles.filterGroupFaceCheckin}>
             <select
               value={filters.position || ''}
               onChange={(e) => handleFilterChange('position', e.target.value)}
@@ -276,7 +276,7 @@ function FaceCheckinContent() {
             </select>
           </div>
 
-          <div className="filter-group-face-checkin">
+          <div className={styles.filterGroupFaceCheckin}>
             <select
               value={filters.faceStatus || ''}
               onChange={(e) => handleFilterChange('faceStatus', e.target.value)}
@@ -288,7 +288,7 @@ function FaceCheckinContent() {
           </div>
 
           {(filters.status || filters.position || filters.faceStatus || filters.searchQuery) && (
-            <button className="clear-filters-face-checkin" onClick={clearFilters}>
+            <button className={styles.clearFiltersFaceCheckin} onClick={clearFilters}>
               Xóa bộ lọc
             </button>
           )}
@@ -297,21 +297,21 @@ function FaceCheckinContent() {
 
       {/* Error State */}
       {error && (
-        <div className="face-checkin-error">
+        <div className={styles.faceCheckinError}>
           <p>❌ {error}</p>
         </div>
       )}
 
       {/* Employees Table */}
-      <div className="face-checkin-table-container">
+      <div className={styles.faceCheckinTableContainer}>
         {employees.length === 0 ? (
-          <div className="no-employees">
-            <div className="no-data-icon">👥</div>
+          <div className={styles.noEmployees}>
+            <div className={styles.noDataIcon}>👥</div>
             <h3>Chưa có nhân viên nào</h3>
             <p>Hãy thêm nhân viên đầu tiên cho phòng gym</p>
           </div>
         ) : (
-          <div className="face-checkin-table">
+          <div className={styles.faceCheckinTable}>
             <table>
               <thead>
                 <tr>
@@ -327,8 +327,8 @@ function FaceCheckinContent() {
                 {employees.map((employee) => (
                   <tr key={employee._id}>
                     <td>
-                      <div className="employee-info">
-                        <div className="avatar">
+                      <div className={styles.employeeInfo}>
+                        <div className={styles.avatar}>
                           {employee.avatarUrl ? (
                             <EmployeeAvatar 
                               src={employee.avatarUrl} 
@@ -340,33 +340,33 @@ function FaceCheckinContent() {
                             />
                           ) : null}
                           <span 
-                            className="avatar-text"
+                            className={styles.avatarText}
                             style={{ display: employee.avatarUrl ? 'none' : 'flex' }}
                           >
                             {employee.fullName.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="info">
+                        <div className={styles.info}>
                           <h4>{employee.fullName}</h4>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div className="contact-info">
-                        <p className="phone">📞 {employee.phone}</p>
-                        <p className="email">📧 {employee.email}</p>
+                      <div className={styles.contactInfo}>
+                        <p className={styles.phone}>📞 {employee.phone}</p>
+                        <p className={styles.email}>📧 {employee.email}</p>
                       </div>
                     </td>
                     <td>
                       <span 
-                        className="position-badge-checkin"
+                        className={styles.positionBadgeCheckin}
                         style={{ backgroundColor: getPositionColor(employee.position) }}
                       >
                         {employee.position}
                       </span>
                     </td>
                     <td>
-                      <span className={`status-badge-checkin ${getStatusBadge(employee.status)}`}>
+                      <span className={`${styles.statusBadgeCheckin} ${styles[getStatusBadge(employee.status)]}`}>
                         {employee.status === 'active' && 'Đang làm việc'}
                         {employee.status === 'inactive' && 'Tạm nghỉ'}
                         {employee.status === 'resigned' && 'Đã nghỉ việc'}
@@ -382,10 +382,10 @@ function FaceCheckinContent() {
                       }
                     </td>
                     <td>
-                      <div className="action-buttons">
+                      <div className={styles.actionButtons}>
                         {!employee.faceRegistered ? (
                           <button
-                            className="btn-register-face-action"
+                            className={styles.btnRegisterFaceAction}
                             onClick={() => handleFaceRegistration(employee)}
                             title="Đăng ký Face ID"
                           >
@@ -394,26 +394,16 @@ function FaceCheckinContent() {
                         ) : (
                           <>
                             <button
-                              className="btn-registered-face"
+                              className={styles.btnRegisteredFace}
                               disabled
                               title="Đã đăng ký Face ID"
                             >
                               ✅ Đã đăng ký
                             </button>
                             <button
-                              className="btn-delete-face"
+                              className={styles.btnDeleteFace}
                               onClick={() => handleDeleteClick(employee)}
                               title="Xóa Face ID"
-                              style={{
-                                marginLeft: '8px',
-                                padding: '6px 12px',
-                                fontSize: '13px',
-                                backgroundColor: '#e74c3c',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                              }}
                             >
                               🗑️ Xóa
                             </button>

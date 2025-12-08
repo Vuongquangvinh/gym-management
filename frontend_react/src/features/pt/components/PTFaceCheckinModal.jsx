@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './PTFaceCheckinModal.css';
+import styles from './PTFaceCheckinModal.module.css';
 
 const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
   const [isScanning, setIsScanning] = useState(false);
@@ -183,40 +183,40 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="pt-face-checkin-modal-overlay">
-      <div className="pt-face-checkin-modal">
-        <div className="pt-modal-header">
+    <div className={styles.ptFaceCheckinModalOverlay}>
+      <div className={styles.ptFaceCheckinModal}>
+        <div className={styles.ptModalHeader}>
           <h2>📷 Face Check-in</h2>
-          <button className="pt-close-btn" onClick={handleClose}>×</button>
+          <button className={styles.ptCloseBtn} onClick={handleClose}>×</button>
         </div>
 
-        <div className="pt-modal-content">
+        <div className={styles.ptModalContent}>
           {!detectedEmployee && !success && (
-            <div className="pt-checkin-step pt-scanning">
-              <div className="pt-camera-container">
+            <div className={`${styles.ptCheckinStep} ${styles.ptScanning}`}>
+              <div className={styles.ptCameraContainer}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="pt-camera-video"
+                  className={styles.ptCameraVideo}
                 />
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                <div className="pt-camera-overlay">
-                  <div className="pt-scan-guide">
-                    <div className="pt-scan-frame">
-                      <div className="pt-scan-corners">
-                        <div className="pt-corner pt-top-left"></div>
-                        <div className="pt-corner pt-top-right"></div>
-                        <div className="pt-corner pt-bottom-left"></div>
-                        <div className="pt-corner pt-bottom-right"></div>
+                <div className={styles.ptCameraOverlay}>
+                  <div className={styles.ptScanGuide}>
+                    <div className={styles.ptScanFrame}>
+                      <div className={styles.ptScanCorners}>
+                        <div className={`${styles.ptCorner} ${styles.ptTopLeft}`}></div>
+                        <div className={`${styles.ptCorner} ${styles.ptTopRight}`}></div>
+                        <div className={`${styles.ptCorner} ${styles.ptBottomLeft}`}></div>
+                        <div className={`${styles.ptCorner} ${styles.ptBottomRight}`}></div>
                       </div>
                     </div>
                     <p>Đặt khuôn mặt trong khung để nhận diện</p>
                     {isScanning && (
-                      <div className="pt-scanning-indicator">
-                        <div className="pt-scan-line"></div>
+                      <div className={styles.ptScanningIndicator}>
+                        <div className={styles.ptScanLine}></div>
                         <span>Đang quét...</span>
                       </div>
                     )}
@@ -224,19 +224,19 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
                 </div>
               </div>
 
-              <div className="pt-scanning-info">
+              <div className={styles.ptScanningInfo}>
                 <h3>🔍 Đang quét khuôn mặt...</h3>
                 <p>Vui lòng nhìn thẳng vào camera và giữ nguyên tư thế</p>
               </div>
 
               {error && (
-                <div className="pt-error-message">
+                <div className={styles.ptErrorMessage}>
                   {error}
                 </div>
               )}
 
               <button 
-                className="pt-btn-cancel-scan"
+                className={styles.ptBtnCancelScan}
                 onClick={handleClose}
               >
                 ❌ Hủy quét
@@ -245,43 +245,43 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
           )}
 
           {detectedEmployee && !success && (
-            <div className="pt-checkin-step pt-detected">
-              <div className="pt-step-icon">✅</div>
+            <div className={`${styles.ptCheckinStep} ${styles.ptDetected}`}>
+              <div className={styles.ptStepIcon}>✅</div>
               <h3>Đã nhận diện thành công!</h3>
               
-              <div className="pt-employee-card">
-                <div className="pt-employee-avatar">
+              <div className={styles.ptEmployeeCard}>
+                <div className={styles.ptEmployeeAvatar}>
                   {detectedEmployee.avatarUrl ? (
                     <img src={detectedEmployee.avatarUrl} alt={detectedEmployee.fullName} />
                   ) : (
                     <span>{detectedEmployee.fullName.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <div className="pt-employee-details">
+                <div className={styles.ptEmployeeDetails}>
                   <h4>{detectedEmployee.fullName}</h4>
                   <p>Vị trí: {detectedEmployee.position}</p>
-                  <p className="pt-confidence">Độ chính xác: {detectedEmployee.confidence}%</p>
+                  <p className={styles.ptConfidence}>Độ chính xác: {detectedEmployee.confidence}%</p>
                 </div>
               </div>
 
-              <div className="pt-detected-actions">
+              <div className={styles.ptDetectedActions}>
                 <button 
-                  className="pt-btn-retry-scan"
+                  className={styles.ptBtnRetryScan}
                   onClick={retryScanning}
                   disabled={isProcessing}
                 >
                   🔄 Quét lại
                 </button>
-                <div className="pt-checkin-checkout-buttons">
+                <div className={styles.ptCheckinCheckoutButtons}>
                   <button 
-                    className="pt-btn-checkin"
+                    className={styles.ptBtnCheckin}
                     onClick={handleCheckin}
                     disabled={isProcessing}
                   >
                     {isProcessing ? '⏳ Đang xử lý...' : '✅ Check-in'}
                   </button>
                   <button 
-                    className="pt-btn-checkout"
+                    className={styles.ptBtnCheckout}
                     onClick={handleCheckout}
                     disabled={isProcessing}
                   >
@@ -291,7 +291,7 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
               </div>
 
               {error && (
-                <div className="pt-error-message">
+                <div className={styles.ptErrorMessage}>
                   {error}
                 </div>
               )}
@@ -299,32 +299,32 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
           )}
 
           {success && checkinResult && (
-            <div className="pt-checkin-step pt-success">
-              <div className="pt-step-icon">🎉</div>
+            <div className={`${styles.ptCheckinStep} ${styles.ptSuccess}`}>
+              <div className={styles.ptStepIcon}>🎉</div>
               <h3>{checkinResult.checkinType === 'checkin' ? 'Check-in' : 'Checkout'} thành công!</h3>
               
-              <div className="pt-checkin-result">
-                <div className="pt-result-item">
-                  <span className="pt-label">Nhân viên:</span>
-                  <span className="pt-value">{checkinResult.employeeName}</span>
+              <div className={styles.ptCheckinResult}>
+                <div className={styles.ptResultItem}>
+                  <span className={styles.ptLabel}>Nhân viên:</span>
+                  <span className={styles.ptValue}>{checkinResult.employeeName}</span>
                 </div>
-                <div className="pt-result-item">
-                  <span className="pt-label">Thời gian:</span>
-                  <span className="pt-value">
+                <div className={styles.ptResultItem}>
+                  <span className={styles.ptLabel}>Thời gian:</span>
+                  <span className={styles.ptValue}>
                     {new Date(checkinResult.timestamp).toLocaleString('vi-VN')}
                   </span>
                 </div>
-                <div className="pt-result-item">
-                  <span className="pt-label">Ngày:</span>
-                  <span className="pt-value">{checkinResult.date}</span>
+                <div className={styles.ptResultItem}>
+                  <span className={styles.ptLabel}>Ngày:</span>
+                  <span className={styles.ptValue}>{checkinResult.date}</span>
                 </div>
-                <div className="pt-result-item">
-                  <span className="pt-label">Phương thức:</span>
-                  <span className="pt-value">Face Recognition ✨</span>
+                <div className={styles.ptResultItem}>
+                  <span className={styles.ptLabel}>Phương thức:</span>
+                  <span className={styles.ptValue}>Face Recognition ✨</span>
                 </div>
               </div>
 
-              <div className="pt-success-message">
+              <div className={styles.ptSuccessMessage}>
                 ✅ {checkinResult.checkinType === 'checkin' ? 'Check-in' : 'Checkout'} đã được ghi nhận
               </div>
             </div>
@@ -336,6 +336,3 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
 };
 
 export default PTFaceCheckinModal;
-
-
-

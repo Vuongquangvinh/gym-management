@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./addNewPackage.css";
+import styles from './addNewPackage.module.css';
 
 import { PackageModel } from "../../../../firebase/lib/features/package/packages.model.js";
 
@@ -82,13 +82,13 @@ export default function AddNewPackage({ onSave, onCancel }) {
   const isDiscountEnabled = form.Discount && parseFloat(form.Discount) > 0;
 
   return (
-    <div className="add-package-container">
-      <h2>Thêm gói tập mới</h2>
+    <div className={styles.addPackageContainer}>
+      <h2>Thêm Gói Tập Mới</h2>
 
-      <form className="add-package-form" onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <div className="form-group">
-            <label>Mã gói <span className="required">*</span></label>
+      <form className={styles.addPackageForm} onSubmit={handleSubmit}>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label>Mã gói <span className={styles.required}>*</span></label>
             <input
               type="text"
               name="PackageId"
@@ -99,8 +99,8 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
-            <label>Tên gói <span className="required">*</span></label>
+          <div className={styles.formGroup}>
+            <label>Tên gói <span className={styles.required}>*</span></label>
             <input
               type="text"
               name="PackageName"
@@ -111,8 +111,8 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
-            <label>Loại gói <span className="required">*</span></label>
+          <div className={styles.formGroup}>
+            <label>Loại gói <span className={styles.required}>*</span></label>
             <select
               name="PackageType"
               value={form.PackageType}
@@ -127,8 +127,8 @@ export default function AddNewPackage({ onSave, onCancel }) {
             </select>
           </div>
 
-          <div className="form-group">
-            <label>Thời hạn (ngày) <span className="required">*</span></label>
+          <div className={styles.formGroup}>
+            <label>Thời hạn (ngày) <span className={styles.required}>*</span></label>
             <input
               type="number"
               name="Duration"
@@ -140,8 +140,8 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
-            <label>Giá (VNĐ) <span className="required">*</span></label>
+          <div className={styles.formGroup}>
+            <label>Giá (VNĐ) <span className={styles.required}>*</span></label>
             <input
               type="number"
               name="Price"
@@ -153,8 +153,8 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
-            <label>Trạng thái <span className="required">*</span></label>
+          <div className={styles.formGroup}>
+            <label>Trạng thái <span className={styles.required}>*</span></label>
             <select
               name="Status"
               value={form.Status}
@@ -166,7 +166,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label>Số buổi tập</label>
             <input
               type="number"
@@ -178,7 +178,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label>Giảm giá (%)</label>
             <input
               type="number"
@@ -191,7 +191,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label>Bắt đầu giảm giá</label>
             <input
               type="date"
@@ -202,7 +202,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label>Kết thúc giảm giá</label>
             <input
               type="date"
@@ -213,7 +213,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             />
           </div>
 
-          <div className="form-group full">
+          <div className={`${styles.formGroup} ${styles.full}`}>
             <label>Điều kiện sử dụng</label>
             <textarea
               name="UsageCondition"
@@ -225,7 +225,7 @@ export default function AddNewPackage({ onSave, onCancel }) {
             ></textarea>
           </div>
 
-          <div className="form-group full">
+          <div className={`${styles.formGroup} ${styles.full}`}>
             <label>Mô tả</label>
             <textarea
               name="Description"
@@ -237,13 +237,13 @@ export default function AddNewPackage({ onSave, onCancel }) {
           </div>
         </div>
 
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className={styles.errorText}>{error}</p>}
 
-        <div className="form-actions">
-          <button type="submit" className="save-btn" disabled={loading}>
+        <div className={styles.formActions}>
+          <button type="submit" className={styles.saveBtn} disabled={loading}>
             {loading ? "Đang lưu..." : "Lưu"}
           </button>
-          <button type="button" className="cancel-btn" onClick={onCancel}>
+          <button type="button" className={styles.cancelBtn} onClick={onCancel}>
             Hủy
           </button>
         </div>

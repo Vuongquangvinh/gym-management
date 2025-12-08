@@ -1,0 +1,244 @@
+.adminSidebar {
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobileClose {
+  display: none;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.sideBrand {
+  padding: 24px 20px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.sideBrand a {
+  text-decoration: none;
+  color: #4db8ff;
+  transition: color 0.3s;
+}
+
+.sideBrand a:hover {
+  color: #66c2ff;
+}
+
+.sideNav {
+  flex: 1;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.sideNav a,
+.navDropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.sideNav a:hover,
+.navDropdownTrigger:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-left-color: #4db8ff;
+}
+
+.sideNav a.active {
+  background: rgba(77, 184, 255, 0.15);
+  color: #4db8ff;
+  border-left-color: #4db8ff;
+  font-weight: 600;
+}
+
+.sideIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+.navDropdown {
+  position: relative;
+}
+
+.navDropdownTrigger {
+  justify-content: space-between;
+  position: relative;
+}
+
+.navDropdownTrigger.open {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.navDropdownTrigger span {
+  flex: 1;
+}
+
+.navDropdownContent {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 0;
+  margin-left: 20px;
+  border-left: 2px solid rgba(77, 184, 255, 0.3);
+}
+
+.navDropdownContent a {
+  padding: 10px 16px;
+  font-size: 13px;
+  border-left: none;
+}
+
+.navDropdownContent a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-left: none;
+}
+
+.navDropdownContent a.active {
+  background: rgba(77, 184, 255, 0.2);
+  color: #4db8ff;
+  border-left: none;
+}
+
+.sideCta {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #4db8ff;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: #3da8ef;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(77, 184, 255, 0.4);
+}
+
+.btn.small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.sideProfile {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+}
+
+.profileMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollbar styling */
+.adminSidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.adminSidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.adminSidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.adminSidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .adminSidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .adminSidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobileClose {
+    display: block;
+  }
+}

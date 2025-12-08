@@ -1,0 +1,332 @@
+/* Schedule Modal Styles */
+.scheduleModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.scheduleModal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 500px;
+  max-height: 100vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.titleIcon {
+  color: #e3f2fd;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.formContent {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Employee Info Section */
+.employeeInfoSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+}
+
+.employeeAvatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.employeeAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.employeeDetails h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.employeeDetails p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.shiftBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.shiftBadge.fulltime {
+  background: #e8f5e8;
+  color: #4caf50;
+}
+
+.shiftBadge.parttime {
+  background: #fff3e0;
+  color: #ff9800;
+}
+
+/* Form Fields */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.formGroup label svg {
+  color: #666;
+}
+
+.formInput,
+.formTextarea {
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Modal Actions */
+.modalActions {
+  padding: 20px 24px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btnCancel,
+.btnSave {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-width: 100px;
+}
+
+.btnCancel {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.btnCancel:hover:not(:disabled) {
+  background: #eeeeee;
+  color: #333;
+}
+
+.btnSave {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+}
+
+.btnSave:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btnSave:disabled,
+.btnCancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Delete Button */
+.btnDelete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  margin-right: auto;
+}
+
+.btnDelete:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btnDelete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .scheduleModalOverlay {
+    padding: 10px;
+  }
+  
+  .scheduleModal {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .employeeInfoSection {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+  }
+  
+  .btnCancel,
+  .btnSave,
+  .btnDelete {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalHeader {
+    padding: 16px 20px;
+  }
+  
+  .formContent {
+    padding: 20px;
+  }
+  
+  .modalActions {
+    padding: 16px 20px;
+  }
+}

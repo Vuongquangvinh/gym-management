@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './FaceCheckinModal.css';
+import styles from './FaceRegistrationModal.module.css';
 
 const FaceCheckinModal = ({ isOpen, onClose }) => {
   const [isScanning, setIsScanning] = useState(false);
@@ -185,40 +185,40 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="face-checkin-modal-overlay">
-      <div className="face-checkin-modal">
-        <div className="modal-header">
+    <div className={styles.faceRegistrationModalOverlay}>
+      <div className={styles.faceRegistrationModal}>
+        <div className={styles.modalHeader}>
           <h2>📷 Face Check-in</h2>
-          <button className="close-btn" onClick={handleClose}>×</button>
+          <button className={styles.closeBtn} onClick={handleClose}>×</button>
         </div>
 
-        <div className="modal-content">
+        <div className={styles.modalContent}>
           {!detectedEmployee && !success && (
-            <div className="checkin-step scanning">
-              <div className="camera-container">
+            <div className={styles.registrationStep}>
+              <div className={styles.cameraContainer}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="camera-video"
+                  className={styles.cameraVideo}
                 />
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                <div className="camera-overlay">
-                  <div className="scan-guide">
-                    <div className="scan-frame">
-                      <div className="scan-corners">
-                        <div className="corner top-left"></div>
-                        <div className="corner top-right"></div>
-                        <div className="corner bottom-left"></div>
-                        <div className="corner bottom-right"></div>
+                <div className={styles.cameraOverlay}>
+                  <div className={styles.faceGuide}>
+                    <div className={styles.faceFrame}>
+                      <div className={styles.faceBorder}>
+                        <div className={styles.corner}></div>
+                        <div className={styles.corner}></div>
+                        <div className={styles.corner}></div>
+                        <div className={styles.corner}></div>
                       </div>
                     </div>
                     <p>Đặt khuôn mặt trong khung để nhận diện</p>
                     {isScanning && (
-                      <div className="scanning-indicator">
-                        <div className="scan-line"></div>
+                      <div className={styles.scanningIndicator}>
+                        <div className={styles.scanLine}></div>
                         <span>Đang quét...</span>
                       </div>
                     )}
@@ -226,19 +226,19 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="scanning-info">
+              <div className={styles.scanningStatus}>
                 <h3>🔍 Đang quét khuôn mặt...</h3>
                 <p>Vui lòng nhìn thẳng vào camera và giữ nguyên tư thế</p>
               </div>
 
               {error && (
-                <div className="error-message">
+                <div className={styles.errorMessage}>
                   ❌ {error}
                 </div>
               )}
 
               <button 
-                className="btn-cancel-scan"
+                className={styles.btnCancel}
                 onClick={handleClose}
               >
                 ❌ Hủy quét
@@ -247,43 +247,43 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
           )}
 
           {detectedEmployee && !success && (
-            <div className="checkin-step detected">
-              <div className="step-icon">✅</div>
+            <div className={styles.registrationStep}>
+              <div className={styles.successIcon}>✅</div>
               <h3>Đã nhận diện thành công!</h3>
               
-              <div className="employee-card">
-                <div className="employee-avatar">
+              <div className={styles.detectedEmployee}>
+                <div className={styles.employeeAvatar}>
                   {detectedEmployee.avatarUrl ? (
                     <img src={detectedEmployee.avatarUrl} alt={detectedEmployee.fullName} />
                   ) : (
                     <span>{detectedEmployee.fullName.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <div className="employee-details">
+                <div className={styles.employeeDetails}>
                   <h4>{detectedEmployee.fullName}</h4>
                   <p>Vị trí: {detectedEmployee.position}</p>
                   <p>ID: {detectedEmployee._id.slice(-6)}</p>
                 </div>
               </div>
 
-              <div className="detected-actions">
+              <div className={styles.checkinActions}>
                 <button 
-                  className="btn-retry-scan"
+                  className={styles.btnRetake}
                   onClick={retryScanning}
                   disabled={isProcessing}
                 >
                   🔄 Quét lại
                 </button>
-                <div className="checkin-checkout-buttons">
+                <div className={styles.checkinButtons}>
                   <button 
-                    className="btn-checkin"
+                    className={styles.btnCheckin}
                     onClick={handleCheckin}
                     disabled={isProcessing}
                   >
                     {isProcessing ? '⏳ Đang xử lý...' : '✅ Check-in'}
                   </button>
                   <button 
-                    className="btn-checkout"
+                    className={styles.btnCheckout}
                     onClick={handleCheckout}
                     disabled={isProcessing}
                   >
@@ -293,7 +293,7 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
               </div>
 
               {error && (
-                <div className="error-message">
+                <div className={styles.errorMessage}>
                   ❌ {error}
                 </div>
               )}
@@ -301,26 +301,26 @@ const FaceCheckinModal = ({ isOpen, onClose }) => {
           )}
 
           {success && checkinResult && (
-            <div className="checkin-step success">
-              <div className="step-icon">🎉</div>
+            <div className={styles.registrationStep}>
+              <div className={styles.successIcon}>🎉</div>
               <h3>Check-in thành công!</h3>
               
-              <div className="checkin-result">
-                <div className="result-item">
-                  <span className="label">Nhân viên:</span>
-                  <span className="value">{checkinResult.employeeName}</span>
+              <div className={styles.checkinSummary}>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Nhân viên:</span>
+                  <span className={styles.summaryValue}>{checkinResult.employeeName}</span>
                 </div>
-                <div className="result-item">
-                  <span className="label">Thời gian:</span>
-                  <span className="value">{new Date(checkinResult.timestamp).toLocaleString('vi-VN')}</span>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Thời gian:</span>
+                  <span className={styles.summaryValue}>{new Date(checkinResult.timestamp).toLocaleString('vi-VN')}</span>
                 </div>
-                <div className="result-item">
-                  <span className="label">Phương thức:</span>
-                  <span className="value">Face Recognition</span>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Phương thức:</span>
+                  <span className={styles.summaryValue}>Face Recognition</span>
                 </div>
               </div>
 
-              <div className="success-message">
+              <div className={styles.successMessage}>
                 ✅ Check-in đã được ghi nhận trong hệ thống
               </div>
             </div>

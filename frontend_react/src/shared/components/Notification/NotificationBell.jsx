@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useNotifications } from '../../../firebase/lib/features/notification/notification.provider';
 import { NotificationList } from './NotificationList';
-import './NotificationBell.css';
+import styles from './NotificationBell.module.css';
 
 export const NotificationBell = () => {
   const { unreadCount } = useNotifications();
@@ -14,7 +14,7 @@ export const NotificationBell = () => {
     const handleClickOutside = (event) => {
       // Check if click is outside bell button AND outside dropdown
       const isClickInsideBell = dropdownRef.current && dropdownRef.current.contains(event.target);
-      const isClickInsideDropdown = event.target.closest('.notification-dropdown');
+      const isClickInsideDropdown = event.target.closest(`.${styles.notificationDropdown}`);
       
       if (!isClickInsideBell && !isClickInsideDropdown) {
         console.log('🔴 Closing dropdown - clicked outside');
@@ -31,17 +31,17 @@ export const NotificationBell = () => {
   }, [isOpen]);
 
   return (
-    <div className="notification-bell-container" ref={dropdownRef}>
+    <div className={styles.notificationBellContainer} ref={dropdownRef}>
       <button 
-        className="notification-bell-button"
+        className={styles.notificationBellButton}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Thông báo"
       >
-        <svg className="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg className={styles.bellIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
-          <span className="notification-badge">
+          <span className={styles.notificationBadge}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -49,7 +49,7 @@ export const NotificationBell = () => {
 
       {isOpen && ReactDOM.createPortal(
         <div 
-          className="notification-dropdown"
+          className={styles.notificationDropdown}
           style={{
             position: 'fixed',
             top: dropdownRef.current ? dropdownRef.current.getBoundingClientRect().bottom + 8 : 0,

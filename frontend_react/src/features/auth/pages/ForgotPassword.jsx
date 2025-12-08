@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cssVars } from '../../../shared/theme/colors';
-import './login.css';
+import styles from './login.module.css';
 import { forgotPassword } from '../../../firebase/lib/features/auth/auth.service.js'; // Chú ý đường dẫn
 
 export default function ForgotPassword() {
@@ -44,28 +44,28 @@ export default function ForgotPassword() {
     //   }
 
   return (
-    <div className="login-page">
-      <div className="bg-shapes">
-        <span className="shape s1" />
-        <span className="shape s2" />
-        <span className="shape s3" />
+    <div className={styles.loginPage}>
+      <div className={styles.bgShapes}>
+        <span className={`${styles.shape} ${styles.s1}`} />
+        <span className={`${styles.shape} ${styles.s2}`} />
+        <span className={`${styles.shape} ${styles.s3}`} />
       </div>
 
-      <div className="login-card">
-        <div className="brand">
-          <div className="logo">REPS</div>
-          <div className="brand-text">
+      <div className={styles.loginCard}>
+        <div className={styles.brand}>
+          <div className={styles.logo}>REPS</div>
+          <div className={styles.brandText}>
             <h1>Quên mật khẩu</h1>
             <p>Nhập email để nhận hướng dẫn đặt lại mật khẩu</p>
           </div>
         </div>
 
-        <form className="login-form" onSubmit={handleSend} noValidate>
+        <form className={styles.loginForm} onSubmit={handleSend} noValidate>
           {sent ? (
-            <div className="form-success">Chúng tôi đã gửi email hướng dẫn. Vui lòng kiểm tra hộp thư.</div>
+            <div className={styles.formSuccess}>Chúng tôi đã gửi email hướng dẫn. Vui lòng kiểm tra hộp thư.</div>
           ) : (
             <>
-              <label className="field">
+              <label className={styles.field}>
                 <span>Email</span>
                 <input
                   type="email"
@@ -76,16 +76,16 @@ export default function ForgotPassword() {
                 />
               </label>
 
-              <button className="btn primary" type="submit">Gửi hướng dẫn</button>
+              <button className={`${styles.btn} ${styles.primary}`} type="submit">Gửi hướng dẫn</button>
 
-              <div className="or">hoặc</div>
+              <div className={styles.or}>hoặc</div>
 
-              <Link to="/" className="btn outline" style={{ textDecoration: 'none' }}>Quay lại đăng nhập</Link>
+              <Link to="/" className={`${styles.btn} ${styles.outline}`} style={{ textDecoration: 'none' }}>Quay lại đăng nhập</Link>
             </>
           )}
         </form>
 
-        <footer className="card-foot">
+        <footer className={styles.cardFoot}>
           <small>Vẫn cần trợ giúp? <a href="#">Liên hệ quản trị</a></small>
         </footer>
       </div>

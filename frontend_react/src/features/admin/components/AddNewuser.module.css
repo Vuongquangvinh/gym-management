@@ -1,0 +1,234 @@
+/* Thông báo thành công */
+.formSuccess {
+  background: #e6f9ec;
+  color: #219653;
+  border: 1px solid #b7e4c7;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(33, 150, 83, 0.08);
+  text-align: left;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Thông báo lỗi */
+.formError {
+  background: #fff0f0;
+  color: #d32f2f;
+  border: 1px solid #f8bbbc;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.08);
+  text-align: left;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Tổng thể Popup */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 37, 69, 0.25);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Khung card chính */
+.addnewuserCard {
+  max-width: 850px;
+  width: 100%;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 12px 35px rgba(11, 37, 69, 0.15);
+  border-radius: 16px;
+  background: #ffffff;
+  box-sizing: border-box;
+  overflow-y: auto;
+  max-height: 95vh;
+}
+
+/* Phần Logo và Tiêu đề */
+.addnewuserBrand {
+  margin-bottom: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.addnewuserLogo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #f8f8f8ff;
+  background: linear-gradient(135deg, #0D47A1, #1976D2);
+  border-radius: 16px;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2);
+}
+
+.addnewuserBrandText h1 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  color: #0b2545;
+}
+
+.addnewuserBrandText p {
+  margin: 0;
+  font-size: 15px;
+  color: #546E7A;
+}
+
+/* Phần Form */
+.addnewuserForm {
+  width: 100%;
+  padding: 0 4px;
+}
+
+.addnewuserFormRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.addnewuserFormCol {
+  width: 100%;
+}
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.field span {
+  display: block;
+  margin-bottom: 8px;
+  color: #37474F;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Style cho tất cả input, select */
+.field input,
+.field select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #CFD8DC;
+  background-color: #f8fafc;
+  color: #0B2545;
+  font-size: 15px;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  height: 40px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #1976D2;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+}
+
+.field select {
+  appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 8px 10px;
+  padding-right: 30px;
+}
+
+/* Dấu phân cách "hoặc" */
+.or {
+  text-align: center;
+  color: #78909C;
+  font-size: 14px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+}
+.or::before, .or::after {
+  content: '';
+  flex-grow: 1;
+  background: #ECEFF1;
+  height: 1px;
+  margin: 0 16px;
+}
+
+/* Nút bấm */
+.addnewuserBtn {
+  width: 100%;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 0;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.addnewuserBtn.primary {
+  background-color: #0D47A1;
+  color: white;
+}
+.addnewuserBtn.primary:hover {
+  background-color: #1976D2;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.25);
+  transform: translateY(-2px);
+}
+.addnewuserBtn.primary:disabled {
+  background-color: #90A4AE;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.addnewuserBtn.cancel {
+  margin-top: 8px;
+  background-color: transparent;
+  color: #546E7A;
+  border: 1px solid #CFD8DC;
+}
+.addnewuserBtn.cancel:hover {
+  background-color: #f1f5f9;
+  border-color: #B0BEC5;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .addnewuserFormRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .addnewuserCard {
+    padding: 32px 24px;
+    max-height: 98vh;
+  }
+  .addnewuserFormRow {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .addnewuserBrandText h1 {
+    font-size: 22px;
+  }
+}

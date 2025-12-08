@@ -1,5 +1,5 @@
 import React from 'react';
-import './StatCard.css';
+import styles from './StatCard.module.css';
 
 const StatCard = ({ 
   title, 
@@ -11,21 +11,21 @@ const StatCard = ({
   loading = false 
 }) => {
   return (
-    <div className={`stat-card stat-card-${color}`}>
-      <div className="stat-card-header">
-        <div className="stat-card-icon">
+    <div className={`${styles.statCard} ${styles[`statCard${color.charAt(0).toUpperCase() + color.slice(1)}`]}`}>
+      <div className={styles.statCardHeader}>
+        <div className={styles.statCardIcon}>
           {icon}
         </div>
-        <div className="stat-card-title">
+        <div className={styles.statCardTitle}>
           {title}
         </div>
       </div>
       
-      <div className="stat-card-content">
-        <div className="stat-card-value">
+      <div className={styles.statCardContent}>
+        <div className={styles.statCardValue}>
           {loading ? (
-            <div className="stat-loading">
-              <div className="loading-spinner"></div>
+            <div className={styles.statLoading}>
+              <div className={styles.loadingSpinner}></div>
             </div>
           ) : (
             value?.toLocaleString() || '0'
@@ -33,17 +33,17 @@ const StatCard = ({
         </div>
         
         {subtitle && (
-          <div className="stat-card-subtitle">
+          <div className={styles.statCardSubtitle}>
             {subtitle}
           </div>
         )}
         
         {trend && (
-          <div className={`stat-card-trend ${trend.direction}`}>
-            <span className="trend-icon">
+          <div className={`${styles.statCardTrend} ${styles[trend.direction]}`}>
+            <span className={styles.trendIcon}>
               {trend.direction === 'up' ? '📈' : trend.direction === 'down' ? '📉' : '➡️'}
             </span>
-            <span className="trend-text">
+            <span className={styles.trendText}>
               {trend.text}
             </span>
           </div>

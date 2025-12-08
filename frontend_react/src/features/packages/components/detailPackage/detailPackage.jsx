@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import "./DetailPackage.css";
+import styles from "./detailPackage.module.css";
 import ChangePackageInformation from "../changePackageInformation/changePackageInformation";
 import UserModel from "../../../../firebase/lib/features/user/user.model.js";
 
@@ -114,78 +114,78 @@ export default function DetailPackage({ pkg, onClose }) {
 
   return (
     <motion.div
-      className="detail-package-container"
+      className={styles.detailPackageContainer}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="header">
+      <div className={styles.header}>
         <h2>Chi tiết gói tập: {currentPkg.name}</h2>
-        <div className="header-actions">
+        <div className={styles.headerActions}>
           <button
-            className="edit-btn"
+            className={styles.editBtn}
             onClick={() => setEditing(true)}
           >
-            <span className="edit-btn-icon">✎ </span>
+            <span className={styles.editBtnIcon}>✎ </span>
             Chỉnh sửa
           </button>
           <button
-            className="close-btn"
+            className={styles.closeBtn}
             onClick={onClose}
           >
-            <span className="close-btn-icon">×  </span>
+            <span className={styles.closeBtnIcon}>×  </span>
             Đóng
           </button>
         </div>
       </div>
 
-      <div className="section">
-        <div className="info-section">
-          <div className="info-card">
-            <div className="info-title">Mã gói</div>
-            <div className="info-value">{currentPkg.id}</div>
-            <div className="info-note">Mã định danh duy nhất cho gói tập</div>
+      <div className={styles.section}>
+        <div className={styles.infoSection}>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Mã gói</div>
+            <div className={styles.infoValue}>{currentPkg.id}</div>
+            <div className={styles.infoNote}>Mã định danh duy nhất cho gói tập</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Loại</div>
-            <div className="info-value">{currentPkg.type}</div>
-            <div className="info-note">Loại hình gói tập</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Loại</div>
+            <div className={styles.infoValue}>{currentPkg.type}</div>
+            <div className={styles.infoNote}>Loại hình gói tập</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Thời hạn</div>
-            <div className="info-value">{currentPkg.duration}</div>
-            <div className="info-note">Thời gian sử dụng gói</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Thời hạn</div>
+            <div className={styles.infoValue}>{currentPkg.duration}</div>
+            <div className={styles.infoNote}>Thời gian sử dụng gói</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Giá</div>
-            <div className="info-value">{currentPkg.price}</div>
-            <div className="info-note">Giá bán của gói tập</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Giá</div>
+            <div className={styles.infoValue}>{currentPkg.price}</div>
+            <div className={styles.infoNote}>Giá bán của gói tập</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Mô tả</div>
-            <div className="info-value">{currentPkg.description}</div>
-            <div className="info-note">Thông tin chi tiết về gói tập</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Mô tả</div>
+            <div className={styles.infoValue}>{currentPkg.description}</div>
+            <div className={styles.infoNote}>Thông tin chi tiết về gói tập</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Ưu đãi</div>
-            <div className="info-value">{currentPkg.offer}</div>
-            <div className="info-note">Các ưu đãi đi kèm</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Ưu đãi</div>
+            <div className={styles.infoValue}>{currentPkg.offer}</div>
+            <div className={styles.infoNote}>Các ưu đãi đi kèm</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Khuyến mãi</div>
-            <div className="info-value">{currentPkg.promotion}</div>
-            <div className="info-note">Điều kiện khuyến mãi</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Khuyến mãi</div>
+            <div className={styles.infoValue}>{currentPkg.promotion}</div>
+            <div className={styles.infoNote}>Điều kiện khuyến mãi</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Thời gian áp dụng</div>
-            <div className="info-value">{currentPkg.startDate} → {currentPkg.endDate}</div>
-            <div className="info-note">Khoảng thời gian gói có hiệu lực</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Thời gian áp dụng</div>
+            <div className={styles.infoValue}>{currentPkg.startDate} → {currentPkg.endDate}</div>
+            <div className={styles.infoNote}>Khoảng thời gian gói có hiệu lực</div>
           </div>
-          <div className="info-card">
-            <div className="info-title">Trạng thái</div>
-            <div className="info-value">{currentPkg.status === "active" ? "Đang áp dụng" : "Ngừng áp dụng"}</div>
-            <div className="info-note">Tình trạng hiện tại của gói</div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoTitle}>Trạng thái</div>
+            <div className={styles.infoValue}>{currentPkg.status === "active" ? "Đang áp dụng" : "Ngừng áp dụng"}</div>
+            <div className={styles.infoNote}>Tình trạng hiện tại của gói</div>
           </div>
         </div>
       </div>
@@ -193,44 +193,44 @@ export default function DetailPackage({ pkg, onClose }) {
       {/* Phân tích và thống kê nâng cao */}
       {analytics && (
         <>
-          <div className="section">
+          <div className={styles.section}>
             <h3>📊 Phân tích & Thống kê nâng cao</h3>
             {loading ? (
               <div>Đang tải phân tích...</div>
             ) : error ? (
-              <div className="error">{error}</div>
+              <div className={styles.error}>{error}</div>
             ) : (
-              <div className="analytics-grid">
-                <div className="analytics-card">
-                  <div className="analytics-label">Tổng thành viên</div>
-                  <div className="analytics-value">{analytics.totalUsers}</div>
-                  <div className="analytics-sublabel">người</div>
+              <div className={styles.analyticsGrid}>
+                <div className={styles.analyticsCard}>
+                  <div className={styles.analyticsLabel}>Tổng thành viên</div>
+                  <div className={styles.analyticsValue}>{analytics.totalUsers}</div>
+                  <div className={styles.analyticsSublabel}>người</div>
                 </div>
-                <div className="analytics-card success">
-                  <div className="analytics-label">Đang hoạt động</div>
-                  <div className="analytics-value">{analytics.activeCount}</div>
-                  <div className="analytics-sublabel">{analytics.activeRate}%</div>
+                <div className={`${styles.analyticsCard} ${styles.success}`}>
+                  <div className={styles.analyticsLabel}>Đang hoạt động</div>
+                  <div className={styles.analyticsValue}>{analytics.activeCount}</div>
+                  <div className={styles.analyticsSublabel}>{analytics.activeRate}%</div>
                 </div>
-                <div className="analytics-card warning">
-                  <div className="analytics-label">Sắp hết hạn</div>
-                  <div className="analytics-value">{analytics.expiringCount}</div>
-                  <div className="analytics-sublabel">trong 7 ngày</div>
+                <div className={`${styles.analyticsCard} ${styles.warning}`}>
+                  <div className={styles.analyticsLabel}>Sắp hết hạn</div>
+                  <div className={styles.analyticsValue}>{analytics.expiringCount}</div>
+                  <div className={styles.analyticsSublabel}>trong 7 ngày</div>
                 </div>
-                <div className="analytics-card danger">
-                  <div className="analytics-label">Đã hết hạn</div>
-                  <div className="analytics-value">{analytics.expiredCount}</div>
-                  <div className="analytics-sublabel">{((analytics.expiredCount / analytics.totalUsers) * 100).toFixed(1)}%</div>
+                <div className={`${styles.analyticsCard} ${styles.danger}`}>
+                  <div className={styles.analyticsLabel}>Đã hết hạn</div>
+                  <div className={styles.analyticsValue}>{analytics.expiredCount}</div>
+                  <div className={styles.analyticsSublabel}>{((analytics.expiredCount / analytics.totalUsers) * 100).toFixed(1)}%</div>
                 </div>
-                <div className="analytics-card">
-                  <div className="analytics-label">Tỷ lệ hủy gói</div>
-                  <div className="analytics-value">{analytics.cancelRate}%</div>
-                  <div className="analytics-sublabel">{analytics.canceledCount} người</div>
+                <div className={styles.analyticsCard}>
+                  <div className={styles.analyticsLabel}>Tỷ lệ hủy gói</div>
+                  <div className={styles.analyticsValue}>{analytics.cancelRate}%</div>
+                  <div className={styles.analyticsSublabel}>{analytics.canceledCount} người</div>
                 </div>
-              
-                <div className="analytics-card info">
-                  <div className="analytics-label">Doanh thu hiện tại</div>
-                  <div className="analytics-value">{analytics.currentRevenue.toLocaleString()}đ</div>
-                  <div className="analytics-sublabel">từ {analytics.totalUsers} người</div>
+                
+                <div className={`${styles.analyticsCard} ${styles.info}`}>
+                  <div className={styles.analyticsLabel}>Doanh thu hiện tại</div>
+                  <div className={styles.analyticsValue}>{analytics.currentRevenue.toLocaleString()}đ</div>
+                  <div className={styles.analyticsSublabel}>từ {analytics.totalUsers} người</div>
                 </div>
                 {/* <div className="analytics-card info">
                   <div className="analytics-label">Doanh thu dự kiến</div>
@@ -241,12 +241,12 @@ export default function DetailPackage({ pkg, onClose }) {
             )}
           </div>
 
-          <div className="section">
+          <div className={styles.section}>
             <h3>🥧 Phân bổ trạng thái thành viên</h3>
             {loading ? (
               <div>Đang tải biểu đồ...</div>
             ) : error ? (
-              <div className="error">{error}</div>
+              <div className={styles.error}>{error}</div>
             ) : (
               <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
                 <Doughnut
@@ -308,12 +308,12 @@ export default function DetailPackage({ pkg, onClose }) {
           </div>
 
           {comparison && comparison.length > 0 && (
-            <div className="section">
+            <div className={styles.section}>
               <h3>📈 So sánh với các gói khác (Top 5)</h3>
               {loading ? (
                 <div>Đang tải so sánh...</div>
               ) : error ? (
-                <div className="error">{error}</div>
+                <div className={styles.error}>{error}</div>
               ) : (
                 <div style={{ padding: "20px" }}>
                   <Bar
@@ -434,12 +434,12 @@ export default function DetailPackage({ pkg, onClose }) {
         )}
       </div> */}
 
-      <div className="section">
+      <div className={styles.section}>
         <h3>Biểu đồ số lượng đăng ký và doanh thu theo tháng/năm</h3>
         {loading ? (
           <div>Đang tải biểu đồ...</div>
         ) : error ? (
-          <div className="error">{error}</div>
+          <div className={styles.error}>{error}</div>
         ) : (
           <div style={{ marginBottom: "40px" }}>
             <Line 
@@ -539,14 +539,14 @@ export default function DetailPackage({ pkg, onClose }) {
         )}
       </div>
 
-      <div className="section">
+      <div className={styles.section}>
         <h3>Tổng doanh thu</h3>
         {loading ? (
           <div>Đang tính doanh thu...</div>
         ) : error ? (
-          <div className="error">{error}</div>
+          <div className={styles.error}>{error}</div>
         ) : (
-          <div className="revenue">{revenue.toLocaleString()}đ</div>
+          <div className={styles.revenue}>{revenue.toLocaleString()}đ</div>
         )}
       </div>
     </motion.div>

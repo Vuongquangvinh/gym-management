@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext.jsx';
 import { NotificationBell } from '../../../shared/components/Notification/NotificationBell.jsx';
+import styles from '../pt.module.css';
 
 export default function PTHeader({ onToggle }) {
   const navigate = useNavigate();
@@ -17,10 +18,10 @@ export default function PTHeader({ onToggle }) {
   };
 
   return (
-    <header className="pt-header">
+    <header className={styles.ptHeader}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button 
-          className="menu-btn" 
+          className={styles.menuBtn} 
           onClick={onToggle}
           style={{
             display: 'none',
@@ -30,7 +31,7 @@ export default function PTHeader({ onToggle }) {
             cursor: 'pointer'
           }}
         >
-          ☰
+          ☺
         </button>
         <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>PT Portal</h2>
       </div>

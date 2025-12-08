@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './ImageUpload.css';
+import styles from './ImageUpload.module.css';
 
 const ImageUpload = ({ 
   currentImage = null, 
@@ -150,9 +150,9 @@ const ImageUpload = ({
   };
 
   return (
-    <div className="image-upload-container">
+    <div className={styles.imageUploadContainer}>
       <div 
-        className={`image-upload-zone ${dragOver ? 'drag-over' : ''} ${preview ? 'has-image' : ''}`}
+        className={`${styles.imageUploadZone} ${dragOver ? styles.dragOver : ''} ${preview ? styles.hasImage : ''}`}
         style={{ width: width, height: height }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -160,7 +160,7 @@ const ImageUpload = ({
         onClick={() => fileInputRef.current?.click()}
       >
         {preview ? (
-          <div className="image-preview">
+          <div className={styles.imagePreview}>
             <img 
               src={preview} 
               alt="Preview"
@@ -170,11 +170,11 @@ const ImageUpload = ({
               } : undefined}
               style={{ cursor: onImageClick ? 'pointer' : 'default' }}
             />
-            <div className="image-overlay">
+            <div className={styles.imageOverlay}>
               {onImageClick && (
                 <button 
                   type="button"
-                  className="btn-zoom"
+                  className={styles.btnZoom}
                   onClick={(e) => {
                     e.stopPropagation();
                     onImageClick();
@@ -186,7 +186,7 @@ const ImageUpload = ({
               )}
               <button 
                 type="button"
-                className="btn-remove" 
+                className={styles.btnRemove} 
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemove();
@@ -196,7 +196,7 @@ const ImageUpload = ({
               </button>
               <button 
                 type="button"
-                className="btn-change"
+                className={styles.btnChange}
                 onClick={(e) => {
                   e.stopPropagation();
                   fileInputRef.current?.click();
@@ -207,8 +207,8 @@ const ImageUpload = ({
             </div>
           </div>
         ) : (
-          <div className="upload-placeholder">
-            <div className="upload-icon">📷</div>
+          <div className={styles.uploadPlaceholder}>
+            <div className={styles.uploadIcon}>📷</div>
             <p>Kéo thả ảnh vào đây</p>
             <p>hoặc click để chọn</p>
             <small>{width}x{height}px • Tối đa {maxSizeKB}KB</small>
@@ -225,7 +225,7 @@ const ImageUpload = ({
       />
       
       {error && (
-        <div className="upload-error">
+        <div className={styles.uploadError}>
           <span>⚠️ {error}</span>
         </div>
       )}

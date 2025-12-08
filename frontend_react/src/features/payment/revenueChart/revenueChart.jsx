@@ -30,7 +30,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PaymentOrderModel } from "../../../firebase/lib/features/payment";
-import "./revenueChart.css";
+import styles from './revenueChart.module.css';
 
 const RevenueChart = () => {
   const [loading, setLoading] = useState(true);
@@ -600,7 +600,7 @@ const RevenueChart = () => {
             </Box>
           ) : chartData.length > 0 ? (
             <Box sx={{ width: "100%", height: 450 }}>
-              <ResponsiveContainer width="100%" height="100%" className="revenue-chart-container">
+              <ResponsiveContainer width="100%" height="100%" className={styles.revenueChartContainer}>
                 {renderChart()}
               </ResponsiveContainer>
             </Box>

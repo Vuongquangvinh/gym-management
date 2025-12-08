@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { cssVars } from '../../../shared/theme/colors';
-import './login.css';
+import styles from './login.module.css';
 import { changePassword } from '../../../firebase/lib/features/auth/auth.service.js';
 
 export default function ChangePasswordPage() {
@@ -50,39 +50,39 @@ export default function ChangePasswordPage() {
 	};
 
 	return (
-		<div className="login-page">
-			<div className="bg-shapes">
-				<span className="shape s1" />
-				<span className="shape s2" />
-				<span className="shape s3" />
+		<div className={styles.loginPage}>
+			<div className={styles.bgShapes}>
+				<span className={`${styles.shape} ${styles.s1}`} />
+				<span className={`${styles.shape} ${styles.s2}`} />
+				<span className={`${styles.shape} ${styles.s3}`} />
 			</div>
 
-			<div className="login-card">
-				<div className="brand">
-					<div className="logo">REPS</div>
-					<div className="brand-text">
+			<div className={styles.loginCard}>
+				<div className={styles.brand}>
+					<div className={styles.logo}>REPS</div>
+					<div className={styles.brandText}>
 						<h1>Đổi mật khẩu</h1>
 						<p>Nhập mật khẩu mới để thay đổi mật khẩu tài khoản của bạn</p>
 					</div>
 				</div>
 
-				<form className="login-form" onSubmit={handleChangePassword} noValidate>
+				<form className={styles.loginForm} onSubmit={handleChangePassword} noValidate>
 					{message ? (
-						<div className="form-success">{message}</div>
+						<div className={styles.formSuccess}>{message}</div>
 					) : (
 						<>
-							{error && <div className="form-error">{error}</div>}
-							<label className="field">
-								<span>Mật khẩu hiện tại</span>
+						{error && <div className={styles.formError}>{error}</div>}
+						<label className={styles.field}>
+							<span>Mật khẩu hiện tại</span>
 								<input
 									type="password"
 									value={currentPassword}
 									onChange={e => setCurrentPassword(e.target.value)}
 									placeholder="Mật khẩu hiện tại"
 								/>
-							</label>
-							<label className="field">
-								<span>Mật khẩu mới</span>
+						</label>
+						<label className={styles.field}>
+							<span>Mật khẩu mới</span>
 								<input
 									type="password"
 									value={newPassword}
@@ -90,9 +90,9 @@ export default function ChangePasswordPage() {
 									placeholder="Mật khẩu mới"
 									required
 								/>
-							</label>
-							<label className="field">
-								<span>Xác nhận mật khẩu mới</span>
+						</label>
+						<label className={styles.field}>
+							<span>Xác nhận mật khẩu mới</span>
 								<input
 									type="password"
 									value={confirmPassword}
@@ -101,16 +101,16 @@ export default function ChangePasswordPage() {
 									required
 								/>
 							</label>
-							<button className="btn primary" type="submit" disabled={isLoading}>
-								{isLoading ? "Đang xử lý..." : "Lưu"}
-							</button>
-							<div className="or">hoặc</div>
-							<Link to="/dashboard" className="btn outline" style={{ textDecoration: 'none' }}>Quay lại Dashboard</Link>
+						<button className={`${styles.btn} ${styles.primary}`} type="submit" disabled={isLoading}>
+							{isLoading ? "Đang xử lý..." : "Lưu"}
+						</button>
+						<div className={styles.or}>hoặc</div>
+						<Link to="/dashboard" className={`${styles.btn} ${styles.outline}`} style={{ textDecoration: 'none' }}>Quay lại Dashboard</Link>
 						</>
 					)}
 				</form>
 
-				<footer className="card-foot">
+				<footer className={styles.cardFoot}>
 					<small>Vẫn cần trợ giúp? <a href="#">Liên hệ quản trị</a></small>
 				</footer>
 			</div>

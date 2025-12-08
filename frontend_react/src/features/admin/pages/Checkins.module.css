@@ -1,0 +1,280 @@
+@import '../../../shared/theme/colors.css';
+
+.checkinsRoot { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+/* Checkins Page Styles */
+.checkinsPage {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pageHeader h1 {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.pageHeader p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #2563eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btnSecondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.pageContent {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .checkinsPage {
+    padding: 16px;
+  }
+  
+  .pageHeader {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .headerActions {
+    justify-content: flex-end;
+  }
+}
+
+.checkinsTitle { 
+  margin: 0; 
+  font-size: 20px; 
+}
+
+.checkinsActions { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+}
+
+.liveIndicator { 
+  display: flex; 
+  gap: 8px; 
+  align-items: center; 
+}
+
+.liveDot { 
+  width: 10px; 
+  height: 10px; 
+  border-radius: 50%; 
+  background: linear-gradient(90deg, var(--color-qrScan), var(--color-primary)); 
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.18); 
+}
+
+.checkinQr { 
+  background: linear-gradient(90deg, var(--color-secondary), var(--color-secondaryVariant)); 
+}
+
+.checkinsCard { 
+  padding: 14px; 
+}
+
+.checkinsControls { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 12px; 
+  margin-bottom: 12px; 
+}
+
+.controlsLeft { 
+  display: flex; 
+  gap: 8px; 
+  align-items: center; 
+}
+
+.inputSearch { 
+  padding: 10px 12px; 
+  border-radius: 10px; 
+  border: 1px solid var(--color-border); 
+  min-width: 260px; 
+}
+
+.selectRange { 
+  padding: 10px 12px; 
+  border-radius: 10px; 
+  border: 1px solid var(--color-border); 
+}
+
+.checkboxLabel { 
+  display: flex; 
+  gap: 6px; 
+  align-items: center; 
+  color: var(--color-textPrimary); 
+}
+
+.controlsRight { 
+  text-align: right; 
+}
+
+.todayCount { 
+  font-size: 20px; 
+  font-weight: 800; 
+  color: var(--color-primary); 
+}
+
+.tableWrap { 
+  overflow-x: auto; 
+}
+
+.checkinsTable { 
+  width: 100%; 
+  border-collapse: collapse; 
+  min-width: 860px; 
+}
+
+.checkinsTable thead th { 
+  text-align: left; 
+  padding: 12px 10px; 
+  color: var(--color-textSecondary); 
+  font-weight: 700; 
+  font-size: 13px; 
+}
+
+.checkinsTable tbody td { 
+  padding: 12px 10px; 
+  border-top: 1px solid rgba(0, 0, 0, 0.04); 
+  vertical-align: middle; 
+}
+
+.memberCell { 
+  display: flex; 
+  gap: 10px; 
+  align-items: center; 
+}
+
+.memberAvatar { 
+  width: 44px; 
+  height: 44px; 
+  border-radius: 10px; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: white; 
+  font-weight: 800; 
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primaryVariant)); 
+  box-shadow: 0 8px 24px rgba(13, 71, 161, 0.08); 
+}
+
+.memberName { 
+  font-weight: 700; 
+}
+
+.sourceBadge { 
+  padding: 6px 8px; 
+  border-radius: 999px; 
+  font-weight: 700; 
+  font-size: 12px; 
+  display: inline-block; 
+}
+
+.sourceBadge.qr { 
+  background: linear-gradient(90deg, var(--color-qrScan), #4aa3ff); 
+  color: white; 
+}
+
+.sourceBadge.manual { 
+  background: #f2f4f6; 
+  color: var(--color-textPrimary); 
+  border: 1px solid var(--color-border); 
+}
+
+.noResult { 
+  padding: 24px; 
+  text-align: center; 
+  color: var(--color-textSecondary); 
+}
+
+@media (max-width: 980px) { 
+  .inputSearch { 
+    min-width: 160px; 
+  } 
+  
+  .checkinsCard { 
+    padding: 12px; 
+  } 
+}
+
+.spinner { 
+  width: 36px; 
+  height: 36px; 
+  border-radius: 50%; 
+  border: 4px solid rgba(0, 0, 0, 0.06); 
+  border-top-color: var(--color-primary); 
+  animation: spin 800ms linear infinite; 
+}
+
+@keyframes spin { 
+  to { 
+    transform: rotate(360deg); 
+  } 
+}

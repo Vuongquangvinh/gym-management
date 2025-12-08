@@ -1,0 +1,701 @@
+﻿@import '../../../shared/theme/colors.css';
+
+/* ============================================
+   MODAL OVERLAY & CONTAINER
+   ============================================ */
+.clientDetailOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.clientDetailContainer {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 1000px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   HEADER - COMPACT WITH USER INFO
+   ============================================ */
+.clientDetailHeader {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  padding: 16px 24px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.userAvatarHeader {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.clientDetailHeader h2 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.3px;
+}
+
+.clientDetailClose {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.client-detail-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg);
+}
+
+/* ============================================
+   BODY - COMPACT 2 COLUMN LAYOUT
+   ============================================ */
+.clientDetailBody {
+  overflow-y: auto;
+  padding: 20px 24px;
+  flex: 1;
+}
+
+.contentColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  height: 100%;
+}
+
+.left-column,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================
+   COMPACT SECTIONS
+   ============================================ */
+.infoSection {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.compactSection {
+  padding: 12px 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.subsectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 10px 0 6px 0;
+}
+
+/* Info Rows - Compact */
+.infoRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.infoRowCompact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  gap: 12px;
+}
+
+.infoRowCompact label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  min-width: 70px;
+}
+
+.infoRowCompact span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+  flex: 1;
+}
+
+.info-row-compact.highlight-row {
+  background: linear-gradient(90deg, transparent, #f0f9ff);
+  padding: 8px 10px;
+  margin: 4px -10px;
+  border-radius: 6px;
+}
+
+/* ============================================
+   BADGES - COMPACT SIZES
+   ============================================ */
+.membership-badge,
+.status-badge-sm,
+.package-type-badge-sm,
+.paymentBadgeSm {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Membership */
+.badgeActive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badgeExpired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badgeFrozen {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeTrial {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Status */
+.statusPendingPayment {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-paid,
+.statusActive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusCompleted {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.statusCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Payment */
+.paymentPending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.paymentPaid {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.paymentCancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Package Type */
+.typeMonthly {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+}
+
+.typeSession {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+
+/* ============================================
+   SPECIAL VALUES - COMPACT
+   ============================================ */
+.contractCodeSm {
+  font-family: 'Courier New', monospace;
+  background: #f1f5f9;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 11px !important;
+}
+
+.amountSm {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: #1e40af !important;
+}
+
+/* ============================================
+   TAGS - COMPACT
+   ============================================ */
+.tagListCompact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tagSm {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tagGoal {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tagMedical {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+/* ============================================
+   PACKAGE SECTION - COMPACT WITH STATS
+   ============================================ */
+.packageSection {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #bbf7d0;
+}
+
+.packageNameCompact {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.packageStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.statItem {
+  text-align: center;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.statValue.priceValue {
+  color: #1e40af;
+  font-size: 16px;
+}
+
+.statValue.sessionsTotal {
+  color: #059669;
+}
+
+.statValue.sessionsRemaining {
+  color: #dc2626;
+  font-weight: 900;
+}
+
+.highlightRow {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fbbf24;
+}
+
+.stat-value.price-value {
+  color: #1e40af;
+  font-size: 16px;
+}
+
+.stat-value.sessions-total {
+  color: #059669;
+}
+
+.stat-value.sessions-remaining {
+  color: #dc2626;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+/* Feature List - Compact */
+.featureListCompact {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0 0;
+}
+
+.featureListCompact li {
+  padding: 5px 0 5px 18px;
+  position: relative;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.featureListCompact li::before {
+  content: 'âœ“';
+  position: absolute;
+  left: 0;
+  color: #10b981;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.featureListCompact li.feature-more {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.featureListCompact li.feature-more::before {
+  content: 'â€¢';
+  color: #94a3b8;
+}
+
+/* ============================================
+   SCHEDULE - COMPACT
+   ============================================ */
+.scheduleSection {
+  flex: 1;
+}
+
+.scheduleList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.scheduleList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+}
+
+.scheduleDay {
+  font-weight: 700;
+  color: #1e40af;
+  min-width: 70px;
+  font-size: 12px;
+}
+
+.scheduleTime {
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  font-size: 13px;
+}
+
+.scheduleNote {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.emptyText {
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+  padding: 16px;
+  font-size: 13px;
+}
+
+/* ============================================
+   FOOTER - COMPACT
+   ============================================ */
+.clientDetailFooter {
+  padding: 12px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btnClose {
+  padding: 8px 24px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* ============================================
+   CONTACT BUTTON
+   ============================================ */
+.btnContact {
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.btn-contact:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-contact:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .contentColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .clientDetailOverlay {
+    padding: 0;
+  }
+
+  .clientDetailContainer {
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .client-detail-header,
+  .clientDetailFooter {
+    border-radius: 0;
+  }
+
+  .clientDetailHeader {
+    padding: 12px 16px;
+  }
+
+  .clientDetailHeader h2 {
+    font-size: 16px;
+  }
+
+  .userAvatarHeader {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .clientDetailBody {
+    padding: 14px 16px;
+  }
+
+  .info-section,
+  .compactSection {
+    padding: 10px 12px;
+  }
+
+  .packageStats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* ============================================
+   ADDITIONAL CLASSES FOR CAMELCASE
+   ============================================ */
+.membershipBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.statusBadgeSm {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.packageTypeBadgeSm {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contactButton {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contactButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.clientDetailFooter {
+  padding: 14px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.closeButton {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.featureMore {
+  font-style: italic;
+  color: #6b7280;
+}

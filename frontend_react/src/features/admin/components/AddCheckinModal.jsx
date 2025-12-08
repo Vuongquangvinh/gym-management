@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useCheckins } from '../../../firebase/lib/features/checkin/index.js';
 import { UserModel } from "../../../firebase/lib/features/user/user.model.js";import { toast } from 'react-toastify';
-import './AddCheckinModal.css';
+import styles from './AddCheckinModal.module.css';
 
 export default function AddCheckinModal({ isOpen, onClose }) {
   // States
@@ -169,12 +169,12 @@ export default function AddCheckinModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="add-checkin-modal-overlay" onClick={handleOverlayClick}>
-      <div className="add-checkin-modal" ref={modalRef}>
-        <div className="modal-header">
+    <div className={styles.addCheckinModalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.addCheckinModal} ref={modalRef}>
+        <div className={styles.modalHeader}>
           <h2>Thêm Check-in</h2>
           <button 
-            className="modal-close-btn"
+            className={styles.modalCloseBtn}
             onClick={handleClose}
             type="button"
           >
@@ -182,43 +182,43 @@ export default function AddCheckinModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
           {/* Member Search */}
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="member-search">Tìm thành viên</label>
-            <div className="search-container">
+            <div className={styles.searchContainer}>
               <input
                 id="member-search"
                 type="text"
                 placeholder="Nhập tên hoặc số điện thoại..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="search-input"
+                className={styles.searchInput}
                 autoComplete="off"
               />
               {isSearching && (
-                <div className="search-loading">Đang tìm...</div>
+                <div className={styles.searchLoading}>Đang tìm...</div>
               )}
             </div>
 
             {/* Search Results */}
             {searchResults.length > 0 && (
-              <div className="search-results">
+              <div className={styles.searchResults}>
                 {searchResults.map((member) => (
                   <div
                     key={member.id || member._id}
-                    className="search-result-item"
+                    className={styles.searchResultItem}
                     onClick={() => handleMemberSelect(member)}
                   >
-                    <div className="member-info">
-                      <div className="member-name">
+                    <div className={styles.memberInfo}>
+                      <div className={styles.memberName}>
                         {member.full_name || member.name || 'Không có tên'}
                       </div>
-                      <div className="member-phone">
+                      <div className={styles.memberPhone}>
                         {member.phone_number || member.phone || 'Không có SĐT'}
                       </div>
                     </div>
-                    <div className="member-status">
+                    <div className={styles.memberStatus}>
                       {member.membership_status || 'Unknown'}
                     </div>
                   </div>
@@ -228,13 +228,13 @@ export default function AddCheckinModal({ isOpen, onClose }) {
 
             {/* Selected Member Display */}
             {selectedMember && (
-              <div className="selected-member">
-                <div className="selected-label">Đã chọn:</div>
-                <div className="selected-info">
-                  <span className="selected-name">
-                    {selectedMember.full_name || selectedMember.name}
+              <div className={styles.selectedMember}>
+                <div className={styles.selectedLabel}>Đã chọn:</div>
+                <div className={styles.selectedInfo}>
+                  <span className={styles.selectedName}>
+                    {selectedMember.fullname || selectedMember.name}
                   </span>
-                  <span className="selected-phone">
+                  <span className={styles.selectedPhone}>
                     {selectedMember.phone_number || selectedMember.phone}
                   </span>
                 </div>
@@ -243,30 +243,30 @@ export default function AddCheckinModal({ isOpen, onClose }) {
           </div>
 
           {/* Check-in Time */}
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="checkin-time">Thời gian check-in</label>
             <input
               id="checkin-time"
               type="datetime-local"
               value={checkinTime}
               onChange={(e) => setCheckinTime(e.target.value)}
-              className="time-input"
+              className={styles.timeInput}
               max={new Date().toISOString().slice(0, 16)}
             />
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="error-message">
+            <div className={styles.errorMessage}>
               {error}
             </div>
           )}
 
           {/* Form Actions */}
-          <div className="form-actions">
+          <div className={styles.formActions}>
             <button
               type="button"
-              className="btn btn-secondary"
+              className={`${styles.btn} ${styles.btnSecondary}`}
               onClick={handleClose}
               disabled={isSaving}
             >
@@ -274,7 +274,7 @@ export default function AddCheckinModal({ isOpen, onClose }) {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className={`${styles.btn} ${styles.btnPrimary}`}
               disabled={!selectedMember || isSaving}
             >
               {isSaving ? 'Đang lưu...' : 'Lưu check-in'}

@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { ScheduleStatisticsService } from '../../../firebase/lib/features/schedule/schedule.statistics';
 import { Clock, Calendar, TrendingUp, BarChart3 } from 'lucide-react';
-import './PTCheckinStats.css';
+import styles from './PTCheckinStats.module.css';
 
 const PTCheckinStats = ({ employee }) => {
-  const [viewMode, setViewMode] = useState('week'); // 'week' or 'month'
+  const [viewMode, setViewMode] = useState('week');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Subscribe to statistics with real-time updates
   useEffect(() => {
     if (!employee?._id) return;
     
     setLoading(true);
     setError(null);
     
-    // Calculate date range based on view mode
     const now = new Date();
     let startDate, endDate;
     
@@ -31,7 +29,6 @@ const PTCheckinStats = ({ employee }) => {
     
     console.log(`📊 Setting up real-time stats subscription (${viewMode})`);
     
-    // Setup real-time subscription
     const unsubscribe = ScheduleStatisticsService.subscribeToStats(
       employee._id,
       startDate,
@@ -48,7 +45,6 @@ const PTCheckinStats = ({ employee }) => {
       }
     );
     
-    // Cleanup
     return () => {
       console.log('🧹 Cleaning up stats subscription');
       unsubscribe();
@@ -57,9 +53,9 @@ const PTCheckinStats = ({ employee }) => {
 
   if (loading) {
     return (
-      <div className="pt-checkin-stats">
-        <div className="stats-loading">
-          <div className="loading-spinner"></div>
+      <div className={styles.ptCheckinStats}>
+        <div className={styles.statsLoading}>
+          <div className={styles.loadingSpinner}></div>
           <p>Đang tải thống kê...</p>
         </div>
       </div>
@@ -68,8 +64,8 @@ const PTCheckinStats = ({ employee }) => {
 
   if (error) {
     return (
-      <div className="pt-checkin-stats">
-        <div className="stats-error">
+      <div className={styles.ptCheckinStats}>
+        <div className={styles.statsError}>
           <p>❌ {error}</p>
         </div>
       </div>
@@ -87,19 +83,18 @@ const PTCheckinStats = ({ employee }) => {
   );
 
   return (
-    <div className="pt-checkin-stats">
-      {/* Header with View Mode Toggle */}
-      <div className="stats-header">
+    <div className={styles.ptCheckinStats}>
+      <div className={styles.statsHeader}>
         <h2>📊 Thống kê chấm công</h2>
-        <div className="view-mode-toggle">
+        <div className={styles.viewModeToggle}>
           <button 
-            className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+            className={`${styles.toggleBtn} ${viewMode === 'week' ? styles.active : ''}`}
             onClick={() => setViewMode('week')}
           >
             📅 Tuần này
           </button>
           <button 
-            className={`toggle-btn ${viewMode === 'month' ? 'active' : ''}`}
+            className={`${styles.toggleBtn} ${viewMode === 'month' ? styles.active : ''}`}
             onClick={() => setViewMode('month')}
           >
             📆 Tháng này
@@ -107,72 +102,69 @@ const PTCheckinStats = ({ employee }) => {
         </div>
       </div>
 
-      {/* Period Info */}
-      <div className="stats-period">
+      <div className={styles.statsPeriod}>
         <Calendar size={16} />
         <span>
           {new Date(period.startDate).toLocaleDateString('vi-VN')} - {new Date(period.endDate).toLocaleDateString('vi-VN')}
         </span>
       </div>
 
-      {/* Summary Stats Cards */}
-      <div className="stats-cards">
-        <div className="stat-card primary">
-          <div className="stat-icon">
+      <div className={styles.statsCards}>
+        <div className={`${styles.statCard} ${styles.primary}`}>
+          <div className={styles.statIcon}>
             <Clock size={24} />
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{summary.totalWorkingTimeFormatted}</div>
-            <div className="stat-label">Tổng thời gian làm việc</div>
+          <div className={styles.statContent}>
+            <div className={styles.statValue}>{summary.totalWorkingTimeFormatted}</div>
+            <div className={styles.statLabel}>Tổng thời gian làm việc</div>
           </div>
         </div>
 
-        <div className="stat-card success">
-          <div className="stat-icon">
+        <div className={`${styles.statCard} ${styles.success}`}>
+          <div className={styles.statIcon}>
             <TrendingUp size={24} />
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{summary.totalDaysCompleted}</div>
-            <div className="stat-label">Ngày hoàn thành</div>
-            <div className="stat-sublabel">Check-in & checkout</div>
+          <div className={styles.statContent}>
+            <div className={styles.statValue}>{summary.totalDaysCompleted}</div>
+            <div className={styles.statLabel}>Ngày hoàn thành</div>
+            <div className={styles.statSublabel}>Check-in & checkout</div>
           </div>
         </div>
 
-        <div className="stat-card info">
-          <div className="stat-icon">
+        <div className={`${styles.statCard} ${styles.info}`}>
+          <div className={styles.statIcon}>
             <BarChart3 size={24} />
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{summary.avgHoursPerDayFormatted}</div>
-            <div className="stat-label">Trung bình/ngày</div>
-            <div className="stat-sublabel">Giờ làm việc</div>
+          <div className={styles.statContent}>
+            <div className={styles.statValue}>{summary.avgHoursPerDayFormatted}</div>
+            <div className={styles.statLabel}>Trung bình/ngày</div>
+            <div className={styles.statSublabel}>Giờ làm việc</div>
           </div>
         </div>
 
-        <div className="stat-card warning">
-          <div className="stat-icon">
-            <div className="completion-circle" style={{ '--percentage': completionRate }}>
+        <div className={`${styles.statCard} ${styles.warning}`}>
+          <div className={styles.statIcon}>
+            <div className={styles.completionCircle} style={{ '--percentage': completionRate }}>
               <span>{completionRate}%</span>
             </div>
           </div>
-          <div className="stat-content">
-            <div className="stat-value">{summary.totalDaysWithCheckin} / {period.totalDays}</div>
-            <div className="stat-label">Tỷ lệ chấm công</div>
-            <div className="stat-sublabel">Đã check-in</div>
+          <div className={styles.statContent}>
+            <div className={styles.statValue}>{summary.totalDaysWithCheckin} / {period.totalDays}</div>
+            <div className={styles.statLabel}>Tỷ lệ chấm công</div>
+            <div className={styles.statSublabel}>Đã check-in</div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Breakdown */}
-      <div className="stats-details">
+      <div className={styles.statsDetails}>
         <h3>Chi tiết từng ngày</h3>
         
         {details.length === 0 ? (
-          <div className="no-data">
+          <div className={styles.noData}>
             <p>Chưa có dữ liệu chấm công trong khoảng thời gian này</p>
           </div>
         ) : (
-          <div className="details-table">
+          <div className={styles.detailsTable}>
             <table>
               <thead>
                 <tr>
@@ -185,15 +177,15 @@ const PTCheckinStats = ({ employee }) => {
               </thead>
               <tbody>
                 {details.map((day, index) => (
-                  <tr key={index} className={day.status}>
-                    <td className="date-cell">
+                  <tr key={index} className={styles[day.status]}>
+                    <td className={styles.dateCell}>
                       {new Date(day.date).toLocaleDateString('vi-VN', { 
                         weekday: 'short',
                         day: '2-digit',
                         month: '2-digit'
                       })}
                     </td>
-                    <td className="time-cell">
+                    <td className={styles.timeCell}>
                       {day.checkinTime 
                         ? day.checkinTime.toLocaleTimeString('vi-VN', { 
                             hour: '2-digit', 
@@ -202,7 +194,7 @@ const PTCheckinStats = ({ employee }) => {
                         : '-'
                       }
                     </td>
-                    <td className="time-cell">
+                    <td className={styles.timeCell}>
                       {day.checkoutTime 
                         ? day.checkoutTime.toLocaleTimeString('vi-VN', { 
                             hour: '2-digit', 
@@ -211,17 +203,17 @@ const PTCheckinStats = ({ employee }) => {
                         : '-'
                       }
                     </td>
-                    <td className="duration-cell">
+                    <td className={styles.durationCell}>
                       {day.status === 'completed' 
                         ? `${day.hours}h ${day.minutes}m`
                         : '-'
                       }
                     </td>
-                    <td className="status-cell">
+                    <td className={styles.statusCell}>
                       {day.status === 'completed' ? (
-                        <span className="status-badge completed">✅ Hoàn thành</span>
+                        <span className={`${styles.statusBadge} ${styles.completed}`}>✅ Hoàn thành</span>
                       ) : (
-                        <span className="status-badge in-progress">🕐 Đang làm</span>
+                        <span className={`${styles.statusBadge} ${styles.inProgress}`}>🕐 Đang làm</span>
                       )}
                     </td>
                   </tr>
@@ -232,19 +224,18 @@ const PTCheckinStats = ({ employee }) => {
         )}
       </div>
 
-      {/* Additional Stats */}
-      <div className="stats-additional">
-        <div className="additional-stat">
-          <span className="stat-label">Tổng ngày check-in:</span>
-          <span className="stat-value">{summary.totalDaysWithCheckin} ngày</span>
+      <div className={styles.statsAdditional}>
+        <div className={styles.additionalStat}>
+          <span className={styles.statLabel}>Tổng ngày check-in:</span>
+          <span className={styles.statValue}>{summary.totalDaysWithCheckin} ngày</span>
         </div>
-        <div className="additional-stat">
-          <span className="stat-label">Tổng ngày checkout:</span>
-          <span className="stat-value">{summary.totalDaysWithCheckout} ngày</span>
+        <div className={styles.additionalStat}>
+          <span className={styles.statLabel}>Tổng ngày checkout:</span>
+          <span className={styles.statValue}>{summary.totalDaysWithCheckout} ngày</span>
         </div>
-        <div className="additional-stat">
-          <span className="stat-label">Ngày chưa checkout:</span>
-          <span className="stat-value">
+        <div className={styles.additionalStat}>
+          <span className={styles.statLabel}>Ngày chưa checkout:</span>
+          <span className={styles.statValue}>
             {summary.totalDaysWithCheckin - summary.totalDaysWithCheckout} ngày
           </span>
         </div>
@@ -254,4 +245,3 @@ const PTCheckinStats = ({ employee }) => {
 };
 
 export default PTCheckinStats;
-

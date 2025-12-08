@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
-import './TimeSlotManager.css';
+import styles from './TimeSlotManager.module.css';
 
 const DAYS_OF_WEEK = [
   { value: 'monday', label: 'Thứ 2' },
@@ -172,37 +172,37 @@ export default function TimeSlotManager({
   }, [regularSlots]);
 
   return (
-    <div className="time-slot-manager">
-      <div className="regular-slots-section">
-        <div className="section-header">
+    <div className={styles.timeSlotManager}>
+      <div className={styles.regularSlotsSection}>
+        <div className={styles.sectionHeader}>
           <h4>Khung giờ hàng tuần cố định</h4>
           <p>Chọn các khung giờ mà bạn có thể dạy hàng tuần</p>
         </div>
 
-        <div className="time-grid">
-          <div className="section-subtitle">
+        <div className={styles.fixedSlotsContainer}>
+          <div className={styles.sectionSubtitle}>
             <p>Chọn các khung giờ cố định (2h) mà bạn có thể dạy.</p>
           </div>
 
-          <div className="fixed-slots-grid">
+          <div className={styles.fixedSlotsGrid}>
             {FIXED_TIME_SLOTS.map(fixedSlot => (
-              <div key={fixedSlot.id} className="fixed-slot-row">
-                <div className="slot-info">
-                  <div className="slot-time">{fixedSlot.label}</div>
-                  <div className="slot-duration">{fixedSlot.duration} phút</div>
+              <div key={fixedSlot.id} className={styles.fixedSlotRow}>
+                <div className={styles.slotInfo}>
+                  <div className={styles.slotTime}>{fixedSlot.label}</div>
+                  <div className={styles.slotDuration}>{fixedSlot.duration} phút</div>
                 </div>
-                <div className="slot-days">
+                <div className={styles.slotDays}>
                   {DAYS_OF_WEEK.map(day => (
-                    <div key={`${day.value}-${fixedSlot.id}`} className="day-slot">
+                    <div key={`${day.value}-${fixedSlot.id}`} className={styles.daySlot}>
                       <button
                         type="button"
-                        className={`day-button ${isFixedSlotSelected(day.value, fixedSlot.id) ? 'selected' : ''}`}
+                        className={`${styles.dayButton} ${isFixedSlotSelected(day.value, fixedSlot.id) ? styles.selected : ''}`}
                         onClick={() => handleFixedSlotToggle(day.value, fixedSlot)}
                         title={`${day.label} - ${fixedSlot.label}`}
                       >
-                        <span className="day-abbr">{getDayAbbr(day.value, day.label)}</span>
+                        <span className={styles.dayAbbr}>{getDayAbbr(day.value, day.label)}</span>
                         {isFixedSlotSelected(day.value, fixedSlot.id) && (
-                          <span className="check-mark">✓</span>
+                          <span className={styles.checkMark}>✓</span>
                         )}
                       </button>
                     </div>
@@ -215,16 +215,16 @@ export default function TimeSlotManager({
       </div>
 
       {/* Summary */}
-      <div className="time-slots-summary">
+      <div className={styles.timeSlotsSummary}>
         <h5>Tổng quan khung giờ</h5>
-        <div className="summary-stats">
-          <div className="stat">
-            <span className="stat-number">{regularSlots.reduce((total, day) => total + (day.fixedSlots?.length || 0), 0)}</span>
-            <span className="stat-label">Khung giờ cố định</span>
+        <div className={styles.summaryStats}>
+          <div className={styles.stat}>
+            <span className={styles.statNumber}>{regularSlots.reduce((total, day) => total + (day.fixedSlots?.length || 0), 0)}</span>
+            <span className={styles.statLabel}>Khung giờ cố định</span>
           </div>
-          <div className="stat">
-            <span className="stat-number">{sessionDuration}</span>
-            <span className="stat-label">Phút/buổi</span>
+          <div className={styles.stat}>
+            <span className={styles.statNumber}>{sessionDuration}</span>
+            <span className={styles.statLabel}>Phút/buổi</span>
           </div>
         </div>
       </div>

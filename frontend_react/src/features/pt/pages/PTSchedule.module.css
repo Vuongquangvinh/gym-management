@@ -1,0 +1,1641 @@
+/* PT Schedule Page Styles */
+.ptSchedulePage {
+  padding: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Loading State */
+.ptScheduleLoading,
+.ptScheduleError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--color-textSecondary);
+}
+
+.ptScheduleLoading .loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 123, 255, 0.1);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.ptScheduleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 24px;
+}
+
+.headerLeft h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--color-text);
+}
+
+.headerLeft p {
+  margin: 0;
+  color: var(--color-textSecondary);
+  font-size: 14px;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* Employee Badge */
+.ptEmployeeBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.badgeAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.badgeAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badgeInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.badgeName {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.badgeShift {
+  font-size: 13px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Face ID Actions */
+.ptFaceActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnRegisterFaceId,
+.btnFaceCheckin,
+.btnDeleteFaceId {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btnRegisterFaceId {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.btnRegisterFaceId:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btnFaceCheckin {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.btnFaceCheckin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+}
+
+.btnDeleteFaceId {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+.btnDeleteFaceId:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* Weekly Date Picker */
+.ptWeeklyDatePicker {
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ptWeekNavigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ptNavButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text);
+}
+
+.ptNavButton:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.ptWeekInfo {
+  text-align: center;
+}
+
+.ptWeekTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--color-text);
+}
+
+.ptTodayButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-textSecondary);
+  transition: all 0.2s;
+}
+
+.ptTodayButton:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.ptWeekDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.ptDayButton {
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.ptDayButton:hover {
+  background: #f8f9fa;
+  border-color: var(--color-primary);
+}
+
+.ptDayButton.selected {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.ptDayButton.today {
+  border: 2px solid var(--color-primary);
+  font-weight: 600;
+}
+
+.ptDayButton.today.selected {
+  background: var(--color-primary);
+  color: white;
+}
+
+.ptDayName {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+.ptDayNumber {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Info Cards Container */
+.ptInfoCards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.shiftInfoCard,
+.faceIdStatusCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.shiftInfoCard:hover,
+.faceIdStatusCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.shiftInfoCard.fulltime {
+  border-left: 4px solid #28a745;
+}
+
+.shiftInfoCard.parttime {
+  border-left: 4px solid #ffc107;
+}
+
+.faceIdStatusCard.registered {
+  border-left: 4px solid #007bff;
+}
+
+.faceIdStatusCard.unregistered {
+  border-left: 4px solid #dc3545;
+}
+
+.shiftIcon,
+.faceIdIcon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.shiftDetails h3,
+.faceIdDetails h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: var(--color-text);
+}
+
+.shiftDetails p,
+.faceIdDetails p {
+  font-size: 14px;
+  margin: 0;
+  color: var(--color-textSecondary);
+  line-height: 1.5;
+}
+
+.registrationDate {
+  margin-top: 8px !important;
+  font-size: 13px !important;
+  color: #007bff !important;
+  font-weight: 600 !important;
+}
+
+/* Schedule Accordion */
+.ptScheduleAccordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.ptScheduleAccordionItem {
+  background: var(--color-surface);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.ptScheduleAccordionItem.today {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.15);
+}
+
+.ptScheduleAccordionItem.past {
+  opacity: 0.75;
+}
+
+.ptScheduleAccordionItem.expanded {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Accordion Header */
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.accordionHeader:hover {
+  background: rgba(0, 123, 255, 0.03);
+}
+
+.ptScheduleAccordionItem.expanded .accordionHeader {
+  background: linear-gradient(135deg, rgba(13, 71, 161, 0.06) 0%, rgba(33, 150, 243, 0.03) 100%);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.dayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dayName {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.dayDate {
+  font-size: 13px;
+  color: var(--color-textSecondary);
+}
+
+.memberCount {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.countBadge {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1565c0 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+.todayBadgeSmall {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.toggleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+  transition: transform 0.3s ease;
+}
+
+.toggleIcon svg {
+  transition: transform 0.3s ease;
+}
+
+.toggleIcon .rotated {
+  transform: rotate(90deg);
+}
+
+/* Accordion Content */
+.accordionContent {
+  padding: 20px 24px 24px 24px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card Date Header */
+.cardDateHeader {
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dateDay {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--color-text);
+}
+
+.dateNumber {
+  font-size: 13px;
+  color: var(--color-textSecondary);
+  margin-top: 4px;
+}
+
+.todayBadge {
+  padding: 4px 10px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Card Schedule Info */
+.cardScheduleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scheduleHours {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  color: var(--color-text);
+}
+
+.hoursText {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Check-in Status */
+.checkinStatus {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 2px solid;
+}
+
+.checkinStatus.completed {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+.checkinStatus.inProgress {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.checkinStatus.pending {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.statusIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.statusIcon.completed {
+  color: #28a745;
+}
+
+.statusIcon.inProgress {
+  color: #ffc107;
+}
+
+.statusIcon.notStarted {
+  color: #6c757d;
+}
+
+.statusDetails {
+  flex: 1;
+}
+
+.statusLabel {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--color-text);
+}
+
+.statusTime {
+  font-size: 13px;
+  color: var(--color-textSecondary);
+  margin-top: 4px;
+}
+
+/* Schedule Notes */
+.scheduleNotes {
+  padding: 12px;
+  background: #e7f3ff;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 8px;
+}
+
+.notesLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.notesText {
+  font-size: 13px;
+  color: var(--color-textSecondary);
+  line-height: 1.5;
+}
+
+/* Working Hours Summary */
+.workingHoursSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border-radius: 10px;
+}
+
+.summaryLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.summaryValue {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* No Schedule State */
+.cardNoSchedule {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.noScheduleIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.noScheduleText {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-textSecondary);
+  margin-bottom: 6px;
+}
+
+.noScheduleHint {
+  font-size: 13px;
+  color: var(--color-textSecondary);
+  opacity: 0.8;
+}
+
+/* Legend */
+.ptScheduleLegend {
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.legendTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.legendItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-textSecondary);
+}
+
+.legendIcon {
+  flex-shrink: 0;
+}
+
+.legendIcon.completed {
+  color: #28a745;
+}
+
+.legendIcon.inProgress {
+  color: #ffc107;
+}
+
+.legendIcon.notStarted {
+  color: #6c757d;
+}
+
+/* Shift Info Card */
+.shiftInfoCard {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.shiftInfoCard.fulltime {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #90caf9;
+}
+
+.shiftInfoCard.parttime {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px solid #ffcc80;
+}
+
+/* Stat Item Modifiers */
+.statItem.statTotalStudents {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.statItem.statTotalSlots {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.statItem.statRemainingSlots {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.statValue.highlight {
+  color: #ff9800;
+  font-weight: 700;
+}
+
+.statValue.expired {
+  color: #f44336;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ptScheduleHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .headerRight {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .ptEmployeeBadge {
+    width: 100%;
+  }
+
+  .ptFaceActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btnRegisterFaceId,
+  .btnFaceCheckin,
+  .btnDeleteFaceId {
+    width: 100%;
+  }
+
+  .ptInfoCards {
+    grid-template-columns: 1fr;
+  }
+
+  .ptWeekDays {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .ptDayButton {
+    padding: 8px 4px;
+  }
+
+  .ptDayName {
+    font-size: 10px;
+  }
+
+  .ptDayNumber {
+    font-size: 12px;
+  }
+
+  .legendItems {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .accordionHeader {
+    padding: 14px 16px;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .dayName {
+    font-size: 14px;
+  }
+
+  .dayDate {
+    font-size: 12px;
+  }
+
+  .countBadge {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .accordionContent {
+    padding: 16px;
+  }
+
+  .memberScheduleItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .memberName {
+    text-align: left;
+  }
+}
+
+/* Members Schedule List - New Design */
+.membersScheduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memberScheduleItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(13, 71, 161, 0.04) 0%, rgba(33, 150, 243, 0.02) 100%);
+  border-radius: 10px;
+  border-left: 4px solid var(--color-primary);
+  transition: all 0.2s ease;
+  gap: 12px;
+}
+
+.memberScheduleItem:hover {
+  background: linear-gradient(135deg, rgba(13, 71, 161, 0.08) 0%, rgba(33, 150, 243, 0.04) 100%);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.memberTime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: white;
+  border-radius: 8px;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.memberTime svg {
+  flex-shrink: 0;
+}
+
+.memberName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+}
+
+.noMembersScheduled {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  gap: 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 2px dashed #dee2e6;
+}
+
+.noMemberIcon {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+.noMemberText {
+  font-size: 14px;
+  color: var(--color-textSecondary);
+  font-style: italic;
+}
+
+/* Update existing card-schedule-info for new layout */
+.ptScheduleCard .cardScheduleInfo {
+  min-height: 100px;
+}
+
+/* ==================== SEARCH & FILTER BAR ==================== */
+.ptSearchFilterBar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.searchBox {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.searchBox:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.searchBox svg {
+  color: #999;
+  margin-right: 12px;
+}
+
+.searchBox input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 14px 0;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.searchBox input::placeholder {
+  color: #999;
+}
+
+.clearSearch {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #999;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.clearSearch:hover {
+  color: #666;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.filterToggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filterToggle.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Filter Options */
+.ptFilterOptions {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filterGroup label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterButtons button {
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-textSecondary);
+  transition: all 0.2s ease;
+}
+
+.filterButtons button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filterButtons button.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* ==================== TIME SLOT SECTIONS ==================== */
+.timeSlotsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.timeSlotSection {
+  background: #f8f9fa;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  transition: background 0.3s, border 0.3s, filter 0.3s;
+}
+
+.timeSlotSection.past {
+  background: #f3f3f3;
+  border: 1.5px dashed #bfc9d8;
+  filter: grayscale(0.25) brightness(0.93);
+  opacity: 0.7;
+}
+
+.timeSlotHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.timeSlotHeader:hover {
+  background: #f8f9fa;
+}
+
+.timeSlotInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text);
+}
+
+.timeSlotInfo svg {
+  color: var(--color-primary);
+}
+
+.timeRange {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.memberCountBadge {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.timeSlotHeader .rotated {
+  transform: rotate(90deg);
+}
+
+.timeSlotMembers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+/* ==================== MEMBER CARD ==================== */
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.member-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.memberCardAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.memberCardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memberCardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.memberCardName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-textSecondary);
+}
+
+.memberTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sessionsRemaining {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.memberCardStatus {
+  flex-shrink: 0;
+}
+
+.statusBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.statusBadge.active {
+  background: #d4edda;
+  color: #28a745;
+}
+
+.statusBadge.expired {
+  background: #f8d7da;
+  color: #dc3545;
+}
+
+/* ==================== DAY STATISTICS ==================== */
+.dayStatistics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  padding: 20px 18px;
+  background: #f6f8fd;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 18px 0 rgba(0, 123, 255, 0.07);
+  border: 1.5px solid #e3eafc;
+}
+
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 10px 14px 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.03);
+  border: 1.5px solid #f0f4fa;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Màu nền riêng cho từng loại thống kê */
+.statItem.statTotalStudents {
+  background: linear-gradient(135deg, #e3f0ff 0%, #f6f8fd 100%);
+  border-color: #b6d4fe;
+}
+.statItem.statTotalSlots {
+  background: linear-gradient(135deg, #eafaf1 0%, #f6f8fd 100%);
+  border-color: #b7eedc;
+}
+.statItem.statRemainingSlots {
+  background: linear-gradient(135deg, #fffbe6 0%, #f6f8fd 100%);
+  border-color: #ffe59e;
+}
+
+/* Màu riêng cho từng loại thống kê */
+.statItem.statTotalStudents .statValue {
+  color: #007bff; /* Xanh dương */
+}
+.statItem.statTotalSlots .statValue {
+  color: #28a745; /* Xanh lá */
+}
+.statItem.statRemainingSlots .statValue {
+  color: #ffc107; /* Vàng */
+}
+.statItem .statValue.expired {
+  color: #dc3545;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--color-textSecondary);
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statValue.active {
+  color: #28a745;
+}
+
+.statValue.expired {
+  color: #dc3545;
+}
+
+/* Active badge in accordion header */
+.activeBadge {
+  background: #d4edda;
+  color: #28a745;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ==================== MEMBER DETAIL MODAL ==================== */
+.memberDetailModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.memberDetailModal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.memberDetailModal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 2px solid #e0e0e0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.memberDetailModal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.memberDetailModal .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: background 0.2s;
+}
+
+.memberDetailModal .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.memberDetailModal .modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Member Profile */
+.memberProfile {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 24px;
+}
+
+.memberAvatarLarge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 32px;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.memberAvatarLarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memberProfileInfo {
+  flex: 1;
+}
+
+.memberProfileInfo h4 {
+  margin: 0 0 12px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--color-textSecondary);
+  font-size: 14px;
+}
+
+.infoRow svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* Info Section */
+.infoSection {
+  margin-bottom: 24px;
+}
+
+.infoSection h5 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.infoItem .label {
+  font-size: 12px;
+  color: var(--color-textSecondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.infoItem .value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.infoItem .value.highlight {
+  color: var(--color-primary);
+  font-size: 18px;
+}
+
+.infoItem .value.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.infoItem .value.status.active {
+  color: #28a745;
+}
+
+.infoItem .value.status.expired {
+  color: #dc3545;
+}
+
+.infoItem .value.status.cancelled {
+  color: #6c757d;
+}
+
+/* Weekly Schedule Grid */
+.weeklyScheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.scheduleSlot {
+  background: #f8f9fa;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.dayLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.timeLabel {
+  display: block;
+  font-size: 11px;
+  color: var(--color-textSecondary);
+}
+
+/* Notes Text */
+.notesText {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-primary);
+  color: var(--color-textSecondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .ptSearchFilterBar {
+    flex-direction: column;
+  }
+
+  .filterToggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .timeSlotMembers {
+    grid-template-columns: 1fr;
+  }
+
+  .dayStatistics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .memberProfile {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .weeklyScheduleGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .memberDetailModal {
+    max-height: 95vh;
+    margin: 10px;
+  }
+}
+
+
+
+
+
+
+
+
+
+

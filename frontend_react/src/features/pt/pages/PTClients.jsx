@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../firebase/lib/features/auth/authContext';
 import EmployeeService from '../../../firebase/lib/features/employee/employee.service';
 import ContractService from '../../../firebase/lib/features/contract/contract.service';
-import './PTClients.css';
+import styles from './PTClients.module.css';
 import ClientDetailModal from '../components/ClientDetailModal';
 
 export default function PTClients() {
@@ -59,7 +59,7 @@ export default function PTClients() {
 
   if (loading) {
     return (
-      <div className="pt-clients" style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className={styles.ptClients} style={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div>Đang tải...</div>
       </div>
     );
@@ -67,11 +67,11 @@ export default function PTClients() {
 
   if (error) {
     return (
-      <div className="pt-clients">
-        <div className="pt-clients__header">
-          <h1 className="pt-clients__title">Học viên của tôi</h1>
+      <div className={styles.ptClients}>
+        <div className={styles.ptClientsHeader}>
+          <h1 className={styles.ptClientsTitle}>Học viên của tôi</h1>
         </div>
-        <div className="pt-clients__card" style={{ marginTop: 12 }}>
+        <div className={styles.ptClientsCard} style={{ marginTop: 12 }}>
           <div style={{ background: '#fee', borderRadius: 12, padding: 16, color: '#c00' }}>{error}</div>
         </div>
       </div>
@@ -128,20 +128,20 @@ export default function PTClients() {
 
   return (
     <>
-      <div className="pt-clients">
-      <div className="pt-clients__header">
-        <h1 className="pt-clients__title">Học viên của tôi</h1>
-        <p className="pt-clients__subtitle">Danh sách học viên đang tập với bạn ({clients.length} học viên)</p>
+      <div className={styles.ptClients}>
+      <div className={styles.ptClientsHeader}>
+        <h1 className={styles.ptClientsTitle}>Học viên của tôi</h1>
+        <p className={styles.ptClientsSubtitle}>Danh sách học viên đang tập với bạn ({clients.length} học viên)</p>
       </div>
 
       {clients.length === 0 ? (
-        <div className="pt-clients__card pt-clients__empty">
+        <div className={`${styles.ptClientsCard} ${styles.ptClientsEmpty}`}>
           <p style={{ fontSize: 16, color: 'var(--color-textSecondary)', margin: 0 }}>Chưa có học viên nào đăng ký gói tập của bạn</p>
         </div>
       ) : (
-        <div className="pt-clients__card">
-          <div className="pt-clients__table-wrapper">
-            <table className="pt-clients__table">
+        <div className={styles.ptClientsCard}>
+          <div className={styles.ptClientsTableWrapper}>
+            <table className={styles.ptClientsTable}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: 600 }}>Học viên</th>
@@ -159,34 +159,34 @@ export default function PTClients() {
                 <tr key={client.contractId}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="pt-clients__user-avatar">{getInitials(client.userName)}</div>
-                      <div className="pt-clients__user-name">{client.userName}</div>
+                      <div className={styles.ptClientsUserAvatar}>{getInitials(client.userName)}</div>
+                      <div className={styles.ptClientsUserName}>{client.userName}</div>
                     </div>
                   </td>
                   <td>
-                    <div className="pt-clients__user-contact">{client.userEmail}</div>
-                    {client.userPhone && (<div className="pt-clients__user-contact">{client.userPhone}</div>)}
+                    <div className={styles.ptClientsUserContact}>{client.userEmail}</div>
+                    {client.userPhone && (<div className={styles.ptClientsUserContact}>{client.userPhone}</div>)}
                   </td>
                   <td>{client.packageName}</td>
                   <td>
-                    <span className={`pt-clients__badge ${client.packageType === 'monthly' ? 'pt-clients__badge--monthly' : 'pt-clients__badge--sessions'}`}>
+                    <span className={`${styles.ptClientsBadge} ${client.packageType === 'monthly' ? styles.ptClientsBadgeMonthly : styles.ptClientsBadgeSessions}`}>
                       {client.packageType === 'monthly' ? 'Tháng' : 'Buổi'}
                     </span>
                   </td>
                   <td>{client.sessionsRemaining} / {client.sessionsTotal}</td>
                   <td>
-                    <div className="pt-clients__date">
+                    <div className={styles.ptClientsDate}>
                       <div>{formatDate(client.startDate)}</div>
                       <div style={{ color: 'var(--color-textSecondary)' }}>đến {formatDate(client.endDate)}</div>
                     </div>
                   </td>
                   <td>
-                    <span className={`pt-clients__status pt-clients__status--${getStatusClass(client.status)}`}>
+                    <span className={`${styles.ptClientsStatus} ${styles[`ptClientsStatus${getStatusClass(client.status).charAt(0).toUpperCase() + getStatusClass(client.status).slice(1)}`]}`}>
                       {getStatusText(client.status)}
                     </span>
                   </td>
                   <td>
-                    <button className="pt-clients__btn" onClick={() => { setSelectedClient(client); setDetailOpen(true); }}>Xem chi tiết</button>
+                    <button className={styles.ptClientsBtn} onClick={() => { setSelectedClient(client); setDetailOpen(true); }}>Xem chi tiết</button>
                   </td>
                 </tr>
               ))}

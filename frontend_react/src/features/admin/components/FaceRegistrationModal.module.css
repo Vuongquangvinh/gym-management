@@ -1,0 +1,652 @@
+﻿/* Face Registration Modal */
+.faceRegistrationModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.faceRegistrationModal {
+  background: white;
+  border-radius: 20px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalContent {
+  padding: 24px;
+  max-height: calc(90vh - 80px);
+  overflow-y: auto;
+}
+
+/* Instructions Step */
+.registrationStep {
+  text-align: center;
+}
+
+.stepIcon {
+  font-size: 4em;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.registrationStep h3 {
+  color: #333;
+  margin-bottom: 24px;
+  font-size: 1.3em;
+}
+
+.instructionsList {
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.instructionItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.instructionItem:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.instructionNumber {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  margin-right: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.instructionItem p {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.employeeInfo {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 28px;
+  border: 2px solid #90caf9;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.employeeInfo h4 {
+  margin: 0 0 8px 0;
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.employeeInfo p {
+  margin: 0;
+  color: #424242;
+  font-size: 14px;
+}
+
+.btnStartCamera {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 18px 40px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  display: block;
+}
+
+.btnStartCamera:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2, #667eea);
+}
+
+.btnStartCamera:active {
+  transform: translateY(0);
+}
+
+/* Camera Step */
+.registration-step.camera {
+  text-align: center;
+}
+
+.cameraContainer {
+  position: relative;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.cameraVideo {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.cameraOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.faceGuide {
+  text-align: center;
+  color: white;
+}
+
+.guideCircle {
+  width: 200px;
+  height: 200px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  position: relative;
+}
+
+.guide-circle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+}
+
+.faceGuide p {
+  margin: 0;
+  font-size: 14px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.cameraControls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnCapture {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-capture:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
+.btn-capture:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btnCancel {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+}
+
+/* Preview Step */
+.registration-step.preview {
+  text-align: center;
+}
+
+.imagePreview {
+  margin-bottom: 24px;
+}
+
+.imagePreview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.previewActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnRetake {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-retake:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.btnConfirm {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.btn-retake:disabled,
+.btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.errorMessage {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #f5c6cb;
+  white-space: pre-line;
+}
+
+.successMessage {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #c3e6cb;
+}
+
+/* Face Checkin Modal Specific Styles */
+.faceFrame {
+  width: 250px;
+  height: 250px;
+  margin: 0 auto;
+}
+
+.faceBorder {
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(102, 126, 234, 0.8);
+  border-radius: 20px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 4px solid #fff;
+}
+
+.corner:nth-child(1) {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 20px;
+}
+
+.corner:nth-child(2) {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 20px;
+}
+
+.corner:nth-child(3) {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 20px;
+}
+
+.corner:nth-child(4) {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 20px;
+}
+
+.scanningIndicator {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scanLine {
+  width: 200px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #667eea, transparent);
+  animation: scanning 2s infinite;
+}
+
+@keyframes scanning {
+  0% { transform: translateY(0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(200px); opacity: 0; }
+}
+
+.scanningStatus {
+  text-align: center;
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.scanningStatus h3 {
+  margin: 0 0 8px 0;
+  color: #667eea;
+  font-size: 18px;
+}
+
+.scanningStatus p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.successIcon {
+  font-size: 5em;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.detectedEmployee {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 16px;
+  margin: 20px 0;
+  border: 2px solid #90caf9;
+}
+
+.employeeAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.employeeAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.employeeAvatar span {
+  color: white;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.employeeDetails {
+  flex: 1;
+  text-align: left;
+}
+
+.employeeDetails h4 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #1565c0;
+}
+
+.employeeDetails p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.checkinActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.checkinButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnCheckin {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.btnCheckin:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(46, 204, 113, 0.5);
+}
+
+.btnCheckout {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.btnCheckout:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
+}
+
+.btnCheckin:disabled,
+.btnCheckout:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.checkinSummary {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.summaryRow:last-child {
+  border-bottom: none;
+}
+
+.summaryLabel {
+  font-weight: 600;
+  color: #555;
+}
+
+.summaryValue {
+  color: #1565c0;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .faceRegistrationModal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .cameraVideo {
+    height: 300px;
+  }
+
+  .guideCircle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .guide-circle::before {
+    width: 130px;
+    height: 130px;
+  }
+
+  .cameraControls,
+  .previewActions {
+    flex-direction: column;
+  }
+
+  .btnCapture,
+  .btnCancel,
+  .btnRetake,
+  .btnConfirm {
+    width: 100%;
+  }
+}

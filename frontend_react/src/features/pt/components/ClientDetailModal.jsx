@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './ClientDetailModal.css';
+import styles from './ClientDetailModal.module.css';
 import PTChat from './PTChat';
 
 export default function ClientDetailModal({ isOpen, onClose, client }) {
@@ -71,7 +71,7 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
   };
 
   const renderSchedule = (weeklySchedule) => {
-    if (!weeklySchedule) return <div className="empty-text">Chưa có lịch học</div>;
+    if (!weeklySchedule) return <div className={styles.emptyText}>Chưa có lịch học</div>;
     const dayNames = ['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
     let slots = [];
 
@@ -83,7 +83,7 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
       slots = weeklySchedule;
     }
 
-    if (slots.length === 0) return <div className="empty-text">Chưa có lịch học</div>;
+    if (slots.length === 0) return <div className={styles.emptyText}>Chưa có lịch học</div>;
 
     const normalized = slots.map(s => {
       const raw = parseInt(s.dayOfWeek, 10);
@@ -94,12 +94,12 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
     });
 
     return (
-      <ul className="schedule-list">
+      <ul className={styles.scheduleList}>
         {normalized.sort((a,b) => a.dayOfWeek - b.dayOfWeek).map((slot, idx) => (
           <li key={idx}>
-            <span className="schedule-day">{dayNames[slot.dayOfWeek || 0]}</span>
-            <span className="schedule-time">{slot.startTime || 'N/A'} - {slot.endTime || 'N/A'}</span>
-            {slot.note && <span className="schedule-note">({slot.note})</span>}
+            <span className={styles.scheduleDay}>{dayNames[slot.dayOfWeek || 0]}</span>
+            <span className={styles.scheduleTime}>{slot.startTime || 'N/A'} - {slot.endTime || 'N/A'}</span>
+            {slot.note && <span className={styles.scheduleNote}>({slot.note})</span>}
           </li>
         ))}
       </ul>
@@ -112,84 +112,87 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
   };
 
   return (
-    <div className="client-detail-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="client-detail-container">
-        <div className="client-detail-header">
-          <div className="header-left">
-            <div className="user-avatar-header">{getInitials(user.full_name || user.name)}</div>
+    <div className={styles.clientDetailOverlay}
+         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={styles.clientDetailContainer}>
+        <div className={styles.clientDetailHeader}>
+          <div className={styles.headerLeft}>
+            <div className={styles.userAvatarHeader}>{getInitials(user.full_name || user.name)}</div>
             <div>
               <h2>{user.full_name || user.name || 'N/A'}</h2>
-              <span className={`membership-badge badge-${user.membership_status?.toLowerCase() || 'active'}`}>
+              <span className={`${styles.membershipBadge} ${styles[`badge${(user.membership_status || 'active').charAt(0).toUpperCase() + (user.membership_status || 'active').slice(1).toLowerCase()}`]}`}>
                 {getMembershipStatusText(user.membership_status)}
               </span>
             </div>
           </div>
-          <button className="client-detail-close" onClick={onClose} aria-label="Đóng">×</button>
+          <button className={styles.clientDetailClose}
+         onClick={onClose} aria-label="Đóng">×</button>
         </div>
 
-        <div className="client-detail-body">
-          <div className="content-columns">
+        <div className={styles.clientDetailBody}>
+          <div className={styles.contentColumns}>
             {/* Left Column */}
-            <div className="left-column">
+            <div className={styles.leftColumn}>
               {/* Contact Info */}
-              <div className="info-section compact-section">
-                <div className="section-header">� Liên hệ</div>
-                <div className="info-rows">
-                  <div className="info-row-compact">
+              <div className={`${styles.infoSection} ${styles.compactSection}`}>
+                <div className={styles.sectionHeader}>📞 Liên hệ</div>
+                <div className={styles.infoRows}>
+                  <div className={styles.infoRowCompact}>
                     <label>Email</label>
                     <span>{user.email || 'N/A'}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>SĐT</label>
                     <span>{user.phone_number || user.phone || 'N/A'}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>Sinh</label>
                     <span>{formatDate(user.date_of_birth)}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>Giới tính</label>
                     <span>{getGenderText(user.gender)}</span>
                   </div>
                 </div>
                 <div style={{marginTop: '12px', textAlign: 'center'}}>
-                  <button className="btn-contact" onClick={() => setShowChat(true)}>
+                  <button className={styles.contactButton}
+         onClick={() => setShowChat(true)}>
                     💬 Liên hệ
                   </button>
                 </div>
               </div>
 
               {/* Contract Info */}
-              <div className="info-section compact-section">
-                <div className="section-header">
+              <div className={`${styles.infoSection} ${styles.compactSection}`}>
+                <div className={styles.sectionHeader}>
                   📋 Hợp đồng
-                  <span className={`status-badge-sm status-${contract.status?.replace('_', '-')}`}>
+                  <span className={`${styles.statusBadgeSm} ${styles[`status${(contract.status || 'active').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`]}`}>
                     {getContractStatusText(contract.status)}
                   </span>
                 </div>
-                <div className="info-rows">
-                  <div className="info-row-compact">
+                <div className={styles.infoRows}>
+                  <div className={styles.infoRowCompact}>
                     <label>Mã HĐ</label>
-                    <span className="contract-code-sm">{contract.id?.slice(-8) || 'N/A'}</span>
+                    <span className={styles.contractCodeSm}>{contract.id?.slice(-8) || 'N/A'}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>Bắt đầu</label>
                     <span>{formatDate(contract.startDate || client.startDate)}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>Kết thúc</label>
                     <span>{formatDate(contract.endDate || client.endDate)}</span>
                   </div>
-                  <div className="info-row-compact">
+                  <div className={styles.infoRowCompact}>
                     <label>Thanh toán</label>
-                    <span className={`payment-badge-sm payment-${contract.paymentStatus?.toLowerCase() || 'pending'}`}>
+                    <span className={`${styles.paymentBadgeSm} ${styles[`payment${(contract.paymentStatus || 'pending').charAt(0).toUpperCase() + (contract.paymentStatus || 'pending').slice(1).toLowerCase()}`]}`}>
                       {getPaymentStatusText(contract.paymentStatus)}
                     </span>
                   </div>
                   {contract.paymentAmount && (
-                    <div className="info-row-compact highlight-row">
+                    <div className={`${styles.infoRowCompact} ${styles.highlightRow}`}>
                       <label>Số tiền</label>
-                      <span className="amount-sm">{formatCurrency(contract.paymentAmount)}</span>
+                      <span className={styles.amountSm}>{formatCurrency(contract.paymentAmount)}</span>
                     </div>
                   )}
                 </div>
@@ -197,19 +200,19 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
 
               {/* Goals & Health */}
               {((user.fitness_goal && user.fitness_goal.length > 0) || (user.medical_conditions && user.medical_conditions.length > 0)) && (
-                <div className="info-section compact-section">
-                  <div className="section-header">🎯 Mục tiêu & Sức khỏe</div>
+                <div className={`${styles.infoSection} ${styles.compactSection}`}>
+                  <div className={styles.sectionHeader}>🎯 Mục tiêu & Sức khỏe</div>
                   {(user.fitness_goal && user.fitness_goal.length > 0) && (
-                    <div className="tag-list-compact">
-                      {user.fitness_goal.map((goal, idx) => (
-                        <span key={idx} className="tag-sm tag-goal">{goal}</span>
+                    <div className={styles.tagListCompact}>
+                      {user.fitness_goal?.map((goal, idx) => (
+                        <span key={idx} className={`${styles.tagSm} ${styles.tagGoal}`}>{goal}</span>
                       ))}
                     </div>
                   )}
                   {(user.medical_conditions && user.medical_conditions.length > 0) && (
-                    <div className="tag-list-compact">
-                      {user.medical_conditions.map((condition, idx) => (
-                        <span key={idx} className="tag-sm tag-medical">{condition}</span>
+                    <div className={styles.tagListCompact}>
+                      {user.medical_conditions?.map((condition, idx) => (
+                        <span key={idx} className={`${styles.tagSm} ${styles.tagMedical}`}>{condition}</span>
                       ))}
                     </div>
                   )}
@@ -218,40 +221,40 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
             </div>
 
             {/* Right Column */}
-            <div className="right-column">
+            <div className={styles.rightColumn}>
               {/* Package Info */}
-              <div className="info-section package-section">
-                <div className="section-header">
+              <div className={`${styles.infoSection} ${styles.packageSection}`}>
+                <div className={styles.sectionHeader}>
                   💪 Gói tập
-                  <span className={`package-type-badge-sm type-${ptPackage.packageType || 'session'}`}>
+                  <span className={`${styles.packageTypeBadgeSm} ${styles[`type${(ptPackage.packageType || 'session').charAt(0).toUpperCase() + (ptPackage.packageType || 'session').slice(1)}`]}`}>
                     {ptPackage.packageType === 'monthly' ? 'Tháng' : 'Buổi'}
                   </span>
                 </div>
-                <div className="package-name-compact">{ptPackage.name || 'N/A'}</div>
-                <div className="package-stats">
-                  <div className="stat-item">
-                    <div className="stat-value price-value">{formatCurrency(ptPackage.price)}</div>
-                    <div className="stat-label">Giá gói</div>
+                <div className={styles.packageNameCompact}>{ptPackage.name || 'N/A'}</div>
+                <div className={styles.packageStats}>
+                  <div className={styles.statItem}>
+                    <div className={`${styles.statValue} ${styles.priceValue}`}>{formatCurrency(ptPackage.price)}</div>
+                    <div className={styles.statLabel}>Giá gói</div>
                   </div>
-                  <div className="stat-item">
-                    <div className="stat-value sessions-total">{ptPackage.sessions || 'N/A'}</div>
-                    <div className="stat-label">Tổng buổi</div>
+                  <div className={styles.statItem}>
+                    <div className={`${styles.statValue} ${styles.sessionsTotal}`}>{ptPackage.sessions || 'N/A'}</div>
+                    <div className={styles.statLabel}>Tổng buổi</div>
                   </div>
-                  <div className="stat-item">
-                    <div className="stat-value sessions-remaining">{client.sessionsRemaining ?? 'N/A'}</div>
-                    <div className="stat-label">Còn lại</div>
+                  <div className={styles.statItem}>
+                    <div className={`${styles.statValue} ${styles.sessionsRemaining}`}>{client.sessionsRemaining ?? 'N/A'}</div>
+                    <div className={styles.statLabel}>Còn lại</div>
                   </div>
                 </div>
 
                 {ptPackage.features && ptPackage.features.length > 0 && (
                   <>
-                    <div className="subsection-title">Đặc điểm</div>
-                    <ul className="feature-list-compact">
+                    <div className={styles.subsectionTitle}>Đặc điểm</div>
+                    <ul className={styles.featureListCompact}>
                       {ptPackage.features.slice(0, 4).map((feature, idx) => (
                         <li key={idx}>{feature}</li>
                       ))}
                       {ptPackage.features.length > 4 && (
-                        <li className="feature-more">+{ptPackage.features.length - 4} khác...</li>
+                        <li className={styles.featureMore}>+{ptPackage.features.length - 4} khác...</li>
                       )}
                     </ul>
                   </>
@@ -259,16 +262,17 @@ export default function ClientDetailModal({ isOpen, onClose, client }) {
               </div>
 
               {/* Schedule */}
-              <div className="info-section schedule-section">
-                <div className="section-header">📅 Lịch tập</div>
+              <div className={`${styles.infoSection} ${styles.scheduleSection}`}>
+                <div className={styles.sectionHeader}>📅 Lịch tập</div>
                 {renderSchedule(contract.weeklySchedule || client.weeklySchedule)}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="client-detail-footer">
-          <button className="btn-close" onClick={onClose}>Đóng</button>
+        <div className={styles.clientDetailFooter}>
+          <button className={styles.closeButton}
+         onClick={onClose}>Đóng</button>
         </div>
       </div>
     </div>

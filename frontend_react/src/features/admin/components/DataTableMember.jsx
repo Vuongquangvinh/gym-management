@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./DataTableMember.css";
+import styles from "./DataTableMember.module.css";
 import UserModel from "../../../firebase/lib/features/user/user.model.js";
 import DetailMember from "./DetailMember.jsx";
 import useDebounce from "../hook/useDebounce.jsx";
@@ -117,22 +117,22 @@ export default function DataTableMember() {
 
 
   return (
-  <div className="datatable-member-wrapper">
-     <div className="stats-cards-container">
-        <div className="stat-card">
-          <span className="stat-card-number">{statsLoading ? '...' : stats.total}</span>
-          <span className="stat-card-label">Tổng hội viên</span>
+  <div className={styles.datatableMemberWrapper}>
+     <div className={styles.statsCardsContainer}>
+        <div className={styles.statCard}>
+          <span className={styles.statCardNumber}>{statsLoading ? '...' : stats.total}</span>
+          <span className={styles.statCardLabel}>Tổng hội viên</span>
         </div>
-        <div className="stat-card active-card">
-          <span className="stat-card-number">{statsLoading ? '...' : stats.active}</span>
-          <span className="stat-card-label">Đang hoạt động</span>
+        <div className={`${styles.statCard} ${styles.activeCard}`}>
+          <span className={styles.statCardNumber}>{statsLoading ? '...' : stats.active}</span>
+          <span className={styles.statCardLabel}>Đang hoạt động</span>
         </div>
-        <div className="stat-card expiring-card">
-          <span className="stat-card-number">{statsLoading ? '...' : stats.expiring}</span>
-          <span className="stat-card-label">Sắp hết hạn</span>
+        <div className={`${styles.statCard} ${styles.expiringCard}`}>
+          <span className={styles.statCardNumber}>{statsLoading ? '...' : stats.expiring}</span>
+          <span className={styles.statCardLabel}>Sắp hết hạn</span>
         </div>
       </div>
-      <div className="filter-user">
+      <div className={styles.filterUser}>
         <label>Tìm kiếm:</label>
         <input
           type="text"
@@ -151,8 +151,8 @@ export default function DataTableMember() {
           
         </select>
       </div>
-      <h2 className="datatable-title">Danh sách thành viên</h2>
-      <table className="datatable-member">
+      <h2 className={styles.datatableTitle}>Danh sách thành viên</h2>
+      <table className={styles.datatableMember}>
         <thead>
           <tr>
             <th>Họ và tên</th>
@@ -168,27 +168,28 @@ export default function DataTableMember() {
         </thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan={10} className="datatable-loading">Đang tải...</td></tr>
+            <tr><td colSpan={10} className={styles.datatableLoading}>Đang tải...</td></tr>
           ) : allUsers.length === 0 ? (
-            <tr><td colSpan={10} className="datatable-empty">Không có thành viên nào phù hợp</td></tr>
+            <tr><td colSpan={10} className={styles.datatableEmpty}>Không có thành viên nào phù hợp</td></tr>
           ) : (
             allUsers.map(user => (
               <tr key={user._id} className={user.membership_status === "Active" ? "active" : "inactive"}>
-                <td>{user.full_name}</td>
-                <td>{user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString() : ""}</td>
-                <td>{user.join_date ? new Date(user.join_date).toLocaleDateString() : ""}</td>
-                <td>{user.gender === "male" ? "Nam" : user.gender === "female" ? "Nữ" : "Khác"}</td>
-                <td>{user.phone_number}</td>
-                
-                <td>{user.current_package_id}</td>
-                <td>{user.package_end_date ? new Date(user.package_end_date).toLocaleDateString() : ""}</td>
-                <td>
-                  <span className={user.membership_status === "Active" ? "status-active" : "status-inactive"}>
-                    {user.membership_status === "Active" ? "Hoạt động" : user.membership_status === "Expired" ? "Hết hạn" : user.membership_status === "Frozen" ? "Tạm dừng" : "Dùng thử"}
+                <td data-label="Họ và tên">{user.full_name}</td>
+                <td data-label="Ngày sinh">{user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString('vi-VN') : ""}</td>
+                <td data-label="Ngày đăng ký">{user.join_date ? new Date(user.join_date).toLocaleDateString('vi-VN') : ""}</td>
+                <td data-label="Giới tính">{user.gender === "male" ? "Nam" : user.gender === "female" ? "Nữ" : "Khác"}</td>
+                <td data-label="Số điện thoại">{user.phone_number}</td>
+                <td data-label="Gói tập">{user.current_package_id || "Chưa có"}</td>
+                <td data-label="Ngày hết hạn">{user.package_end_date ? new Date(user.package_end_date).toLocaleDateString('vi-VN') : ""}</td>
+                <td data-label="Trạng thái">
+                  <span className={user.membership_status === "Active" ? styles.statusActive : styles.statusInactive}>
+                    {user.membership_status === "Active" ? "✓ Hoạt động" : user.membership_status === "Expired" ? "✕ Hết hạn" : user.membership_status === "Frozen" ? "❄ Tạm dừng" : "◎ Dùng thử"}
                   </span>
                 </td>
-                <td>
-                  <button className="datatable-btn view" onClick={() => handleView(user)}>Xem chi tiết</button>
+                <td data-label="Thao tác">
+                  <button className={`${styles.datatableBtn} ${styles.view}`} onClick={() => handleView(user)}>
+                    👁️ Xem
+                  </button>
                 </td>
               </tr>
             ))
@@ -196,9 +197,20 @@ export default function DataTableMember() {
         </tbody>
       </table>
       {hasMore && !loading && (
-        <div style={{ textAlign: 'center', margin: '16px 0' }}>
-          <button className="datatable-btn" onClick={handleLoadMore} disabled={loadingMore}>
-            {loadingMore ? 'Đang tải...' : 'Tải thêm'}
+        <div style={{ textAlign: 'center', padding: '24px', background: 'white' }}>
+          <button 
+            className={styles.datatableBtn} 
+            style={{ 
+              background: 'linear-gradient(135deg, #0D47A1 0%, #08316A 100%)',
+              color: 'white',
+              padding: '12px 32px',
+              fontSize: '14px',
+              boxShadow: '0 4px 12px rgba(13, 71, 161, 0.3)'
+            }}
+            onClick={handleLoadMore} 
+            disabled={loadingMore}
+          >
+            {loadingMore ? '⏳ Đang tải...' : '📥 Tải thêm'}
           </button>
         </div>
       )}

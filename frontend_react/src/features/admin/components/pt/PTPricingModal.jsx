@@ -5,7 +5,7 @@ import { PendingRequestService } from '../../../../firebase/lib/features/pending
 import TimeSlotManager from './TimeSlotManager.jsx';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import './PTPricingModal.css';
+import styles from  './PTPricingModal.module.css';
 
 const PACKAGE_TYPES = [
   { value: 'online_single', label: 'Online một người', icon: '👤' },
@@ -749,29 +749,29 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="pt-pricing-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles.modalOverlay} onClick={handleClose}>
+      <div className={styles.ptPricingModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
           <h2>
             {viewMode === 'list' ? (
               <>
-                <span className="icon">💰</span>
-                {isPTPortal ? 'Quản lý gói tập' : `Quản lý giá PT - ${ptInfo?.fullName}`}
+                <span className={styles.icon}>💰</span>
+                {isPTPortal ? 'Quản lý gói tập' : `Quản lý dịch vụ - ${ptInfo?.fullName}`}
 
               </>
             ) : selectedPackage ? (
               <>
-                <span className="icon">✏️</span>
+                <span className={styles.icon}>✏️</span>
                 Chỉnh sửa gói dịch vụ
               </>
             ) : (
               <>
-                <span className="icon">➕</span>
+                <span className={styles.icon}>➕</span>
                 Thêm gói dịch vụ mới
               </>
             )}
           </h2>
-          <button className="close-btn" onClick={handleClose} disabled={isSubmitting} title="Đóng">
+          <button className={styles.closeBtn} onClick={handleClose} disabled={isSubmitting} title="Đóng">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -780,143 +780,143 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
         </div>
 
         {viewMode === 'list' ? (
-          <div className="packages-list-view">
+          <div className={styles.packagesListView}>
             {/* Header with add button */}
-            <div className="list-header">
+            <div className={styles.listHeader}>
               <button 
-                className="btn-create-new"
+                className={styles.btnCreateNew}
                 onClick={handleCreateNew}
               >
-                <span className="icon">➕</span>
+                <span className={styles.icon}>➕</span>
                 Thêm gói dịch vụ mới
               </button>
             </div>
 
             {/* Loading state */}
             {localLoading && viewMode === 'list' ? (
-              <div className="loading-container">
-                <div className="loading-spinner"></div>
+              <div className={styles.loadingContainer}>
+                <div className={styles.loadingSpinner}></div>
                 <p>Đang tải gói dịch vụ...</p>
               </div>
             ) : (
               /* Packages list */
-              <div className="packages-grid">
+              <div className={styles.packagesGrid}>
                 {localPackages && localPackages.length > 0 ? (
                   localPackages.map((pkg) => (
-                    <div key={pkg.id} className="package-card">
-                      <div className="package-header">
-                        <h3 className="package-name">{pkg.name}</h3>
-                        <div className="package-badges">
-                          {pkg.isPopular && <span className="badge popular">Phổ biến</span>}
-                          {!pkg.isActive && <span className="badge inactive">Tạm dừng</span>}
+                    <div key={pkg.id} className={styles.packageCard}>
+                      <div className={styles.packageHeader}>
+                        <h3 className={styles.packageName}>{pkg.name}</h3>
+                        <div className={styles.packageBadges}>
+                          {pkg.isPopular && <span className={`${styles.badge} ${styles.popular}`}>Phổ biến</span>}
+                          {!pkg.isActive && <span className={`${styles.badge} ${styles.inactive}`}>Tạm dừng</span>}
                         </div>
                       </div>
-                      <div className="package-details">
-                        <div className="package-type">
+                      <div className={styles.packageDetails}>
+                        <div className={styles.packageType}>
                           {PACKAGE_TYPES.find(t => t.value === pkg.packageType)?.icon} {PACKAGE_TYPES.find(t => t.value === pkg.packageType)?.label}
                         </div>
-                        <div className="package-price">
+                        <div className={styles.packagePrice}>
                           {pkg.discount > 0 ? (
                             <>
-                              <span className="original-price">{pkg.price.toLocaleString('vi-VN')}đ</span>
-                              <span className="final-price">{(pkg.price * (1 - pkg.discount / 100)).toLocaleString('vi-VN')}đ</span>
+                              <span className={styles.originalPrice}>{pkg.price.toLocaleString('vi-VN')}đ</span>
+                              <span className={styles.finalPrice}>{(pkg.price * (1 - pkg.discount / 100)).toLocaleString('vi-VN')}đ</span>
                             </>
                           ) : (
-                            <span className="final-price">{pkg.price.toLocaleString('vi-VN')}đ</span>
+                            <span className={styles.finalPrice}>{pkg.price.toLocaleString('vi-VN')}đ</span>
                           )}
                         </div>
-                        <div className="package-info">
-                          <div className="info-item">
-                            <span className="label">Số buổi:</span>
-                            <span className="value">{pkg.sessions} buổi</span>
+                        <div className={styles.packageInfo}>
+                          <div className={styles.infoItem}>
+                            <span className={styles.label}>Số buổi:</span>
+                            <span className={styles.value}>{pkg.sessions} buổi</span>
                           </div>
-                          <div className="info-item">
-                            <span className="label">Thời lượng:</span>
-                            <span className="value">{pkg.duration} phút</span>
+                          <div className={styles.infoItem}>
+                            <span className={styles.label}>Thời lượng:</span>
+                            <span className={styles.value}>{pkg.duration} phút</span>
                           </div>
                           {pkg.maxParticipants > 1 && (
-                            <div className="info-item">
-                              <span className="label">Số người:</span>
-                              <span className="value">Tối đa {pkg.maxParticipants}</span>
+                            <div className={styles.infoItem}>
+                              <span className={styles.label}>Số người:</span>
+                              <span className={styles.value}>Tối đa {pkg.maxParticipants}</span>
                             </div>
                           )}
                         </div>
                         
                         {pkg.description && (
-                          <div className="package-description">
+                          <div className={styles.packageDescription}>
                             {pkg.description}
                           </div>
                         )}
 
                         {pkg.features && pkg.features.length > 0 && (
-                          <div className="package-benefits">
+                          <div className={styles.packageBenefits}>
                             <h4>Lợi ích:</h4>
                             <ul>
                               {pkg.features.slice(0, 3).map((benefit, index) => (
                                 <li key={index}>{benefit}</li>
                               ))}
                               {pkg.features.length > 3 && (
-                                <li className="more">+{pkg.features.length - 3} lợi ích khác</li>
+                                <li className={styles.more}>+{pkg.features.length - 3} lợi ích khác</li>
                               )}
                             </ul>
                           </div>
                         )}
                       </div>
 
-                      <div className="package-actions">
+                      <div className={styles.packageActions}>
                         <button 
-                          className="btn-edit"
+                          className={styles.btnEdit}
                           onClick={() => handleEditPackage(pkg)}
                           disabled={isSubmitting}
                         >
-                          <span className="icon">✏️</span>
+                          <span className={styles.icon}>✏️</span>
                           Chỉnh sửa
                         </button>
                         
                         {pkg.isActive ? (
                           <button 
-                            className="btn-disable"
+                            className={styles.btnDisable}
                             onClick={() => handleDisablePackage(pkg.id)}
                             disabled={isSubmitting}
                             title="Vô hiệu hóa gói"
                           >
-                            <span className="icon">🚫</span>
+                            <span className={styles.icon}>🚫</span>
                             Vô hiệu hóa
                           </button>
                         ) : (
                           <button 
-                            className="btn-enable"
+                            className={styles.btnEnable}
                             onClick={() => handleEnablePackage(pkg.id)}
                             disabled={isSubmitting}
                             title="Kích hoạt gói"
                           >
-                            <span className="icon">✅</span>
+                            <span className={styles.icon}>✅</span>
                             Kích hoạt
                           </button>
                         )}
                         
                         <button 
-                          className="btn-delete-package"
+                          className={styles.btnDeletePackage}
                           onClick={() => handleDeletePackage(pkg.id, pkg.name)}
                           disabled={isSubmitting}
                           title="Xóa hoàn toàn khỏi database"
                         >
-                          <span className="icon">🗑️</span>
+                          <span className={styles.icon}>🗑️</span>
                           Xóa vĩnh viễn
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">📦</div>
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>📦</div>
                     <h3>Chưa có gói dịch vụ nào</h3>
                     <p>Tạo gói dịch vụ đầu tiên để bắt đầu bán dịch vụ PT</p>
                     <button 
-                      className="btn-create-first"
+                      className={styles.btnCreateFirst}
                       onClick={handleCreateNew}
                     >
-                      <span className="icon">➕</span>
+                      <span className={styles.icon}>➕</span>
                       Tạo gói đầu tiên
                     </button>
                   </div>
@@ -925,26 +925,26 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             )}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="pricing-form">
-            <div className="form-header">
+          <form onSubmit={handleSubmit} className={styles.pricingForm}>
+            <div className={styles.formHeader}>
               <button 
                 type="button"
-                className="btn-back"
+                className={styles.btnBack}
                 onClick={handleBackToList}
               >
-                <span className="icon">⬅️</span>
+                <span className={styles.icon}>⬅️</span>
                 Quay lại danh sách
               </button>
             </div>
 
-            <div className="form-content">
+            <div className={styles.formContent}>
             
             {/* Basic Info */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông tin cơ bản</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Tên gói dịch vụ *</label>
                   <input
                     type="text"
@@ -954,10 +954,10 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     maxLength="100"
                     className={errors.name ? 'error' : ''}
                   />
-                  {errors.name && <span className="error-message">{errors.name}</span>}
+                  {errors.name && <span className={styles.errorMessage}>{errors.name}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Loại dịch vụ *</label>
                   <select
                     value={formData.type}
@@ -973,8 +973,8 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Loại tính phí *</label>
                   <select
                     value={formData.billingType}
@@ -986,7 +986,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                 </div>
 
                 {formData.billingType === 'monthly' ? (
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Số tháng *</label>
                     <select
                       value={formData.months}
@@ -1000,7 +1000,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     </select>
                   </div>
                 ) : (
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Số buổi tập *</label>
                     <select
                       value={formData.sessions}
@@ -1013,13 +1013,13 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                         </option>
                       ))}
                     </select>
-                    {errors.sessions && <span className="error-message">{errors.sessions}</span>}
+                    {errors.sessions && <span className={styles.errorMessage}>{errors.sessions}</span>}
                   </div>
                 )}
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Giá gói (VNĐ) *</label>
                   <input
                     type="number"
@@ -1031,19 +1031,19 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     step="10000"
                     className={errors.price ? 'error' : ''}
                   />
-                  {errors.price && <span className="error-message">{errors.price}</span>}
+                  {errors.price && <span className={styles.errorMessage}>{errors.price}</span>}
                   {pricePerSession > 0 && formData.billingType === 'session' && (
-                    <div className="price-info">
+                    <div className={styles.priceInfo}>
                       Giá mỗi buổi: {pricePerSession.toLocaleString('vi-VN')} VNĐ
                     </div>
                   )}
                 </div>
 
-                <div className="form-group"></div>
+                <div className={styles.formGroup}></div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Thời lượng mỗi buổi *</label>
                   <select
                     value={formData.duration}
@@ -1058,7 +1058,7 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                 </div>
 
                 {(formData.type === 'group' || formData.type === 'online') && (
-                  <div className="form-group">
+                  <div className={styles.formGroup}>
                     <label>Số người tối đa *</label>
                     <input
                       type="number"
@@ -1068,17 +1068,17 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                       max="20"
                       className={errors.maxParticipants ? 'error' : ''}
                     />
-                    {errors.maxParticipants && <span className="error-message">{errors.maxParticipants}</span>}
+                    {errors.maxParticipants && <span className={styles.errorMessage}>{errors.maxParticipants}</span>}
                   </div>
                 )}
               </div>
             </div>
 
             {/* Description & Benefits */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Mô tả & Lợi ích</h3>
               
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label>Mô tả gói dịch vụ</label>
                 <textarea
                   value={formData.description}
@@ -1088,13 +1088,13 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                   maxLength="500"
                   className={errors.description ? 'error' : ''}
                 />
-                <div className="char-count">{formData.description.length}/500</div>
-                {errors.description && <span className="error-message">{errors.description}</span>}
+                <div className={styles.charCount}>{formData.description.length}/500</div>
+                {errors.description && <span className={styles.errorMessage}>{errors.description}</span>}
               </div>
 
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label>Lợi ích</label>
-                <div className="add-benefit-group">
+                <div className={styles.addBenefitGroup}>
                   <input
                     type="text"
                     value={newBenefit}
@@ -1106,21 +1106,21 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     type="button"
                     onClick={addBenefit}
                     disabled={!newBenefit.trim() || formData.benefits.length >= 10}
-                    className="add-btn"
+                    className={styles.addBtn}
                   >
                     Thêm
                   </button>
                 </div>
                 
-                <div className="benefits-list">
+                <div className={styles.benefitsList}>
                   {formData.benefits.map((benefit, index) => (
-                    <div key={index} className="benefit-item">
-                      <span className="benefit-icon">✓</span>
-                      <span className="benefit-text">{benefit}</span>
+                    <div key={index} className={styles.benefitItem}>
+                      <span className={styles.benefitIcon}>✓</span>
+                      <span className={styles.benefitText}>{benefit}</span>
                       <button
                         type="button"
                         onClick={() => removeBenefit(index)}
-                        className="remove-btn"
+                        className={styles.removeBtn}
                       >
                         ✕
                       </button>
@@ -1131,11 +1131,11 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             </div>
 
             {/* Pricing & Settings */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Giá & Cài đặt</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Giảm giá (%)</label>
                   <input
                     type="number"
@@ -1146,10 +1146,10 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     step="1"
                     className={errors.discountPercent ? 'error' : ''}
                   />
-                  {errors.discountPercent && <span className="error-message">{errors.discountPercent}</span>}
+                  {errors.discountPercent && <span className={styles.errorMessage}>{errors.discountPercent}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Thời hạn sử dụng (ngày)</label>
                   <input
                     type="number"
@@ -1159,24 +1159,24 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                     max="365"
                     className={errors.validityDays ? 'error' : ''}
                   />
-                  {errors.validityDays && <span className="error-message">{errors.validityDays}</span>}
+                  {errors.validityDays && <span className={styles.errorMessage}>{errors.validityDays}</span>}
                 </div>
               </div>
 
               {/* Price Summary */}
               {formData.price && (
-                <div className="price-summary">
-                  <div className="price-row">
+                <div className={styles.priceSummary}>
+                  <div className={styles.priceRow}>
                     <span>Giá gốc:</span>
                     <span>{parseFloat(formData.price).toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                   {formData.discountPercent > 0 && (
                     <>
-                      <div className="price-row discount">
+                      <div className={`${styles.priceRow} ${styles.discount}`}>
                         <span>Giảm giá ({formData.discountPercent}%):</span>
                         <span>-{discountAmount.toLocaleString('vi-VN')} VNĐ</span>
                       </div>
-                      <div className="price-row final">
+                      <div className={`${styles.priceRow} ${styles.final}`}>
                         <span>Giá cuối:</span>
                         <span>{finalPrice.toLocaleString('vi-VN')} VNĐ</span>
                       </div>
@@ -1185,30 +1185,30 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                 </div>
               )}
 
-              <div className="form-row">
-                <div className="form-group checkbox-group">
-                  <label className="checkbox-label">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+                  <label className={styles.checkboxLabel}>
                     <input
                       type="checkbox"
                       checked={formData.isPopular}
                       onChange={(e) => handleInputChange('isPopular', e.target.checked)}
                     />
-                    <span className="checkbox-text">
-                      <span className="icon">⭐</span>
+                    <span className={styles.checkboxText}>
+                      <span className={styles.icon}>⭐</span>
                       Gói phổ biến
                     </span>
                   </label>
                 </div>
 
-                <div className="form-group checkbox-group">
-                  <label className="checkbox-label">
+                <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+                  <label className={styles.checkboxLabel}>
                     <input
                       type="checkbox"
                       checked={formData.isActive}
                       onChange={(e) => handleInputChange('isActive', e.target.checked)}
                     />
-                    <span className="checkbox-text">
-                      <span className="icon">🟢</span>
+                    <span className={styles.checkboxText}>
+                      <span className={styles.icon}>🟢</span>
                       Đang hoạt động
                     </span>
                   </label>
@@ -1217,9 +1217,9 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             </div>
 
             {/* Time Slot Management Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>
-                <span className="icon">⏰</span>
+                <span className={styles.icon}>⏰</span>
                 Quản lý khung giờ
               </h3>
               <TimeSlotManager
@@ -1230,13 +1230,13 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
             </div>
 
             {/* Booking Settings Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>
-                <span className="icon">📅</span>
+                <span className={styles.icon}>📅</span>
                 Cài đặt đặt lịch
               </h3>
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label htmlFor="advanceBookingDays">Đặt trước tối thiểu (ngày)</label>
                   <input
                     type="number"
@@ -1248,15 +1248,15 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                   />
                   <small>Khách hàng phải đặt trước ít nhất bao nhiêu ngày</small>
                 </div>
-                <div className="form-group checkbox-group">
-                  <label className="checkbox-label">
+                <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+                  <label className={styles.checkboxLabel}>
                     <input
                       type="checkbox"
                       checked={formData.allowSameDayBooking}
                       onChange={(e) => handleInputChange('allowSameDayBooking', e.target.checked)}
                     />
-                    <span className="checkbox-text">
-                      <span className="icon">⚡</span>
+                    <span className={styles.checkboxText}>
+                      <span className={styles.icon}>⚡</span>
                       Cho phép đặt trong ngày
                     </span>
                   </label>
@@ -1266,28 +1266,28 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
           </div>
 
           {errors.submit && (
-            <div className="form-error">
+            <div className={styles.formError}>
               {errors.submit}
             </div>
           )}
 
-              <div className="form-actions">
+              <div className={styles.formActions}>
                 {selectedPackage && (
                   <button
                     type="button"
-                    className="btn-delete-ptpricing"
+                    className={styles.btnDeletePtpricing}
                     onClick={() => handleDeletePackage(selectedPackage.id, selectedPackage.name)}
                     disabled={isSubmitting}
                   >
-                    <span className="icon">🗑️</span>
+                    <span className={styles.icon}>🗑️</span>
                     Xóa gói
                   </button>
                 )}
                 
-                <div className="action-group">
+                <div className={styles.actionGroup}>
                   <button
                     type="button"
-                    className="btn-cancel-ptpricing"
+                    className={styles.btnCancelPtpricing}
                     onClick={handleBackToList}
                     disabled={isSubmitting}
                   >
@@ -1295,17 +1295,17 @@ export default function PTPricingModal({ isOpen, onClose, ptId, package: editPac
                   </button>
                   <button
                     type="submit"
-                    className="btn-submit"
+                    className={styles.btnSubmit}
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <span className="spinner"></span>
+                        <span className={styles.spinner}></span>
                         {selectedPackage ? 'Đang cập nhật...' : 'Đang tạo...'}
                       </>
                     ) : (
                       <>
-                        <span className="icon">💾</span>
+                        <span className={styles.icon}>💾</span>
                         {selectedPackage ? 'Cập nhật gói' : 'Tạo gói mới'}
                       </>
                     )}

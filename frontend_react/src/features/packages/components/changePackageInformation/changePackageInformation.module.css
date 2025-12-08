@@ -1,0 +1,163 @@
+/* Form container */
+.changePackageContainer {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease-in-out;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  color: #1F2937;
+}
+
+/* Tiêu đề form */
+.changePackageContainer h2 {
+  color: #1E3A8A;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* Các dòng form */
+.changePackageForm .formRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.changePackageForm label {
+  min-width: 140px;
+  color: #1E3A8A;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.changePackageForm input,
+.changePackageForm textarea,
+.changePackageForm select {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.6rem;
+  font-size: 1rem;
+  background: #F9FAFB;
+  transition: all 0.25s ease;
+}
+
+.changePackageForm input:focus,
+.changePackageForm textarea:focus,
+.changePackageForm select:focus {
+  border-color: #3B82F6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+.changePackageForm textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* Khu vực nút hành động */
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Nút Lưu */
+.saveBtn {
+  position: relative;
+  background: linear-gradient(135deg, #2563EB, #1E3A8A);
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.8rem 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+}
+
+.saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4);
+}
+
+.saveBtn:active {
+  transform: scale(0.97);
+}
+
+/* Nút Hủy */
+.cancelBtn {
+  background: #F3F4F6;
+  color: #374151;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.8rem 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.15);
+  transition: all 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background: #E5E7EB;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.25);
+}
+
+.cancelBtn:active {
+  transform: scale(0.97);
+}
+
+.errorText {
+  color: #EF4444;
+  margin-top: 10px;
+}
+
+.required {
+  color: #EF4444;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .changePackageContainer {
+    padding: 1.25rem;
+  }
+
+  .changePackageForm .formRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .changePackageForm label {
+    min-width: unset;
+  }
+
+  .formActions {
+    justify-content: center;
+  }
+}

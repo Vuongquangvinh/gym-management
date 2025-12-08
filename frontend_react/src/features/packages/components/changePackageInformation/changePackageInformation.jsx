@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./changePackageInformation.css";
+import styles from './changePackageInformation.module.css';
 import { PackageModel } from "../../../../firebase/lib/features/package/packages.model.js";
 
 export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
@@ -129,19 +129,19 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 	const isDiscountEnabled = form.Discount && parseFloat(form.Discount) > 0;
 
 	return (
-		<div className="change-package-container">
+		<div className={styles.changePackageContainer}>
 			<h2>Chỉnh sửa thông tin gói tập</h2>
-			<form onSubmit={handleSubmit} className="change-package-form">
-				<div className="form-row">
+			<form onSubmit={handleSubmit} className={styles.changePackageForm}>
+				<div className={styles.formRow}>
 					<label>Mã gói</label>
-					<input name="PackageId" value={form.PackageId} onChange={handleChange} disabled />
+					<input type="text" value={form.PackageId} disabled />
 				</div>
-				<div className="form-row">
-					<label>Tên gói <span className="required">*</span></label>
-					<input name="PackageName" value={form.PackageName} onChange={handleChange} required />
+				<div className={styles.formRow}>
+					<label>Tên gói <span className={styles.required}>*</span></label>
+					<input type="text" name="PackageName" value={form.PackageName} onChange={handleChange} required />
 				</div>
-				<div className="form-row">
-					<label>Loại gói <span className="required">*</span></label>
+				<div className={styles.formRow}>
+					<label>Loại gói <span className={styles.required}>*</span></label>
 					<select
 						name="PackageType"
 						value={form.PackageType}
@@ -155,8 +155,8 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						<option value="Promotional">Khuyến mãi</option>
 					</select>
 				</div>
-				<div className="form-row">
-					<label>Thời hạn (ngày) <span className="required">*</span></label>
+				<div className={styles.formRow}>
+					<label>Thời hạn (ngày) <span className={styles.required}>*</span></label>
 					<input
 						type="number"
 						name="Duration"
@@ -167,8 +167,8 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập số ngày"
 					/>
 				</div>
-				<div className="form-row">
-					<label>Giá (VNĐ) <span className="required">*</span></label>
+				<div className={styles.formRow}>
+					<label>Giá (VNĐ) <span className={styles.required}>*</span></label>
 					<input
 						type="number"
 						name="Price"
@@ -179,7 +179,7 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập giá"
 					/>
 				</div>
-				<div className="form-row">
+				<div className={styles.formRow}>
 					<label>Số buổi tập</label>
 					<input
 						type="number"
@@ -190,7 +190,7 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập số buổi tập"
 					/>
 				</div>
-				<div className="form-row">
+				<div className={styles.formRow}>
 					<label>Giảm giá (%)</label>
 					<input
 						type="number"
@@ -202,8 +202,8 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập % giảm giá (0–100)"
 					/>
 				</div>
-				<div className="form-row">
-					<label>Ngày bắt đầu giảm giá</label>
+				<div className={styles.formRow}>
+					<label>Bắt đầu giảm giá</label>
 					<input
 						type="date"
 						name="StartDayDiscount"
@@ -212,8 +212,8 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						disabled={!isDiscountEnabled}
 					/>
 				</div>
-				<div className="form-row">
-					<label>Ngày kết thúc giảm giá</label>
+				<div className={styles.formRow}>
+					<label>Kết thúc giảm giá</label>
 					<input
 						type="date"
 						name="EndDayDiscount"
@@ -222,7 +222,7 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						disabled={!isDiscountEnabled}
 					/>
 				</div>
-				<div className="form-row">
+				<div className={styles.formRow}>
 					<label>Điều kiện sử dụng</label>
 					<textarea
 						name="UsageCondition"
@@ -233,7 +233,7 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập điều kiện sử dụng (nếu có)"
 					/>
 				</div>
-				<div className="form-row">
+				<div className={styles.formRow}>
 					<label>Mô tả</label>
 					<textarea
 						name="Description"
@@ -243,21 +243,21 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 						placeholder="Nhập mô tả gói tập"
 					/>
 				</div>
-				<div className="form-row">
-					<label>Trạng thái <span className="required">*</span></label>
+				<div className={styles.formRow}>
+					<label>Trạng thái <span className={styles.required}>*</span></label>
 					<select name="Status" value={form.Status} onChange={handleChange} required>
 						<option value="active">Đang áp dụng</option>
 						<option value="inactive">Ngừng áp dụng</option>
 					</select>
 				</div>
 
-				{error && <p className="error-text" style={{ color: '#EF4444', marginTop: '10px' }}>{error}</p>}
+				{error && <p className={styles.errorText}>{error}</p>}
 
-				<div className="form-actions">
-					<button type="submit" className="save-btn" disabled={loading}>
+				<div className={styles.formActions}>
+					<button type="submit" className={styles.saveBtn} disabled={loading}>
 						{loading ? "Đang lưu..." : "Lưu"}
 					</button>
-					<button type="button" className="cancel-btn" onClick={onCancel} disabled={loading}>
+					<button type="button" className={styles.cancelBtn} onClick={onCancel} disabled={loading}>
 						Hủy
 					</button>
 				</div>

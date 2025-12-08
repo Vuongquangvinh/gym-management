@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./FinancialDashboard.css";
+import styles from "./FinancialDashboard.module.css";
 import {
   Box,
   Container,
@@ -162,7 +162,7 @@ export default function FinancialDashboard() {
 
   if (loading && !report) {
     return (
-      <Box className="loading-container">
+      <Box className={styles.loadingContainer}>
         <CircularProgress />
       </Box>
     );
@@ -171,7 +171,7 @@ export default function FinancialDashboard() {
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="error" className="financial-alert">Lỗi: {error}</Alert>
+        <Alert severity="error" className={styles.financialAlert}>Lỗi: {error}</Alert>
       </Container>
     );
   }
@@ -179,7 +179,7 @@ export default function FinancialDashboard() {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Header */}
-      <Box className="financial-header" display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box className={styles.financialHeader} display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
           📊 Quản lý Tài chính
         </Typography>
@@ -231,19 +231,19 @@ export default function FinancialDashboard() {
       {report && (
         <>
           {/* Summary Cards */}
-          <Grid container spacing={3} className="summary-cards-container">
+          <Grid container spacing={3} className={styles.summaryCardsContainer}>
             {/* Revenue Card */}
             <Grid size={{ xs: 12, md: 3 }}>
-              <Card className="summary-card revenue-card">
-                <CardContent className="summary-card-content">
-                  <Box className="summary-card-header">
-                    <Typography className="summary-card-title">Doanh thu</Typography>
-                    <Typography className="summary-card-icon" sx={{ fontWeight: 'bold', fontSize: '22px !important' }}>VNĐ</Typography>
+              <Card className={`${styles.summaryCard} ${styles.revenueCard}`}>
+                <CardContent className={styles.summaryCardContent}>
+                  <Box className={styles.summaryCardHeader}>
+                    <Typography className={styles.summaryCardTitle}>Doanh thu</Typography>
+                    <Typography className={styles.summaryCardIcon} sx={{ fontWeight: 'bold', fontSize: '22px !important' }}>VNĐ</Typography>
                   </Box>
-                  <Typography className="summary-card-value">
+                  <Typography className={styles.summaryCardValue}>
                     {formatCurrency(report.revenue.total)}
                   </Typography>
-                  <Typography className="summary-card-subtitle">
+                  <Typography className={styles.summaryCardSubtitle}>
                     📦 {report.revenue.orderCount} đơn hàng
                   </Typography>
                 </CardContent>
@@ -252,16 +252,16 @@ export default function FinancialDashboard() {
 
             {/* Expenses Card */}
             <Grid size={{ xs: 12, md: 3 }}>
-              <Card className="summary-card expenses-card">
-                <CardContent className="summary-card-content">
-                  <Box className="summary-card-header">
-                    <Typography className="summary-card-title">Chi phí</Typography>
-                    <Typography className="summary-card-icon" sx={{ fontWeight: 'bold', fontSize: '22px !important' }}>VNĐ</Typography>
+              <Card className={`${styles.summaryCard} ${styles.expensesCard}`}>
+                <CardContent className={styles.summaryCardContent}>
+                  <Box className={styles.summaryCardHeader}>
+                    <Typography className={styles.summaryCardTitle}>Chi phí</Typography>
+                    <Typography className={styles.summaryCardIcon} sx={{ fontWeight: 'bold', fontSize: '22px !important' }}>VNĐ</Typography>
                   </Box>
-                  <Typography className="summary-card-value">
+                  <Typography className={styles.summaryCardValue}>
                     {formatCurrency(report.breakdown.totalCosts)}
                   </Typography>
-                  <Typography className="summary-card-subtitle">
+                  <Typography className={styles.summaryCardSubtitle}>
                     💼 Vận hành + Lương
                   </Typography>
                 </CardContent>
@@ -270,20 +270,20 @@ export default function FinancialDashboard() {
 
             {/* Profit Card */}
             <Grid size={{ xs: 12, md: 3 }}>
-              <Card className={`summary-card ${report.profitLoss.netProfit > 0 ? 'profit-card-positive' : 'profit-card-negative'}`}>
-                <CardContent className="summary-card-content">
-                  <Box className="summary-card-header">
-                    <Typography className="summary-card-title">Lợi nhuận</Typography>
+              <Card className={`${styles.summaryCard} ${report.profitLoss.netProfit > 0 ? styles.profitCardPositive : styles.profitCardNegative}`}>
+                <CardContent className={styles.summaryCardContent}>
+                  <Box className={styles.summaryCardHeader}>
+                    <Typography className={styles.summaryCardTitle}>Lợi nhuận</Typography>
                     {report.profitLoss.netProfit > 0 ? (
-                      <TrendingUp className="summary-card-icon" />
+                      <TrendingUp className={styles.summaryCardIcon} />
                     ) : (
-                      <TrendingDown className="summary-card-icon" />
+                      <TrendingDown className={styles.summaryCardIcon} />
                     )}
                   </Box>
-                  <Typography className="summary-card-value">
+                  <Typography className={styles.summaryCardValue}>
                     {formatCurrency(report.profitLoss.netProfit)}
                   </Typography>
-                  <Typography className="summary-card-subtitle">
+                  <Typography className={styles.summaryCardSubtitle}>
                     {report.profitLoss.status === "profit"
                       ? "✅ Sinh lời"
                       : report.profitLoss.status === "loss"
@@ -296,16 +296,16 @@ export default function FinancialDashboard() {
 
             {/* ROI Card */}
             <Grid size={{ xs: 12, md: 3 }}>
-              <Card className="summary-card roi-card">
-                <CardContent className="summary-card-content">
-                  <Box className="summary-card-header">
-                    <Typography className="summary-card-title">ROI</Typography>
-                    <Assessment className="summary-card-icon" />
+              <Card className={`${styles.summaryCard} ${styles.roiCard}`}>
+                <CardContent className={styles.summaryCardContent}>
+                  <Box className={styles.summaryCardHeader}>
+                    <Typography className={styles.summaryCardTitle}>ROI</Typography>
+                    <Assessment className={styles.summaryCardIcon} />
                   </Box>
-                  <Typography className="summary-card-value">
+                  <Typography className={styles.summaryCardValue}>
                     {formatPercent(report.profitLoss.roi)}
                   </Typography>
-                  <Typography className="summary-card-subtitle">
+                  <Typography className={styles.summaryCardSubtitle}>
                     📈 Tỷ suất lợi nhuận
                   </Typography>
                 </CardContent>
@@ -314,8 +314,8 @@ export default function FinancialDashboard() {
           </Grid>
 
           {/* Tabs */}
-          <Box className="financial-tabs-container">
-            <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} className="financial-tabs">
+          <Box className={styles.financialTabsContainer}>
+            <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} className={styles.financialTabs}>
               <Tab label="Tổng quan tháng" />
               <Tab label="So sánh cả năm" />
               <Tab label="Chi tiết Thu Chi" />
@@ -326,7 +326,7 @@ export default function FinancialDashboard() {
 
           {/* Tab 0: Overview */}
           {tabValue === 0 && (
-            <Box className="overview-section" sx={{ width: '100%', mt: 2 }}>
+            <Box className={styles.overviewSection} sx={{ width: '100%', mt: 2 }}>
               <Grid container spacing={3}>
                 {/* 1. CẤU TRÚC TÀI CHÍNH (Financial Structure) */}
                 <Grid size={12}>
@@ -525,11 +525,11 @@ export default function FinancialDashboard() {
 
           {/* Tab 1: Yearly Comparison */}
           {tabValue === 1 && (
-            <Grid container spacing={3} className="tab-panel-content">
+            <Grid container spacing={3} className={styles.tabPanelContent}>
               {/* Yearly Revenue Comparison Chart */}
               <Grid item xs={12}>
-                <Paper className="breakdown-card">
-                  <Typography className="breakdown-card-title">
+                <Paper className={styles.breakdownCard}>
+                  <Typography className={styles.breakdownCardTitle}>
                     📊 So sánh Doanh thu - Chi phí - Lợi nhuận các tháng năm {selectedYear}
                   </Typography>
                   <Box mt={2}>
@@ -585,8 +585,8 @@ export default function FinancialDashboard() {
 
               {/* Revenue Trend Line Chart */}
               <Grid item xs={12} md={6}>
-                <Paper className="breakdown-card">
-                  <Typography className="breakdown-card-title">
+                <Paper className={styles.breakdownCard}>
+                  <Typography className={styles.breakdownCardTitle}>
                     📈 Xu hướng Doanh thu năm {selectedYear}
                   </Typography>
                   <Box mt={2}>
@@ -628,8 +628,8 @@ export default function FinancialDashboard() {
 
               {/* Profit Comparison Chart */}
               <Grid item xs={12} md={6}>
-                <Paper className="breakdown-card">
-                  <Typography className="breakdown-card-title">
+                <Paper className={styles.breakdownCard}>
+                  <Typography className={styles.breakdownCardTitle}>
                     💰 So sánh Lợi nhuận năm {selectedYear}
                   </Typography>
                   <Box mt={2}>
@@ -1020,8 +1020,8 @@ export default function FinancialDashboard() {
 
           {/* Tab 4: Trends */}
           {tabValue === 4 && trends && (
-            <Box className="trends-section" sx={{ width: '100%', mt: 3 }}>
-              <Paper className="detail-section-card" sx={{ p: 3, width: '100%' }}>
+            <Box className={styles.trendsSection} sx={{ width: '100%', mt: 3 }}>
+              <Paper className={styles.detailSectionCard} sx={{ p: 3, width: '100%' }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                   <Typography variant="h6" fontWeight="bold" color="primary">
                     📈 Phân tích Xu hướng Tài chính (6 tháng gần nhất)

@@ -1,0 +1,467 @@
+﻿/* Face Checkin Modal */
+.faceCheckinModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.faceCheckinModal {
+  background: white;
+  border-radius: 20px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 95vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalContent {
+  padding: 24px;
+}
+
+/* Scanning Step */
+.checkin-step.scanning {
+  text-align: center;
+}
+
+.cameraContainer {
+  position: relative;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.cameraVideo {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.cameraOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scanGuide {
+  text-align: center;
+  color: white;
+}
+
+.scanFrame {
+  width: 250px;
+  height: 300px;
+  margin: 0 auto 16px;
+  position: relative;
+}
+
+.scanCorners {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #00ff00;
+}
+
+.corner.topLeft {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.corner.topRight {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+}
+
+.corner.bottomLeft {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+}
+
+.corner.bottomRight {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+.scanGuide p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.scanningIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scanLine {
+  width: 200px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ff00, transparent);
+  animation: scanMove 2s linear infinite;
+}
+
+@keyframes scanMove {
+  0% { transform: translateX(-100px); }
+  100% { transform: translateX(100px); }
+}
+
+.scanningIndicator span {
+  font-size: 12px;
+  color: #00ff00;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.scanningInfo {
+  margin-bottom: 24px;
+}
+
+.scanningInfo h3 {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 1.2em;
+}
+
+.scanningInfo p {
+  color: #666;
+  margin: 0;
+  font-size: 14px;
+}
+
+.btnCancelScan {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel-scan:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Detected Step */
+.checkin-step.detected {
+  text-align: center;
+}
+
+.stepIcon {
+  font-size: 3em;
+  margin-bottom: 16px;
+}
+
+.checkinStep h3 {
+  color: #333;
+  margin-bottom: 24px;
+  font-size: 1.3em;
+}
+
+.employeeCard {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.employeeAvatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.employeeAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.employeeAvatar span {
+  color: white;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.employeeDetails h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.employeeDetails p {
+  margin: 0 0 4px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.detectedActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnRetryScan {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-retry-scan:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.btnConfirmCheckin {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm-checkin:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.btn-retry-scan:disabled,
+.btn-confirm-checkin:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Checkin/Checkout Buttons */
+.checkinCheckoutButtons {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.btnCheckin,
+.btnCheckout {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.btnCheckin {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+}
+
+.btn-checkin:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.btnCheckout {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-checkout:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-checkin:disabled,
+.btn-checkout:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Success Step */
+.checkin-step.success {
+  text-align: center;
+}
+
+.checkinResult {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.resultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.resultItem .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.resultItem .value {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Messages */
+.errorMessage {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #f5c6cb;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.successMessage {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #c3e6cb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .faceCheckinModal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .cameraVideo {
+    height: 300px;
+  }
+
+  .scanFrame {
+    width: 200px;
+    height: 250px;
+  }
+
+  .employeeCard {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .detectedActions {
+    flex-direction: column;
+  }
+
+  .btnRetryScan,
+  .btnConfirmCheckin,
+  .btnCancelScan {
+    width: 100%;
+  }
+}

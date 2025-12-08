@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CheckinStatsDashboard.css';
+import styles from './CheckinStatsDashboard.module.css';
 import StatCard from './StatCard.jsx';
 import CheckinStatsModel from '../../../firebase/lib/features/checkin/checkin-stats.model.js';
 import {
@@ -170,15 +170,15 @@ const CheckinStatsDashboard = () => {
   };
 
   return (
-    <div className="checkin-stats-dashboard">
-      <div className="dashboard-header">
-        <h1>📊 Thống kê Check-in</h1>
-        <div className="period-selector">
+    <div className={styles.checkinStatsDashboard}>
+      <div className={styles.dashboardHeader}>
+        <h1>Thống kê Check-in</h1>
+        <div className={styles.periodSelector}>
           <label>Khoảng thời gian:</label>
           <select 
             value={selectedPeriod} 
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="period-select"
+            className={styles.periodSelect}
           >
             <option value="7days">7 ngày qua</option>
             <option value="30days">30 ngày qua</option>
@@ -188,7 +188,7 @@ const CheckinStatsDashboard = () => {
       </div>
 
       {/* Overview Stats Cards */}
-      <div className="stats-grid">
+      <div className={styles.statsGrid}>
         <StatCard
           title="Tổng Check-ins"
           value={overallStats?.total}
@@ -224,20 +224,20 @@ const CheckinStatsDashboard = () => {
       </div>
 
       {/* Charts */}
-      <div className="charts-grid">
+      <div className={styles.chartsGrid}>
         {/* Line Chart */}
-        <div className="chart-container">
-          <div className="chart-header">
+        <div className={styles.chartContainer}>
+          <div className={styles.chartHeader}>
             <h3>Xu hướng Check-in theo ngày</h3>
-            <span className="chart-subtitle">
+            <span className={styles.chartSubtitle}>
               {selectedPeriod === '7days' ? '7 ngày qua' : 
                selectedPeriod === '30days' ? '30 ngày qua' : '90 ngày qua'}
             </span>
           </div>
-          <div className="chart-wrapper">
+          <div className={styles.chartWrapper}>
             {loading ? (
-              <div className="chart-loading">
-                <div className="loading-spinner"></div>
+              <div className={styles.chartLoading}>
+                <div className={styles.loadingSpinner}></div>
                 <span>Đang tải biểu đồ...</span>
               </div>
             ) : (
@@ -247,15 +247,15 @@ const CheckinStatsDashboard = () => {
         </div>
 
         {/* Bar Chart */}
-        <div className="chart-container">
-          <div className="chart-header">
+        <div className={styles.chartContainer}>
+          <div className={styles.chartHeader}>
             <h3>Check-in theo giờ</h3>
-            <span className="chart-subtitle">Hôm nay</span>
+            <span className={styles.chartSubtitle}>Hôm nay</span>
           </div>
-          <div className="chart-wrapper">
+          <div className={styles.chartWrapper}>
             {loading ? (
-              <div className="chart-loading">
-                <div className="loading-spinner"></div>
+              <div className={styles.chartLoading}>
+                <div className={styles.loadingSpinner}></div>
                 <span>Đang tải biểu đồ...</span>
               </div>
             ) : (
@@ -265,15 +265,15 @@ const CheckinStatsDashboard = () => {
         </div>
 
         {/* Pie Chart */}
-        <div className="chart-container">
-          <div className="chart-header">
-            <h3>Nguồn Check-in</h3>
-            <span className="chart-subtitle">Tỷ lệ QR vs Thủ công</span>
+        <div className={styles.chartContainer}>
+          <div className={styles.chartHeader}>
+            <h3>Loại Check-in</h3>
+            <span className={styles.chartSubtitle}>Tỷ lệ QR vs Thủ công</span>
           </div>
-          <div className="chart-wrapper">
+          <div className={styles.chartWrapper}>
             {loading ? (
-              <div className="chart-loading">
-                <div className="loading-spinner"></div>
+              <div className={styles.chartLoading}>
+                <div className={styles.loadingSpinner}></div>
                 <span>Đang tải biểu đồ...</span>
               </div>
             ) : (
@@ -283,27 +283,27 @@ const CheckinStatsDashboard = () => {
         </div>
 
         {/* Peak Hours */}
-        <div className="chart-container peak-hours-container">
-          <div className="chart-header">
+        <div className={styles.peakHoursContainer}>
+          <div className={styles.chartHeader}>
             <h3>⏰ Khung giờ cao điểm</h3>
-            <span className="chart-subtitle">Top 5 giờ có nhiều check-in nhất</span>
+            <span className={styles.chartSubtitle}>Top 5 giờ có nhiều check-in nhất</span>
           </div>
-          <div className="peak-hours-list">
+          <div className={styles.peakHoursList}>
             {loading ? (
-              <div className="chart-loading">
-                <div className="loading-spinner"></div>
+              <div className={styles.chartLoading}>
+                <div className={styles.loadingSpinner}></div>
                 <span>Đang tải dữ liệu...</span>
               </div>
             ) : peakHours.length > 0 ? (
               peakHours.map((peak, index) => (
-                <div key={peak.hour} className="peak-hour-item">
-                  <div className="peak-rank">#{index + 1}</div>
-                  <div className="peak-time">{peak.hourDisplay}</div>
-                  <div className="peak-count">{peak.count} lượt</div>
+                <div key={peak.hour} className={styles.peakHourItem}>
+                  <div className={styles.peakRank}>#{index + 1}</div>
+                  <div className={styles.peakTime}>{peak.hourDisplay}</div>
+                  <div className={styles.peakCount}>{peak.count} lượt</div>
                 </div>
               ))
             ) : (
-              <div className="no-data">Không có dữ liệu</div>
+              <div className={styles.noData}>Không có dữ liệu</div>
             )}
           </div>
         </div>

@@ -1,0 +1,297 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modalClose:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.modalBody {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.searchBox {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchBox input:focus {
+  border-color: #3b82f6;
+}
+
+.searchLoading {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+}
+
+.searchResults {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.memberItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s;
+}
+
+.memberItem:last-child {
+  border-bottom: none;
+}
+
+.memberItem:hover {
+  background: #f9fafb;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberName {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.memberPhone {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.memberStatus {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.statusBadge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.selectedMember {
+  text-align: center;
+}
+
+.memberCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px;
+  background: #f9fafb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.memberAvatar {
+  flex-shrink: 0;
+}
+
+.memberAvatar img,
+.avatarPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.memberDetails {
+  flex: 1;
+}
+
+.memberDetails h4 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.memberDetails p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.packageInfo {
+  margin-top: 8px;
+  font-weight: 500;
+  color: #3b82f6 !important;
+}
+
+.btnChange {
+  background: white;
+  border: 2px solid #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.btnChange:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.errorMessage {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.modalFooter .btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.modalFooter .btn.outline {
+  background: white;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.modalFooter .btn.outline:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.modalFooter .btn.primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.modalFooter .btn.primary:hover {
+  background: #2563eb;
+}
+
+.modalFooter .btn.primary:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Styles for dashboard stats */
+.statLabel {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 8px;
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Card,
@@ -48,7 +48,7 @@ import {
 import { PaymentOrderService, PaymentStatus } from "../../../firebase/lib/features/payment";
 import RevenueChart from "../revenueChart/revenueChart";
 import TopUsers from "../topUsers/topUsers";
-import "./paymentHistory.css";
+import styles from './paymentHistory.module.css';
 
 const PaymentHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -82,7 +82,7 @@ const PaymentHistory = () => {
       };
       setStats(stats);
     } catch (err) {
-      setError(`Không thể tải dữ liệu: ${err.message}`);
+      setError(`KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u: ${err.message}`);
       setOrders([]);
       setStats(null);
     } finally {
@@ -116,17 +116,17 @@ const PaymentHistory = () => {
   const getStatusConfig = (status) => {
     switch (status) {
       case PaymentStatus.PAID:
-        return { label: "Đã thanh toán", color: "success", icon: <CheckCircleIcon /> };
+        return { label: "ÄÃ£ thanh toÃ¡n", color: "success", icon: <CheckCircleIcon /> };
       case PaymentStatus.PENDING:
-        return { label: "Đang chờ", color: "warning", icon: <ScheduleIcon /> };
+        return { label: "Äang chá»", color: "warning", icon: <ScheduleIcon /> };
       case PaymentStatus.CANCELLED:
-        return { label: "Đã hủy", color: "error", icon: <CancelIcon /> };
+        return { label: "ÄÃ£ há»§y", color: "error", icon: <CancelIcon /> };
       case PaymentStatus.FAILED:
-        return { label: "Thất bại", color: "error", icon: <BlockIcon /> };
+        return { label: "Tháº¥t báº¡i", color: "error", icon: <BlockIcon /> };
       case PaymentStatus.EXPIRED:
-        return { label: "Hết hạn", color: "default", icon: <AccessTimeIcon /> };
+        return { label: "Háº¿t háº¡n", color: "default", icon: <AccessTimeIcon /> };
       default:
-        return { label: "Không xác định", color: "default", icon: <ScheduleIcon /> };
+        return { label: "KhÃ´ng xÃ¡c Ä‘á»‹nh", color: "default", icon: <ScheduleIcon /> };
     }
   };
 
@@ -145,14 +145,19 @@ const PaymentHistory = () => {
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh" gap={2}>
         <CircularProgress size={48} />
         <Typography variant="body1" color="textSecondary">
-          Đang tải lịch sử thanh toán...
+          Äang táº£i lá»‹ch sá»­ thanh toÃ¡n...
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box className="payment-history-container" sx={{ p: { xs: 2, md: 3 } }}>
+    <Box 
+            param($match)
+            $originalClass = $match.Groups[1].Value
+            $camelClass = Convert-ToCamelCase $originalClass
+            "className={styles.$camelClass}"
+         sx={{ p: { xs: 2, md: 3 } }}>
       {/* Header */}
       <Box 
         display="flex" 
@@ -183,10 +188,10 @@ const PaymentHistory = () => {
           </Avatar>
           <Box>
             <Typography variant="h4" fontWeight="bold" color="primary.main">
-              Lịch sử thanh toán
+              Lá»‹ch sá»­ thanh toÃ¡n
             </Typography>
             <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-              Quản lý và theo dõi tất cả giao dịch thanh toán
+              Quáº£n lÃ½ vÃ  theo dÃµi táº¥t cáº£ giao dá»‹ch thanh toÃ¡n
             </Typography>
           </Box>
         </Box>
@@ -211,7 +216,7 @@ const PaymentHistory = () => {
             },
           }}
         >
-          Làm mới
+          LÃ m má»›i
         </Button>
       </Box>
 
@@ -227,7 +232,7 @@ const PaymentHistory = () => {
         <Grid container spacing={3} mb={4}>
           {[
             { 
-              label: "Tổng đơn", 
+              label: "Tá»•ng Ä‘Æ¡n", 
               value: stats.total, 
               icon: <TrendingUpIcon />, 
               color: "#2196F3",
@@ -235,7 +240,7 @@ const PaymentHistory = () => {
               bgGradient: "linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(66, 165, 245, 0.05) 100%)"
             },
             { 
-              label: "Đã thanh toán", 
+              label: "ÄÃ£ thanh toÃ¡n", 
               value: stats.paid, 
               amount: stats.paidAmount, 
               icon: <CheckCircleIcon />, 
@@ -244,7 +249,7 @@ const PaymentHistory = () => {
               bgGradient: "linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.05) 100%)"
             },
             { 
-              label: "Đang chờ", 
+              label: "Äang chá»", 
               value: stats.pending, 
               icon: <ScheduleIcon />, 
               color: "#FF9800",
@@ -252,7 +257,7 @@ const PaymentHistory = () => {
               bgGradient: "linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 167, 38, 0.05) 100%)"
             },
             { 
-              label: "Đã hủy", 
+              label: "ÄÃ£ há»§y", 
               value: stats.cancelled + stats.failed, 
               icon: <CancelIcon />, 
               color: "#F44336",
@@ -357,7 +362,7 @@ const PaymentHistory = () => {
               <TextField
                 fullWidth
                 size="small"
-                placeholder="Tìm tên, email, mã đơn, gói..."
+                placeholder="TÃ¬m tÃªn, email, mÃ£ Ä‘Æ¡n, gÃ³i..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -384,10 +389,10 @@ const PaymentHistory = () => {
             </Grid>
             <Grid item xs={12} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>Trạng thái</InputLabel>
+                <InputLabel>Tráº¡ng thÃ¡i</InputLabel>
                 <Select
                   value={statusFilter}
-                  label="Trạng thái"
+                  label="Tráº¡ng thÃ¡i"
                   onChange={(e) => setStatusFilter(e.target.value)}
                   startAdornment={
                     <InputAdornment position="start">
@@ -407,7 +412,7 @@ const PaymentHistory = () => {
                   }}
                 >
                   <MenuItem value="ALL">
-                    <Chip label="Tất cả" size="small" sx={{ minWidth: 100 }} />
+                    <Chip label="Táº¥t cáº£" size="small" sx={{ minWidth: 100 }} />
                   </MenuItem>
                   {Object.values(PaymentStatus).map((status) => {
                     const config = getStatusConfig(status);
@@ -436,7 +441,7 @@ const PaymentHistory = () => {
                 }}
               >
                 <Typography variant="body1" color="textSecondary" fontWeight="medium">
-                  <strong style={{ color: "#1976d2", fontSize: "1.25rem" }}>{filteredOrders.length}</strong> đơn hàng được tìm thấy
+                  <strong style={{ color: "#1976d2", fontSize: "1.25rem" }}>{filteredOrders.length}</strong> Ä‘Æ¡n hÃ ng Ä‘Æ°á»£c tÃ¬m tháº¥y
                 </Typography>
               </Box>
             </Grid>
@@ -462,16 +467,16 @@ const PaymentHistory = () => {
                   background: "linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)",
                 }}
               >
-                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Mã đơn</TableCell>
-                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Khách hàng</TableCell>
-                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Gói tập</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>MÃ£ Ä‘Æ¡n</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>KhÃ¡ch hÃ ng</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>GÃ³i táº­p</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }} align="right">
-                  Số tiền
+                  Sá»‘ tiá»n
                 </TableCell>
-                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Trạng thái</TableCell>
-                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Ngày tạo</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>Tráº¡ng thÃ¡i</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }}>NgÃ y táº¡o</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "white", fontSize: "0.875rem", letterSpacing: 1.2, textTransform: "uppercase" }} align="center">
-                  Hành động
+                  HÃ nh Ä‘á»™ng
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -487,13 +492,13 @@ const PaymentHistory = () => {
                       }}
                     >
                       <Typography variant="h4" sx={{ fontSize: "3rem", mb: 2 }}>
-                        📦
+                        ðŸ“¦
                       </Typography>
                       <Typography variant="h6" color="textSecondary" fontWeight="medium">
-                        Không tìm thấy đơn hàng nào
+                        KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng nÃ o
                       </Typography>
                       <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                        Thử điều chỉnh bộ lọc hoặc tìm kiếm khác
+                        Thá»­ Ä‘iá»u chá»‰nh bá»™ lá»c hoáº·c tÃ¬m kiáº¿m khÃ¡c
                       </Typography>
                     </Box>
                   </TableCell>
@@ -543,7 +548,7 @@ const PaymentHistory = () => {
                             fontWeight: 600,
                             fontSize: "0.75rem",
                           }}>
-                            {order.packageDuration} ngày
+                            {order.packageDuration} ngÃ y
                           </Typography>
                         </Stack>
                       </TableCell>
@@ -574,7 +579,7 @@ const PaymentHistory = () => {
                         </Typography>
                       </TableCell>
                       <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                        <Tooltip title="Xem chi tiết" arrow>
+                        <Tooltip title="Xem chi tiáº¿t" arrow>
                           <IconButton 
                             size="small" 
                             color="primary" 
@@ -629,10 +634,10 @@ const PaymentHistory = () => {
               </Avatar>
               <Box>
                 <Typography variant="h6" fontWeight="bold">
-                  Chi tiết đơn hàng
+                  Chi tiáº¿t Ä‘Æ¡n hÃ ng
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
-                  Thông tin đầy đủ về giao dịch
+                  ThÃ´ng tin Ä‘áº§y Ä‘á»§ vá» giao dá»‹ch
                 </Typography>
               </Box>
             </Box>
@@ -661,7 +666,7 @@ const PaymentHistory = () => {
                 }}
               >
                 <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                  Mã đơn hàng
+                  MÃ£ Ä‘Æ¡n hÃ ng
                 </Typography>
                 <Typography variant="h5" fontWeight="bold" sx={{ 
                   fontFamily: "monospace",
@@ -674,7 +679,7 @@ const PaymentHistory = () => {
               <Grid container spacing={3}>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Khách hàng
+                    KhÃ¡ch hÃ ng
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">{selectedOrder.userName}</Typography>
                 </Grid>
@@ -686,19 +691,19 @@ const PaymentHistory = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Gói tập
+                    GÃ³i táº­p
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">{selectedOrder.packageName}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Thời hạn
+                    Thá»i háº¡n
                   </Typography>
-                  <Typography variant="body1" fontWeight="medium" color="primary.main">{selectedOrder.packageDuration} ngày</Typography>
+                  <Typography variant="body1" fontWeight="medium" color="primary.main">{selectedOrder.packageDuration} ngÃ y</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Số tiền
+                    Sá»‘ tiá»n
                   </Typography>
                   <Typography variant="h6" sx={{ 
                     color: "success.main",
@@ -710,23 +715,23 @@ const PaymentHistory = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Mã giao dịch
+                    MÃ£ giao dá»‹ch
                   </Typography>
                   <Typography variant="body1" fontWeight="medium" sx={{ fontFamily: "monospace" }}>
-                    {selectedOrder.transactionId || "—"}
+                    {selectedOrder.transactionId || "â€”"}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Ngày tạo
+                    NgÃ y táº¡o
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">{selectedOrder.getFormattedDate("createdAt")}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary" gutterBottom fontWeight={600}>
-                    Thanh toán lúc
+                    Thanh toÃ¡n lÃºc
                   </Typography>
-                  <Typography variant="body1" fontWeight="medium">{selectedOrder.getFormattedPaymentTime() || "—"}</Typography>
+                  <Typography variant="body1" fontWeight="medium">{selectedOrder.getFormattedPaymentTime() || "â€”"}</Typography>
                 </Grid>
               </Grid>
             </Stack>
@@ -750,7 +755,7 @@ const PaymentHistory = () => {
               },
             }}
           >
-            Đóng
+            ÄÃ³ng
           </Button>
         </DialogActions>
       </Dialog>
@@ -759,3 +764,4 @@ const PaymentHistory = () => {
 };
 
 export default PaymentHistory;
+

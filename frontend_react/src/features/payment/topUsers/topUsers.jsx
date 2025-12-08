@@ -18,7 +18,7 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { PaymentOrderModel } from "../../../firebase/lib/features/payment";
-import "./topUsers.css";
+import styles from './topUsers.module.css';
 
 const TopUsers = ({ limit = 10 }) => {
   const [loading, setLoading] = useState(true);
@@ -244,7 +244,7 @@ const TopUsers = ({ limit = 10 }) => {
           {topUsers.map((user, index) => (
             <Grid item xs={12} key={user.userId}>
               <Card
-                className="top-user-card"
+                className={styles.topUserCard}
                 sx={{
                   borderRadius: 3,
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",

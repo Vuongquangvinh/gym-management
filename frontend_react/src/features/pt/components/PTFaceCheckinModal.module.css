@@ -1,0 +1,523 @@
+﻿/* PT Face Checkin Modal Styles */
+.ptFaceCheckinModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(6px);
+}
+
+.ptFaceCheckinModal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: pt-modalFadeIn 0.3s ease-out;
+}
+
+@keyframes pt-modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ptModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.ptModalHeader h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ptCloseBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.ptCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.ptModalContent {
+  padding: 32px;
+}
+
+.ptCheckinStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ptStepIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: pt-bounce 0.6s ease-in-out;
+}
+
+@keyframes pt-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Camera/Scanning */
+.ptCameraContainer {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.ptCameraVideo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ptCameraOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.ptScanGuide {
+  text-align: center;
+}
+
+.ptScanFrame {
+  width: 280px;
+  height: 280px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.ptScanCorners {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ptCorner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #007bff;
+}
+
+.ptCorner.ptTopLeft {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 8px 0 0 0;
+}
+
+.ptCorner.ptTopRight {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 8px 0 0;
+}
+
+.ptCorner.ptBottomLeft {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+  border-radius: 0 0 0 8px;
+}
+
+.ptCorner.ptBottomRight {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 8px 0;
+}
+
+.ptScanGuide p {
+  margin-top: 16px;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 15px;
+}
+
+.ptScanningIndicator {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ptScanLine {
+  width: 200px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #007bff, transparent);
+  animation: pt-scanLine 2s infinite;
+}
+
+@keyframes pt-scanLine {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.ptScanningIndicator span {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ptScanningInfo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.ptScanningInfo h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+}
+
+.ptScanningInfo p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.ptBtnCancelScan {
+  padding: 12px 32px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptBtnCancelScan:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Detected Employee */
+.ptCheckinStep.ptDetected h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #28a745;
+}
+
+.ptEmployeeCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ptEmployeeAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.ptEmployeeAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ptEmployeeAvatar span {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+}
+
+.ptEmployeeDetails {
+  flex: 1;
+  text-align: left;
+}
+
+.ptEmployeeDetails h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.ptEmployeeDetails p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.ptConfidence {
+  color: #28a745 !important;
+  font-weight: 600 !important;
+}
+
+.ptDetectedActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.ptBtnRetryScan {
+  padding: 10px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptBtnRetryScan:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.ptBtnRetryScan:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ptCheckinCheckoutButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.ptBtnCheckin,
+.ptBtnCheckout {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptBtnCheckin {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.ptBtnCheckin:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.ptBtnCheckout {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.ptBtnCheckout:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.ptBtnCheckin:disabled,
+.ptBtnCheckout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success */
+.ptCheckinStep.ptSuccess h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #28a745;
+}
+
+.ptCheckinResult {
+  width: 100%;
+  max-width: 400px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.ptResultItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.ptResultItem:lastChild {
+  border-bottom: none;
+}
+
+.ptLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.ptValue {
+  color: #212529;
+  font-size: 14px;
+  text-align: right;
+}
+
+.ptSuccessMessage {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border-radius: 10px;
+  font-weight: 600;
+  border-left: 4px solid #28a745;
+  animation: pt-successPulse 0.5s ease-out;
+}
+
+@keyframes pt-successPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.ptErrorMessage {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+  max-width: 400px;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .ptFaceCheckinModal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .ptModalContent {
+    padding: 20px;
+  }
+
+  .ptScanFrame {
+    width: 220px;
+    height: 220px;
+  }
+
+  .ptCorner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .ptEmployeeCard {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ptEmployeeDetails {
+    text-align: center;
+  }
+
+  .ptCheckinCheckoutButtons {
+    flex-direction: column;
+  }
+
+  .pt-btn-checkin,
+  .ptBtnCheckout {
+    width: 100%;
+  }
+}
+
+
+
+

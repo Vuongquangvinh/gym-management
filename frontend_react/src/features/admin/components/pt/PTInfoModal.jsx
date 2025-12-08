@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEmployees } from '../../../../firebase/lib/features/employee/employee.provider.jsx';
-import './PTInfoModal.css';
+import styles from './PTInfoModal.module.css';
 
 const SPECIALTY_OPTIONS = [
   'Giảm cân',
@@ -555,11 +555,11 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
   if (!isOpen || !pt) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="pt-info-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles.modalOverlay} onClick={handleClose}>
+      <div className={styles.ptInfoModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
           <h2>Thông tin PT: {pt.fullName}</h2>
-          <button className="close-btn" onClick={handleClose} disabled={isSubmitting} title="Đóng">
+          <button className={styles.closeBtn} onClick={handleClose} disabled={isSubmitting} title="Đóng">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -567,15 +567,15 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="pt-info-form">
-          <div className="form-sections">
+        <form onSubmit={handleSubmit} className={styles.ptInfoForm}>
+          <div className={styles.formSections}>
             
             {/* Basic Info Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông tin cơ bản</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Kinh nghiệm (năm) *</label>
                   <input
                     type="number"
@@ -585,10 +585,10 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                     max="50"
                     className={errors.experience ? 'error' : ''}
                   />
-                  {errors.experience && <span className="error-message">{errors.experience}</span>}
+                  {errors.experience && <span className={styles.errorMessage}>{errors.experience}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Số khách hàng tối đa/ngày *</label>
                   <input
                     type="number"
@@ -598,12 +598,12 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                     max="20"
                     className={errors.maxClientsPerDay ? 'error' : ''}
                   />
-                  {errors.maxClientsPerDay && <span className="error-message">{errors.maxClientsPerDay}</span>}
+                  {errors.maxClientsPerDay && <span className={styles.errorMessage}>{errors.maxClientsPerDay}</span>}
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Mô tả bản thân</label>
                   <textarea
                     value={formData.bio}
@@ -613,13 +613,13 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                     maxLength="1000"
                     className={errors.bio ? 'error' : ''}
                   />
-                  <div className="char-count">{formData.bio.length}/1000</div>
-                  {errors.bio && <span className="error-message">{errors.bio}</span>}
+                  <div className={styles.charCount}>{formData.bio.length}/1000</div>
+                  {errors.bio && <span className={styles.errorMessage}>{errors.bio}</span>}
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>
                     <input
                       type="checkbox"
@@ -633,51 +633,51 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
             </div>
 
             {/* Specialties Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Chuyên môn *</h3>
-              <p className="section-desc">Chọn tối đa 5 chuyên môn</p>
+              <p className={styles.sectionDesc}>Chọn tối đa 5 chuyên môn</p>
               
-              <div className="specialties-grid">
+              <div className={styles.specialtiesGrid}>
                 {SPECIALTY_OPTIONS.map(specialty => (
-                  <label key={specialty} className="specialty-checkbox">
+                  <label key={specialty} className={styles.specialtyCheckbox}>
                     <input
                       type="checkbox"
                       checked={formData.specialties.includes(specialty)}
                       onChange={() => handleSpecialtyToggle(specialty)}
                       disabled={!formData.specialties.includes(specialty) && formData.specialties.length >= 5}
                     />
-                    <span className="specialty-label">{specialty}</span>
+                    <span className={styles.specialtyLabel}>{specialty}</span>
                   </label>
                 ))}
               </div>
               
-              {errors.specialties && <span className="error-message">{errors.specialties}</span>}
+              {errors.specialties && <span className={styles.errorMessage}>{errors.specialties}</span>}
             </div>
 
             {/* Languages Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Ngôn ngữ</h3>
               
-              <div className="languages-grid">
+              <div className={styles.languagesGrid}>
                 {LANGUAGE_OPTIONS.map(lang => (
-                  <label key={lang.value} className="language-checkbox">
+                  <label key={lang.value} className={styles.languageCheckbox}>
                     <input
                       type="checkbox"
                       checked={formData.languages.includes(lang.value)}
                       onChange={() => handleLanguageToggle(lang.value)}
                       disabled={lang.value === 'vi' && formData.languages.length === 1 && formData.languages[0] === 'vi'}
                     />
-                    <span className="language-label">{lang.label}</span>
+                    <span className={styles.languageLabel}>{lang.label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             {/* Certificates Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Chứng chỉ</h3>
               
-              <div className="add-item-group">
+              <div className={styles.addItemGroup}>
                 <input
                   type="text"
                   value={newCertificate}
@@ -689,21 +689,21 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                   type="button"
                   onClick={addCertificate}
                   disabled={!newCertificate.trim() || formData.certificates.length >= 10}
-                  className="add-btn"
+                  className={styles.addBtn}
                 >
                   Thêm
                 </button>
               </div>
               
-              <div className="items-list">
+              <div className={styles.itemsList}>
                 {formData.certificates.map((cert, index) => (
-                  <div key={cert.id || index} className="certificate-item">
-                    <div className="item-header">
-                      <span className="item-text">{typeof cert === 'string' ? cert : cert.text}</span>
+                  <div key={cert.id || index} className={styles.certificateItem}>
+                    <div className={styles.itemHeader}>
+                      <span className={styles.itemText}>{typeof cert === 'string' ? cert : cert.text}</span>
                       <button
                         type="button"
                         onClick={() => removeCertificate(index)}
-                        className="remove-btn"
+                        className={styles.removeBtn}
                         title="Xóa chứng chỉ"
                       >
                         ✕
@@ -711,8 +711,8 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                     </div>
                     
                     {typeof cert === 'object' && (
-                      <div className="item-images">
-                        <div className="upload-section">
+                      <div className={styles.itemImages}>
+                        <div className={styles.uploadSection}>
                           <input
                             type="file"
                             id={`cert-upload-${index}`}
@@ -726,7 +726,7 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                             }}
                             style={{ display: 'none' }}
                           />
-                          <label htmlFor={`cert-upload-${index}`} className="upload-btn">
+                          <label htmlFor={`cert-upload-${index}`} className={styles.uploadBtn}>
                             {uploadingImages.certificates ? (
                               <span>📤 Đang tải...</span>
                             ) : (
@@ -736,22 +736,22 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                         </div>
                         
                         {cert.images && cert.images.length > 0 && (
-                          <div className="image-gallery">
+                          <div className={styles.imageGallery}>
                             {cert.images.map((image, imgIndex) => {
                               // Extra safety: create fallback key in case of duplicates
                               const safeKey = `${image.id}_${imgIndex}_${image.fileName || 'nofile'}`;
                               return (
-                                <div key={safeKey} className="image-item">
+                                <div key={safeKey} className={styles.imageItem}>
                                   <img 
                                     src={image.url} 
                                     alt={`Certificate ${index + 1} - Image ${imgIndex + 1}`}
                                     onClick={() => openImageViewer(image.url, 'certificate', imgIndex)}
-                                    className="thumbnail"
+                                    className={styles.thumbnail}
                                   />
                                   <button
                                     type="button"
                                     onClick={() => removeImage('certificates', index, image.id)}
-                                    className="image-remove-btn"
+                                    className={styles.imageRemoveBtn}
                                     title="Xóa ảnh"
                                   >
                                     ✕
@@ -769,10 +769,10 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
             </div>
 
             {/* Available Hours Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Khung giờ làm việc</h3>
               
-              <div className="time-slot-group">
+              <div className={styles.timeSlotGroup}>
                 <input
                   type="time"
                   value={newTimeSlot.from}
@@ -788,20 +788,20 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                   type="button"
                   onClick={addTimeSlot}
                   disabled={!newTimeSlot.from || !newTimeSlot.to || formData.availableHours.length >= 10}
-                  className="add-btn"
+                  className={styles.addBtn}
                 >
                   Thêm
                 </button>
               </div>
               
-              <div className="items-list">
+              <div className={styles.itemsList}>
                 {formData.availableHours.map((timeSlot, index) => (
-                  <div key={index} className="item-tag">
+                  <div key={index} className={styles.itemTag}>
                     <span>{timeSlot}</span>
                     <button
                       type="button"
                       onClick={() => removeTimeSlot(index)}
-                      className="remove-btn"
+                      className={styles.removeBtn}
                     >
                       ✕
                     </button>
@@ -811,10 +811,10 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
             </div>
 
             {/* Achievements Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thành tích</h3>
               
-              <div className="add-item-group">
+              <div className={styles.addItemGroup}>
                 <input
                   type="text"
                   value={newAchievement}
@@ -826,21 +826,21 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                   type="button"
                   onClick={addAchievement}
                   disabled={!newAchievement.trim() || formData.achievements.length >= 20}
-                  className="add-btn"
+                  className={styles.addBtn}
                 >
                   Thêm
                 </button>
               </div>
               
-              <div className="items-list">
+              <div className={styles.itemsList}>
                 {formData.achievements.map((achievement, index) => (
-                  <div key={achievement.id || index} className="achievement-item">
-                    <div className="item-header">
-                      <span className="item-text">{typeof achievement === 'string' ? achievement : achievement.text}</span>
+                  <div key={achievement.id || index} className={styles.achievementItem}>
+                    <div className={styles.itemHeader}>
+                      <span className={styles.itemText}>{typeof achievement === 'string' ? achievement : achievement.text}</span>
                       <button
                         type="button"
                         onClick={() => removeAchievement(index)}
-                        className="remove-btn"
+                        className={styles.removeBtn}
                         title="Xóa thành tích"
                       >
                         ✕
@@ -848,8 +848,8 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                     </div>
                     
                     {typeof achievement === 'object' && (
-                      <div className="item-images">
-                        <div className="upload-section">
+                      <div className={styles.itemImages}>
+                        <div className={styles.uploadSection}>
                           <input
                             type="file"
                             id={`achievement-upload-${index}`}
@@ -863,7 +863,7 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                             }}
                             style={{ display: 'none' }}
                           />
-                          <label htmlFor={`achievement-upload-${index}`} className="upload-btn">
+                          <label htmlFor={`achievement-upload-${index}`} className={styles.uploadBtn}>
                             {uploadingImages.achievements ? (
                               <span>📤 Đang tải...</span>
                             ) : (
@@ -873,22 +873,22 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                         </div>
                         
                         {achievement.images && achievement.images.length > 0 && (
-                          <div className="image-gallery">
+                          <div className={styles.imageGallery}>
                             {achievement.images.map((image, imgIndex) => {
                               // Extra safety: create fallback key in case of duplicates  
                               const safeKey = `${image.id}_${imgIndex}_${image.fileName || 'nofile'}`;
                               return (
-                                <div key={safeKey} className="image-item">
+                                <div key={safeKey} className={styles.imageItem}>
                                   <img 
                                     src={image.url} 
                                     alt={`Achievement ${index + 1} - Image ${imgIndex + 1}`}
                                     onClick={() => openImageViewer(image.url, 'achievement', imgIndex)}
-                                    className="thumbnail"
+                                    className={styles.thumbnail}
                                   />
                                   <button
                                     type="button"
                                     onClick={() => removeImage('achievements', index, image.id)}
-                                    className="image-remove-btn"
+                                    className={styles.imageRemoveBtn}
                                     title="Xóa ảnh"
                                   >
                                     ✕
@@ -906,11 +906,11 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
             </div>
 
             {/* Social Media Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Mạng xã hội</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Facebook</label>
                   <input
                     type="url"
@@ -920,7 +920,7 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Instagram</label>
                   <input
                     type="url"
@@ -931,8 +931,8 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>YouTube</label>
                   <input
                     type="url"
@@ -942,7 +942,7 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>TikTok</label>
                   <input
                     type="url"
@@ -956,15 +956,15 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
           </div>
 
           {errors.submit && (
-            <div className="form-error">
+            <div className={styles.formError}>
               {errors.submit}
             </div>
           )}
 
-          <div className="form-actions">
+          <div className={styles.formActions}>
             <button
               type="button"
-              className="btn-cancel-infopt"
+              className={styles.btnCancelInfopt}
               onClick={handleClose}
               disabled={isSubmitting}
             >
@@ -972,17 +972,17 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
             </button>
             <button
               type="submit"
-              className="btn-submit"
+              className={styles.btnSubmit}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <span className="spinner"></span>
+                  <span className={styles.spinner}></span>
                   Đang cập nhật...
                 </>
               ) : (
                 <>
-                  <span className="icon">💾</span>
+                  <span className={styles.icon}>💾</span>
                   Lưu thông tin
                 </>
               )}
@@ -993,25 +993,25 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
 
       {/* Image Viewer Modal */}
       {imageViewer.isOpen && (
-        <div className="image-viewer-overlay" onClick={closeImageViewer}>
-          <div className="image-viewer-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="image-viewer-header">
+        <div className={styles.imageViewerOverlay} onClick={closeImageViewer}>
+          <div className={styles.imageViewerModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.imageViewerHeader}>
               <h3>
                 {imageViewer.imageType === 'certificate' ? '📷 Chứng chỉ' : '🏆 Thành tích'}
               </h3>
-              <button className="close-btn" onClick={closeImageViewer} title="Đóng">
+              <button className={styles.closeBtn} onClick={closeImageViewer} title="Đóng">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
             </div>
-            <div className="image-viewer-content">
+            <div className={styles.imageViewerContent}>
               <img src={imageViewer.imageUrl} alt="Xem ảnh lớn" />
             </div>
-            <div className="image-viewer-actions">
+            <div className={styles.imageViewerActions}>
               <button 
-                className="btn-download"
+                className={styles.btnDownload}
                 onClick={() => {
                   const link = document.createElement('a');
                   link.href = imageViewer.imageUrl;

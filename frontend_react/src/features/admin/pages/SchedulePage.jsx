@@ -5,7 +5,7 @@ import WeeklyDatePicker from '../components/WeeklyDatePicker';
 import WeeklyScheduleTable from '../components/WeeklyScheduleTable';
 import ScheduleModal from '../components/ScheduleModal';
 import { toast } from 'react-toastify';
-import './SchedulePage.css';
+import styles from './SchedulePage.module.css';
 
 const SchedulePageContent = () => {
   const { employees, loading: employeesLoading } = useEmployees();
@@ -56,28 +56,26 @@ const SchedulePageContent = () => {
 
   if (loading) {
     return (
-      <div className="schedule-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Đang tải dữ liệu...</p>
-        </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Đang tải dữ liệu...</p>
       </div>
     );
   }
 
   return (
-    <div className="schedule-page">
-      <div className="schedule-header">
+    <div className={styles.schedulePage}>
+      <div className={styles.scheduleHeader}>
         <h1>📅 Quản lý lịch làm việc</h1>
-        <div className="view-mode-toggle">
+        <div className={styles.viewModeToggle}>
           <button 
-            className={`toggle-btn ${viewMode === 'day' ? 'active' : ''}`}
+            className={`${styles.toggleBtn} ${viewMode === 'day' ? styles.active : ''}`}
             onClick={() => setViewMode('day')}
           >
             📅 Ngày
           </button>
           <button 
-            className={`toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+            className={`${styles.toggleBtn} ${viewMode === 'week' ? styles.active : ''}`}
             onClick={() => setViewMode('week')}
           >
             📆 Tuần
@@ -91,25 +89,25 @@ const SchedulePageContent = () => {
         onDateChange={changeDate}
       />
 
-      <div className="schedule-content">
-        <div className="schedule-stats">
-          <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <div className="stat-info">
+      <div className={styles.scheduleContent}>
+        <div className={styles.scheduleStats}>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>👥</div>
+            <div className={styles.statInfo}>
               <h3>{activeEmployees.length}</h3>
               <p>Nhân viên đang làm việc</p>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon">⏰</div>
-            <div className="stat-info">
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>⏰</div>
+            <div className={styles.statInfo}>
               <h3>{fulltimeEmployees.length}</h3>
               <p>Fulltime</p>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon">🕐</div>
-            <div className="stat-info">
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>🕐</div>
+            <div className={styles.statInfo}>
               <h3>{parttimeEmployees.length}</h3>
               <p>Partime</p>
             </div>
@@ -172,3 +170,4 @@ export default function SchedulePage() {
     </EmployeeProvider>
   );
 }
+

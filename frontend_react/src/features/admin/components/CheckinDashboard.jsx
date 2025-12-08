@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CheckinDashboard.css';
+import styles from './CheckinDashboard.module.css';
 import StatCard from './StatCard.jsx';
 import CheckinStats from '../../../firebase/lib/features/checkin/checkin.stats.js';
 
@@ -163,14 +163,14 @@ const CheckinDashboard = () => {
 
   if (error) {
     return (
-      <div className="checkin-dashboard">
-        <div className="dashboard-header">
+      <div className={styles.checkinDashboard}>
+        <div className={styles.dashboardHeader}>
           <h1>📊 Thống kê Check-in</h1>
-          <button onClick={loadStats} className="refresh-btn">
+          <button onClick={loadStats} className={styles.refreshBtn}>
             🔄 Tải lại
           </button>
         </div>
-        <div className="error-message">
+        <div className={styles.errorMessage}>
           <p>{error}</p>
           <button onClick={loadStats}>Thử lại</button>
         </div>
@@ -179,56 +179,56 @@ const CheckinDashboard = () => {
   }
 
   return (
-    <div className="checkin-dashboard">
-      <div className="dashboard-header">
+    <div className={styles.checkinDashboard}>
+      <div className={styles.dashboardHeader}>
         <h1>📊 Thống kê Check-in</h1>
-        <div className="header-actions">
-          <button onClick={loadStats} className="refresh-btn" disabled={loading}>
+        <div className={styles.headerActions}>
+          <button onClick={loadStats} className={styles.refreshBtn} disabled={loading}>
             🔄 {loading ? 'Đang tải...' : 'Tải lại'}
           </button>
         </div>
       </div>
 
       {/* Export Section */}
-      <div className="export-section">
+      <div className={styles.exportSection}>
         <h3>📥 Xuất báo cáo Excel</h3>
-        <div className="export-buttons">
+        <div className={styles.exportButtons}>
           <button 
             onClick={exportCustomData} 
-            className="export-btn primary"
+            className={`${styles.exportBtn} ${styles.primary}`}
             disabled={exportLoading}
           >
             📊 Xuất 7 ngày qua
           </button>
           <button 
             onClick={exportWeeklyData} 
-            className="export-btn secondary"
+            className={`${styles.exportBtn} ${styles.secondary}`}
             disabled={exportLoading}
           >
             📅 Xuất tuần này
           </button>
           <button 
             onClick={exportMonthlyData} 
-            className="export-btn tertiary"
+            className={`${styles.exportBtn} ${styles.tertiary}`}
             disabled={exportLoading}
           >
             📈 Xuất tháng này
           </button>
         </div>
         {exportLoading && (
-          <div className="export-loading">
+          <div className={styles.exportLoading}>
             <span>⏳ Đang xuất dữ liệu...</span>
           </div>
         )}
         {exportMessage && (
-          <div className={`export-message ${exportMessage.includes('✅') ? 'success' : 'error'}`}>
+          <div className={`${styles.exportMessage} ${exportMessage.includes('✅') ? styles.success : styles.error}`}>
             {exportMessage}
           </div>
         )}
       </div>
 
       {/* Overview Stats */}
-      <div className="stats-grid">
+      <div className={styles.statsGrid}>
         <StatCard
           title="Check-in hôm nay"
           value={stats.today.total}
@@ -266,17 +266,17 @@ const CheckinDashboard = () => {
       </div>
 
       {/* Peak Hours */}
-      <div className="peak-hours-section">
+      <div className={styles.peakHoursSection}>
         <h2>⏰ Khung giờ cao điểm (7 ngày qua)</h2>
-        <div className="peak-hours-grid">
+        <div className={styles.peakHoursGrid}>
           {loading ? (
-            <div className="loading-skeleton">Đang tải...</div>
+            <div className={styles.loadingSkeleton}>Đang tải...</div>
           ) : stats.peakHours.peakHours.length > 0 ? (
             stats.peakHours.peakHours.map((peak, index) => (
-              <div key={index} className="peak-hour-card">
-                <div className="peak-rank">#{index + 1}</div>
-                <div className="peak-time">{peak.hour}</div>
-                <div className="peak-count">{peak.count} lượt</div>
+              <div key={index} className={styles.peakHourCard}>
+                <div className={styles.peakRank}>#{index + 1}</div>
+                <div className={styles.peakTime}>{peak.hour}</div>
+                <div className={styles.peakCount}>{peak.count} lượt</div>
               </div>
             ))
           ) : (
@@ -286,39 +286,39 @@ const CheckinDashboard = () => {
       </div>
 
       {/* Weekly Breakdown */}
-      <div className="weekly-breakdown">
+      <div className={styles.weeklyBreakdown}>
         <h2>📋 Chi tiết tuần này</h2>
-        <div className="weekly-stats">
-          <div className="week-summary">
-            <div className="summary-item">
-              <span className="label">Tổng cộng:</span>
-              <span className="value">{stats.week.total} lượt</span>
+        <div className={styles.weeklyStats}>
+          <div className={styles.weekSummary}>
+            <div className={styles.summaryItem}>
+              <span className={styles.label}>Tổng cộng:</span>
+              <span className={styles.value}>{stats.week.total} lượt</span>
             </div>
-            <div className="summary-item">
-              <span className="label">QR Code:</span>
-              <span className="value">{stats.week.qrScans} lượt</span>
+            <div className={styles.summaryItem}>
+              <span className={styles.label}>QR Code:</span>
+              <span className={styles.value}>{stats.week.qrScans} lượt</span>
             </div>
-            <div className="summary-item">
-              <span className="label">Thủ công:</span>
-              <span className="value">{stats.week.manual} lượt</span>
+            <div className={styles.summaryItem}>
+              <span className={styles.label}>Thủ công:</span>
+              <span className={styles.value}>{stats.week.manual} lượt</span>
             </div>
           </div>
           
           {!loading && stats.week.daily.length > 0 && (
-            <div className="daily-breakdown">
+            <div className={styles.dailyBreakdown}>
               <h3>Theo từng ngày:</h3>
-              <div className="daily-grid">
+              <div className={styles.dailyGrid}>
                 {stats.week.daily.map((day, index) => (
-                  <div key={index} className="daily-card">
-                    <div className="day-name">
+                  <div key={index} className={styles.dailyCard}>
+                    <div className={styles.dayName}>
                       {new Date(day.date).toLocaleDateString('vi-VN', { 
                         weekday: 'short', 
                         day: '2-digit', 
                         month: '2-digit' 
                       })}
                     </div>
-                    <div className="day-count">{day.count}</div>
-                    <div className="day-detail">
+                    <div className={styles.dayCount}>{day.count}</div>
+                    <div className={styles.dayDetail}>
                       {day.qrScans} QR • {day.manual} thủ công
                     </div>
                   </div>

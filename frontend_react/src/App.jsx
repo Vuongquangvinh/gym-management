@@ -1,5 +1,5 @@
 import React from 'react';
-import './App.css';
+import styles from './App.module.css';
 import { AuthProvider } from './firebase/lib/features/auth/auth.provider.jsx';
 import AppRouter from './routes/index.jsx';
 import { ToastContainer } from 'react-toastify';

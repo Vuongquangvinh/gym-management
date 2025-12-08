@@ -3,7 +3,7 @@ import { useEmployees } from '../../../../firebase/lib/features/employee/employe
 import { usePT } from '../../../../firebase/lib/features/pt/pt.provider.jsx';
 import PTInfoModal from './PTInfoModal.jsx';
 import PTPricingModal from './PTPricingModal.jsx';
-import './PTPricingPage.css';
+import styles from './PTPricingPage.module.css';
 
 export default function PTPricingPage() {
   const { employees, refreshEmployees, loading: employeesLoading, loadingMore, hasMore, fetchMore } = useEmployees();
@@ -66,9 +66,9 @@ export default function PTPricingPage() {
 
   if (employeesLoading || ptLoading) {
     return (
-      <div className="pt-pricing-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <div className={styles.ptPricingPage}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}></div>
           <p>Đang tải dữ liệu PT...</p>
         </div>
       </div>
@@ -76,33 +76,33 @@ export default function PTPricingPage() {
   }
 
   return (
-    <div className="pt-pricing-page">
+    <div className={styles.ptPricingPage}>
       {/* Header */}
-      <div className="page-header">
-        <div className="header-content">
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
           <h1>Quản Lý PT & Giá Dịch Vụ</h1>
           <p>Quản lý thông tin PT và thiết lập giá các gói tập luyện</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
-        <div className="search-box-ptmanagement">
+      <div className={styles.filtersSection}>
+        <div className={styles.searchBoxPtmanagement}>
           <input
             type="text"
             placeholder="Tìm kiếm PT theo tên hoặc email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className={styles.searchInput}
           />
-          <span className="search-icon">🔍</span>
+          <span className={styles.searchIcon}>🔍</span>
         </div>
 
-        <div className="filter-controls">
+        <div className={styles.filterControls}>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="filter-select"
+            className={styles.filterSelect}
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="active">Đang hoạt động</option>
@@ -113,31 +113,31 @@ export default function PTPricingPage() {
       </div>
 
       {/* Stats Summary */}
-      <div className="stats-summary">
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-info">
+      <div className={styles.statsSummary}>
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>👥</div>
+          <div className={styles.statInfo}>
             <h3>{filteredPTs.length}</h3>
             <p>Tổng số PT</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-info">
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>✅</div>
+          <div className={styles.statInfo}>
             <h3>{filteredPTs.filter(pt => pt.status === 'active').length}</h3>
             <p>Đang hoạt động</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon">⭐</div>
-          <div className="stat-info">
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>⭐</div>
+          <div className={styles.statInfo}>
             <h3>{filteredPTs.filter(pt => getPTStats(pt).rating >= 4.5).length}</h3>
             <p>Rating ≥ 4.5</p>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon">🎯</div>
-          <div className="stat-info">
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>🎯</div>
+          <div className={styles.statInfo}>
             <h3>{filteredPTs.filter(pt => getPTStats(pt).isAcceptingNewClients).length}</h3>
             <p>Nhận khách mới</p>
           </div>
@@ -145,10 +145,10 @@ export default function PTPricingPage() {
       </div>
 
       {/* PT List */}
-      <div className="pts-grid">
+      <div className={styles.ptsGrid}>
         {filteredPTs.length === 0 ? (
-          <div className="no-results">
-            <div className="no-results-icon">🔍</div>
+          <div className={styles.noResults}>
+            <div className={styles.noResultsIcon}>🔍</div>
             <h3>Không tìm thấy PT nào</h3>
             <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
           </div>
@@ -157,10 +157,10 @@ export default function PTPricingPage() {
             const stats = getPTStats(pt);
             
             return (
-              <div key={pt._id} className="pt-card">
+              <div key={pt._id} className={styles.ptCard}>
                 {/* Avatar & Basic Info */}
-                <div className="pt-header-admin">
-                  <div className="pt-avatar">
+                <div className={styles.ptHeaderAdmin}>
+                  <div className={styles.ptAvatar}>
                     {pt.avatarUrl ? (
                       <img 
                         src={pt.avatarUrl.startsWith('http') ? pt.avatarUrl : `http://localhost:3000${pt.avatarUrl}`} 
@@ -170,62 +170,62 @@ export default function PTPricingPage() {
                         }}
                       />
                     ) : (
-                      <div className="avatar-placeholder">
+                      <div className={styles.avatarPlaceholder}>
                         {pt.fullName.charAt(0).toUpperCase()}
                       </div>
                     )}
                   </div>
                   
-                  <div className="pt-basic-info">
+                  <div className={styles.ptBasicInfo}>
                     <h3>{pt.fullName}</h3>
-                    <p className="pt-email">{pt.email}</p>
-                    <div className="pt-status-badges">
-                      <span className={`status-badge ${pt.status}`}>
+                    <p className={styles.ptEmail}>{pt.email}</p>
+                    <div className={styles.ptStatusBadges}>
+                      <span className={`${styles.statusBadge} ${styles[pt.status]}`}>
                         {pt.status === 'active' ? 'Hoạt động' : 
                          pt.status === 'inactive' ? 'Tạm nghỉ' : 
                          pt.status === 'resigned' ? 'Đã nghỉ' : pt.status}
                       </span>
                       {stats.isAcceptingNewClients && (
-                        <span className="status-badge accepting">Nhận khách mới</span>
+                        <span className={`${styles.statusBadge} ${styles.accepting}`}>Nhận khách mới</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* PT Stats */}
-                <div className="pt-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">Kinh nghiệm:</span>
-                    <span className="stat-value">{stats.experience} năm</span>
+                <div className={styles.ptStats}>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Kinh nghiệm:</span>
+                    <span className={styles.statValue}>{stats.experience} năm</span>
                   </div>
                   
                   {stats.rating > 0 && (
-                    <div className="stat-item">
-                      <span className="stat-label">Đánh giá:</span>
-                      <span className="stat-value">
+                    <div className={styles.statItem}>
+                      <span className={styles.statLabel}>Đánh giá:</span>
+                      <span className={styles.statValue}>
                         ⭐ {stats.rating.toFixed(1)} ({stats.totalRatings})
                       </span>
                     </div>
                   )}
                   
-                  <div className="stat-item">
-                    <span className="stat-label">Khách hàng:</span>
-                    <span className="stat-value">{pt.totalClients || 0}</span>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Khách hàng:</span>
+                    <span className={styles.statValue}>{pt.totalClients || 0}</span>
                   </div>
                 </div>
 
                 {/* Specialties */}
                 {stats.specialties.length > 0 && (
-                  <div className="pt-specialties">
-                    <div className="specialties-label">Chuyên môn:</div>
-                    <div className="specialties-tags">
+                  <div className={styles.ptSpecialties}>
+                    <div className={styles.specialtiesLabel}>Chuyên môn:</div>
+                    <div className={styles.specialtiesTags}>
                       {stats.specialties.slice(0, 3).map((specialty, index) => (
-                        <span key={index} className="specialty-tag">
+                        <span key={index} className={styles.specialtyTag}>
                           {specialty}
                         </span>
                       ))}
                       {stats.specialties.length > 3 && (
-                        <span className="specialty-tag more">
+                        <span className={`${styles.specialtyTag} ${styles.more}`}>
                           +{stats.specialties.length - 3}
                         </span>
                       )}
@@ -234,37 +234,25 @@ export default function PTPricingPage() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="pt-actions">
+                <div className={styles.ptActions}>
                   <button 
-                    className="btn-secondary"
+                    className={styles.btnSecondary}
                     onClick={() => handleEditPTInfo(pt)}
                   >
-                    <span className="icon">👤</span>
+                    <span className={styles.icon}>👤</span>
                     Thông tin PT
                   </button>
                   
                   <button 
-                    className="btn-primary"
+                    className={styles.btnPrimary}
                     onClick={() => handleManagePricing(pt)}
                   >
-                    <span className="icon">💰</span>
-                    Quản lý giá
+                    <span className={styles.icon}>💰</span>
+                    Quản lý dịch vụ
                   </button>
                 </div>
 
-                {/* Quick Actions - DISABLED */}
-                {/*
-                <div className="pt-quick-actions">
-                  <button 
-                    className="quick-action-btn"
-                    onClick={() => handleCreateDefaultPackages(pt)}
-                    title="Tạo gói mặc định"
-                  >
-                    <span className="icon">⚡</span>
-                    Gói mặc định
-                  </button>
-                </div>
-                */}
+               
               </div>
             );
           })

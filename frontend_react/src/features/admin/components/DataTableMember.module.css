@@ -1,0 +1,388 @@
+/* DataTableMember - Modern Design */
+.datatableMemberWrapper {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+/* Stats Cards */
+.statsCardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.statCard {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #546E7A 0%, #37474F 100%);
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #e0e0e0;
+}
+
+.statCardNumber {
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0B2545 0%, #546E7A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statCardLabel {
+  color: #546E7A;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statCard.activeCard::before {
+  background: linear-gradient(180deg, #0D47A1 0%, #08316A 100%);
+}
+
+.statCard.activeCard .statCardNumber {
+  background: linear-gradient(135deg, #0D47A1 0%, #08316A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statCard.expiringCard::before {
+  background: linear-gradient(180deg, #FFB300 0%, #FF8F00 100%);
+}
+
+.statCard.expiringCard .statCardNumber {
+  background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Filter Section */
+.filterUser {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+}
+
+.filterUser label {
+  font-weight: 600;
+  color: #0B2545;
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.filterUser input,
+.filterUser select {
+  border: 2px solid #e0e0e0;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #0B2545;
+  outline: none;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  flex: 1;
+  font-weight: 500;
+}
+
+.filterUser input:focus,
+.filterUser select:focus {
+  border-color: #0D47A1;
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.1);
+}
+
+.filterUser input::placeholder {
+  color: #9E9E9E;
+}
+
+.filterUser select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%230B2545' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Table Header */
+.datatableTitle {
+  color: #0B2545;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 20px 24px 16px;
+  margin: 0;
+  background: white;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+/* Table */
+.datatableMember {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.datatableMember thead {
+  background: linear-gradient(135deg, #0D47A1 0%, #08316A 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.datatableMember th {
+  padding: 16px 12px;
+  text-align: left;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.datatableMember td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #0B2545;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.datatableMember tbody tr {
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.datatableMember tbody tr:hover {
+  background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.datatableMember tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Badges */
+.statusActive {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border: 2px solid #28a745;
+}
+
+.statusInactive {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border: 2px solid #dc3545;
+}
+
+/* Action Buttons */
+.datatableBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-right: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.datatableBtn.view {
+  background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 179, 0, 0.3);
+}
+
+.datatableBtn.view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 179, 0, 0.4);
+}
+
+.datatableBtn.edit {
+  background: linear-gradient(135deg, #0D47A1 0%, #08316A 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(13, 71, 161, 0.3);
+}
+
+.datatableBtn.edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.4);
+}
+
+.datatableBtn.disable {
+  background: white;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+}
+
+.datatableBtn.disable:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.datatableBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading & Empty States */
+.datatableLoading,
+.datatableEmpty {
+  text-align: center;
+  color: #546E7A;
+  font-size: 15px;
+  padding: 48px 24px;
+  font-weight: 500;
+}
+
+.datatableLoading::before {
+  content: '⏳';
+  display: block;
+  font-size: 32px;
+  margin-bottom: 12px;
+  animation: spin 2s linear infinite;
+}
+
+.datatableEmpty::before {
+  content: '📭';
+  display: block;
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .statsCardsContainer {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .filterUser {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .filterUser input,
+  .filterUser select {
+    min-width: 100%;
+  }
+
+  .datatableTitle {
+    padding: 16px;
+    font-size: 18px;
+  }
+
+  .datatableMember {
+    font-size: 12px;
+  }
+
+  .datatableMember th,
+  .datatableMember td {
+    padding: 10px 8px;
+  }
+
+  .datatableBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .statCardNumber {
+    font-size: 28px;
+  }
+
+  .statCardLabel {
+    font-size: 12px;
+  }
+
+  .datatableMember thead {
+    display: none;
+  }
+
+  .datatableMember tbody tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .datatableMember td {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .datatableMember td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #0B2545;
+    margin-right: 12px;
+  }
+
+  .datatableMember td:last-child {
+    border-bottom: none;
+    justify-content: center;
+  }
+}

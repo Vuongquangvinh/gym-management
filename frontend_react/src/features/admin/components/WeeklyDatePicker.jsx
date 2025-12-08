@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import './WeeklyDatePicker.css';
+import styles from './WeeklyDatePicker.module.css';
 
 const WeeklyDatePicker = ({ selectedDate, onDateChange }) => {
   // Get start of week (Monday)
@@ -62,22 +62,22 @@ const WeeklyDatePicker = ({ selectedDate, onDateChange }) => {
   };
 
   return (
-    <div className="weekly-date-picker">
-      <div className="week-navigation">
-        <button 
-          className="nav-button" 
+    <div className={styles.weeklyDatePicker}>
+      <div className={styles.weekNavigation}>
+        <button
+          className={styles.navButton}
           onClick={goToPreviousWeek}
           title="Tuần trước"
         >
           <ChevronLeft size={20} />
         </button>
         
-        <div className="week-info">
-          <h3 className="week-title">
+        <div className={styles.weekInfo}>
+          <h3 className={styles.weekTitle}>
             Tuần {startOfWeek.getDate()}/{startOfWeek.getMonth() + 1} - {weekDays[6].getDate()}/{weekDays[6].getMonth() + 1}/{weekDays[6].getFullYear()}
           </h3>
-          <button 
-            className="today-button" 
+          <button
+            className={styles.todayButton}
             onClick={goToCurrentWeek}
             title="Về tuần hiện tại"
           >
@@ -87,7 +87,7 @@ const WeeklyDatePicker = ({ selectedDate, onDateChange }) => {
         </div>
         
         <button 
-          className="nav-button" 
+          className={styles.navButton} 
           onClick={goToNextWeek}
           title="Tuần sau"
         >
@@ -95,15 +95,15 @@ const WeeklyDatePicker = ({ selectedDate, onDateChange }) => {
         </button>
       </div>
 
-      <div className="week-days">
+      <div className={styles.weekDays}>
         {weekDays.map((day, index) => (
           <button
             key={index}
-            className={`day-button-weekly-date-picker ${isSelected(day) ? 'selected' : ''} ${isToday(day) ? 'today' : ''}`}
+            className={`${styles.dayButton} ${isSelected(day) ? styles.selected : ''} ${isToday(day) ? styles.today : ''}`}
             onClick={() => onDateChange(day)}
           >
-            <div className="day-name-weekly-date-picker">{formatDayName(day)}</div>
-            <div className="day-number-weekly-date-picker">{formatDate(day)}</div>
+            <div className={styles.dayName}>{formatDayName(day)}</div>
+            <div className={styles.dayNumber}>{formatDate(day)}</div>
           </button>
         ))}
       </div>

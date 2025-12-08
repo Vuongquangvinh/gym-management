@@ -4,6 +4,7 @@ import SmallChart from './components/SmallChart';
 import ChartCard from './components/ChartCard';
 import { fetchDashboard } from './api/dashboardService';
 import QuickCheckinModal from './components/QuickCheckinModal';
+import styles from './dashboard.module.css';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -78,21 +79,21 @@ export default function Dashboard() {
 
   if (loading && !data) {
     return (
-      <div className="dashboard-root">
-        <div className="dash-header">
+      <div className={styles.dashboardRoot}>
+        <div className={styles.dashHeader}>
           <h2>Dashboard</h2>
-          <p className="muted">Đang tải dữ liệu...</p>
+          <p className={styles.muted}>Đang tải dữ liệu...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-root">
-      <div className="dash-header">
+    <div className={styles.dashboardRoot}>
+      <div className={styles.dashHeader}>
         <h2>Dashboard</h2>
-        <p className="muted">Tổng quan phòng tập - Cập nhật realtime</p>
-        {error && <p className="error-text">{error}</p>}
+        <p className={styles.muted}>Tổng quan phòng tập - Cập nhật realtime</p>
+        {error && <p className={styles.errorText}>{error}</p>}
         {paymentMessage && (
           <div 
             style={{
@@ -110,40 +111,40 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid">
-        <div className="card stat">
+      <div className={styles.grid}>
+        <div className={`${styles.card} ${styles.stat}`}>
           <h3>Thành viên hoạt động</h3>
-          <div className="big">{data ? data.activeMembers : '—'}</div>
+          <div className={styles.big}>{data ? data.activeMembers : '—'}</div>
           <SmallChart data={data?.series} />
-          <p className="stat-label">Members đang active</p>
+          <p className={styles.statLabel}>Members đang active</p>
         </div>
 
-        <div className="card stat">
+        <div className={`${styles.card} ${styles.stat}`}>
           <h3>Check-ins hôm nay</h3>
-          <div className="big">{data ? data.todayCheckins : '—'}</div>
-          <p className="stat-label">Lượt check-in trong ngày</p>
+          <div className={styles.big}>{data ? data.todayCheckins : '—'}</div>
+          <p className={styles.statLabel}>Lượt check-in trong ngày</p>
         </div>
 
-        <div className="card stat">
+        <div className={`${styles.card} ${styles.stat}`}>
           <h3>Gói tập đang mở</h3>
-          <div className="big">{data ? data.openPackages : '—'}</div>
-          <p className="stat-label">Packages đang active</p>
+          <div className={styles.big}>{data ? data.openPackages : '—'}</div>
+          <p className={styles.statLabel}>Packages đang active</p>
         </div>
 
-        <div className="card stat">
+        <div className={`${styles.card} ${styles.stat}`}>
           <h3>Doanh thu (Triệu)</h3>
-          <div className="big">{data ? data.revenueM : '—'}M</div>
-          <p className="stat-label">Tổng giá trị gói đang active</p>
+          <div className={styles.big}>{data ? data.revenueM : '—'}M</div>
+          <p className={styles.statLabel}>Tổng giá trị gói đang active</p>
         </div>
       </div>
 
-      <div className="two-col">
-        <div className="card">
+      <div className={styles.twoCol}>
+        <div className={styles.card}>
           <h4>Check-ins gần đây</h4>
           {(!data?.recent || data.recent.length === 0) ? (
-            <p className="muted">Chưa có check-in nào</p>
+            <p className={styles.muted}>Chưa có check-in nào</p>
           ) : (
-            <ul className="activity">
+            <ul className={styles.activity}>
               {data.recent.map((t, i) => (
                 <li key={i}>{t}</li>
               ))}
@@ -151,37 +152,37 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="card">
+        <div className={styles.card}>
           <h4>Quick Actions</h4>
-          <div className="actions">
+          <div className={styles.actions}>
             <button 
-              className="btn"
+              className={styles.btn}
               onClick={() => navigate('/admin/members/new')}
             >
               ➕ Tạo member
             </button>
             <button 
-              className="btn outline"
+              className={`${styles.btn} ${styles.outline}`}
               onClick={() => navigate('/admin/packages/new')}
             >
               📦 Tạo gói
             </button>
             <button 
-              className="btn primary"
+              className={`${styles.btn} ${styles.primary}`}
               onClick={() => setShowCheckinModal(true)}
             >
               📱 Check-in nhanh
             </button>
           </div>
-          <div className="actions" style={{ marginTop: '12px' }}>
+          <div className={styles.actions} style={{ marginTop: '12px' }}>
             <button 
-              className="btn outline"
+              className={`${styles.btn} ${styles.outline}`}
               onClick={() => navigate('/admin/members')}
             >
               👥 Quản lý members
             </button>
             <button 
-              className="btn outline"
+              className={`${styles.btn} ${styles.outline}`}
               onClick={() => navigate('/admin/checkins')}
             >
               📋 Lịch sử check-in

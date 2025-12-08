@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, User, CheckCircle, XCircle, Plus } from 'lucide-react';
-import './WeeklyScheduleTable.css';
+import styles from './WeeklyScheduleTable.module.css';
 
 const WeeklyScheduleTable = ({ 
   weekDays, 
@@ -14,8 +14,8 @@ const WeeklyScheduleTable = ({
   // Safety checks
   if (!weekDays || !employees) {
     return (
-      <div className="weekly-schedule-table">
-        <div className="loading-container">
+      <div className={styles.tableContainer}>
+        <div className={styles.loading}>
           <p>Đang tải dữ liệu...</p>
         </div>
       </div>
@@ -88,11 +88,11 @@ const WeeklyScheduleTable = ({
     }
     
     if (checkin && checkout) {
-      return <CheckCircle className="status-icon completed" size={16} />;
+      return <CheckCircle className={`${styles.statusIcon} ${styles.completed}`} size={16} />;
     } else if (checkin) {
-      return <Clock className="status-icon in-progress" size={16} />;
+      return <Clock className={`${styles.statusIcon} ${styles.inProgress}`} size={16} />;
     } else {
-      return <XCircle className="status-icon not-started" size={16} />;
+      return <XCircle className={`${styles.statusIcon} ${styles.notStarted}`} size={16} />;
     }
   };
 
@@ -129,18 +129,18 @@ const WeeklyScheduleTable = ({
       const displayEndTime = schedule?.endTime ? formatTime(schedule.endTime) : '17:00';
       
       return (
-        <div className="schedule-info fulltime">
-          <div className="schedule-time">
+        <div className={`${styles.scheduleInfo} ${styles.fulltime}`}>
+          <div className={styles.timeRange}>
             {displayStartTime} - {displayEndTime} (Fulltime)
           </div>
-          <div className="schedule-status">
+          <div className={styles.statusInfo}>
             {statusIcon}
-            <span className="status-text">{statusText}</span>
+            <span className={styles.statusText}>{statusText}</span>
           </div>
           {schedule?.notes && (
-            <div className="schedule-notes">
-              <span className="notes-label">📝</span>
-              <span className="notes-text">{schedule.notes}</span>
+            <div className={styles.scheduleNotes}>
+              <span className={styles.noteIcon}>📝</span>
+              <span className={styles.noteText}>{schedule.notes}</span>
             </div>
           )}
         </div>
@@ -149,25 +149,25 @@ const WeeklyScheduleTable = ({
       // Parttime employees need schedule
       if (schedule) {
         return (
-          <div className="schedule-info parttime">
-            <div className="schedule-time">
+          <div className={`${styles.scheduleInfo} ${styles.parttime}`}>
+            <div className={styles.timeRange}>
               {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
             </div>
-            <div className="schedule-status">
+            <div className={styles.statusInfo}>
               {statusIcon}
-              <span className="status-text">{statusText}</span>
+              <span className={styles.statusText}>{statusText}</span>
             </div>
             {schedule.notes && (
-              <div className="schedule-notes">
-                <span className="notes-label">📝</span>
-                <span className="notes-text">{schedule.notes}</span>
+              <div className={styles.scheduleNotes}>
+                <span className={styles.noteIcon}>📝</span>
+                <span className={styles.noteText}>{schedule.notes}</span>
               </div>
             )}
           </div>
         );
       } else {
         return (
-          <div className="no-schedule">
+          <div className={styles.noSchedule}>
             Chưa có lịch
           </div>
         );
@@ -176,24 +176,24 @@ const WeeklyScheduleTable = ({
   };
 
   return (
-    <div className="weekly-schedule-table">
+    <div className={styles.tableContainer}>
       {/* Legend */}
-      <div className="schedule-legend">
-        <div className="legend-item">
-          <div className="legend-color fulltime"></div>
+      <div className={styles.legend}>
+        <div className={styles.legendItem}>
+          <div className={`${styles.legendColor} ${styles.fulltime}`}></div>
           <span>Fulltime (08:00 - 17:00)</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color parttime"></div>
+        <div className={styles.legendItem}>
+          <div className={`${styles.legendColor} ${styles.parttime}`}></div>
           <span>Partime (theo lịch)</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color no-schedule"></div>
+        <div className={styles.legendItem}>
+          <div className={`${styles.legendColor} ${styles.noSchedule}`}></div>
           <span>Chưa có lịch</span>
         </div>
       </div>
 
-      <table className="schedule-table">
+      <table className={styles.scheduleTable}>
         <colgroup>
           <col style={{ width: '250px' }} />
           {weekDays.map(() => (
@@ -203,11 +203,11 @@ const WeeklyScheduleTable = ({
         </colgroup>
         <thead>
           <tr>
-            <th className="employee-column">
-              <div className="employee-header-content">
+            <th className={styles.employeeHeader}>
+              <div className={styles.headerContent}>
                 <span>Nhân viên</span>
                 <button 
-                  className="add-schedule-btn"
+                  className={styles.addScheduleBtn}
                   onClick={onAddSchedule}
                   title="Thêm lịch làm việc"
                 >
@@ -217,17 +217,17 @@ const WeeklyScheduleTable = ({
               </div>
             </th>
             {weekDays.map((day, index) => (
-              <th key={index} className="day-column">
-                <div className="day-name">
+              <th key={index} className={styles.dayHeader}>
+                <div className={styles.dayName}>
                   {day.toLocaleDateString('vi-VN', { weekday: 'short' })}
                 </div>
-                <div className="day-date">
+                <div className={styles.dayDate}>
                   {day.getDate()}/{day.getMonth() + 1}
                 </div>
               </th>
             ))}
-            <th className="notes-column">
-              <div className="notes-header">
+            <th className={styles.notesHeader}>
+              <div className={styles.headerContent}>
                 <span>📝 Ghi chú</span>
               </div>
             </th>
@@ -237,20 +237,20 @@ const WeeklyScheduleTable = ({
           {employees
             .filter(employee => employee.status === 'active')
             .map((employee) => (
-            <tr key={employee._id} className="employee-row">
-              <td className="employee-info">
-                <div className="employee-wrapper">
-                  <div className="employee-avatar">
+            <tr key={employee._id} className={styles.employeeRow}>
+              <td className={styles.employeeCell}>
+                <div className={styles.employeeInfo}>
+                  <div className={styles.employeeAvatar}>
                     {employee.avatarUrl ? (
                       <img src={employee.avatarUrl} alt={employee.fullName || employee.name} />
                     ) : (
                       <span>{(employee.fullName || employee.name).charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                  <div className="employee-details">
-                    <div className="employee-name">{employee.fullName || employee.name}</div>
-                    <div className="employee-position">{employee.position}</div>
-                    <div className={`employee-shift ${employee.shift}`}>
+                  <div className={styles.employeeDetails}>
+                    <div className={styles.employeeName}>{employee.fullName || employee.name}</div>
+                    <div className={styles.employeePosition}>{employee.position}</div>
+                    <div className={`${styles.employeeShift} ${styles[employee.shift]}`}>
                       {employee.shift === 'fulltime' ? 'Fulltime' : 'Partime'}
                     </div>
                   </div>
@@ -259,15 +259,15 @@ const WeeklyScheduleTable = ({
               
               {weekDays.map((day, index) => {
                 const schedule = getScheduleForDay(employee._id, day);
-                const { checkin, checkout } = getCheckinInfo(employee._id, day);
-                const dayCheckins = [checkin, checkout].filter(Boolean); // Convert to array format
+                const checkinInfo = getCheckinInfo(employee._id, day);
+                const dayCheckins = [checkinInfo.checkin, checkinInfo.checkout].filter(Boolean);
                 const employeeType = getEmployeeType(employee);
                 const cellContent = getCellContent(employee, schedule, dayCheckins, day);
                 
                 return (
                   <td 
                     key={index} 
-                    className={`day-cell ${employeeType} ${schedule || employeeType === 'fulltime' ? 'has-schedule' : 'no-schedule'}`}
+                    className={`${styles.scheduleCell} ${styles[employeeType]} ${schedule || employeeType === 'fulltime' ? styles.hasSchedule : styles.noSchedule}`}
                     onClick={() => onScheduleClick(employee, day)}
                   >
                     {cellContent}
@@ -276,7 +276,7 @@ const WeeklyScheduleTable = ({
               })}
               
               {/* Notes Column */}
-              <td className="notes-cell">
+              <td className={styles.notesCell}>
                 {(() => {
                   // Collect all notes for this employee across the week
                   const allNotes = weekDays.map(day => {
@@ -288,17 +288,17 @@ const WeeklyScheduleTable = ({
                   }).filter(Boolean);
                   
                   if (allNotes.length === 0) {
-                    return <div className="no-notes">Không có ghi chú</div>;
+                    return <div className={styles.noNotes}>Không có ghi chú</div>;
                   }
                   
                   return (
-                    <div className="notes-list">
+                    <div className={styles.notesList}>
                       {allNotes.map((note, index) => (
-                        <div key={index} className="note-item">
-                          <div className="note-date">
+                        <div key={index} className={styles.noteItem}>
+                          <div className={styles.noteDate}>
                             {note.date.getDate()}/{note.date.getMonth() + 1}
                           </div>
-                          <div className="note-text">
+                          <div className={styles.noteContent}>
                             {note.notes}
                           </div>
                         </div>
@@ -316,3 +316,4 @@ const WeeklyScheduleTable = ({
 };
 
 export default WeeklyScheduleTable;
+

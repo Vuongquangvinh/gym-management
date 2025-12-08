@@ -1,0 +1,1147 @@
+/* PT Pricing Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: modalOverlayFadeIn 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 10px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+}
+
+@keyframes modalOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ptPricingModal {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 900px;
+  width: 95vw;
+  height: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 1001;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+  .ptPricingModal {
+    width: 98vw;
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pricingForm {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.formContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  max-height: calc(85vh - 160px);
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+@media (max-width: 768px) {
+  .formContent {
+    padding: 16px;
+    max-height: calc(95vh - 140px);
+  }
+}
+
+.formContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.formContent::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.formContent::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.formContent::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth scrolling for all scrollable areas */
+.formContent,
+.packagesListView {
+  scroll-behavior: smooth;
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px 16px 0 0;
+  color: white;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .modalHeader {
+    padding: 16px 16px 12px;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .modalHeader h2 {
+    font-size: 18px;
+    gap: 8px;
+  }
+}
+
+.modalHeader .icon {
+  font-size: 22px;
+}
+
+/* Close Button */
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.closeBtn:active {
+  transform: scale(0.95);
+}
+
+.closeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Form Sections */
+.formSection {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .formSection {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+  }
+}
+
+.formSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.formSection h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .formSection h3 {
+    font-size: 16px;
+    margin: 0 0 12px 0;
+  }
+}
+
+/* Form Layout */
+.formRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Input Styles */
+.formGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="number"],
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.formGroup input.error,
+.formGroup select.error,
+.formGroup textarea.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Character Count */
+.charCount {
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Price Info */
+.priceInfo {
+  font-size: 12px;
+  color: #059669;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Add Benefit Group */
+.addBenefitGroup {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.addBenefitGroup input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.addBtn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.addBtn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.addBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Benefits List */
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.benefitIcon {
+  color: #0284c7;
+  font-weight: bold;
+}
+
+.benefitText {
+  flex: 1;
+  color: #0f172a;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* Price Summary */
+.priceSummary {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.priceRow:last-child {
+  margin-bottom: 0;
+}
+
+.priceRow.discount {
+  color: #dc2626;
+}
+
+.priceRow.final {
+  font-weight: 600;
+  font-size: 16px;
+  color: #059669;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* Checkbox Groups */
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkboxText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #374151;
+}
+
+.checkboxText .icon {
+  font-size: 16px;
+}
+
+/* Form Actions */
+.formActions {
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 0 0 16px 16px;
+}
+
+@media (max-width: 768px) {
+  .formActions {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 0 0 12px 12px;
+  }
+}
+
+.actionGroup {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .actionGroup {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.btnCancelPtpricing {
+  padding: 12px 24px;
+  border: 2px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .btnCancelPtpricing {
+    width: 100%;
+    padding: 14px 20px;
+    justify-content: center;
+  }
+}
+
+.btnCancelPtpricing:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #6b7280;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btnSubmit {
+  padding: 12px 24px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+@media (max-width: 768px) {
+  .btnSubmit {
+    width: 100%;
+    padding: 14px 20px;
+    justify-content: center;
+  }
+}
+
+.btnSubmit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btnSubmit:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btnDeletePtpricing {
+  padding: 17px 27px;
+  border: 1.5px solid #dc2626;
+  background: white;
+  color: #dc2626;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnDeletePtpricing:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+}
+
+/* Delete Confirmation Modal */
+.deleteConfirmOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.deleteConfirmModal {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 400px;
+  width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.deleteConfirmHeader {
+  padding: 20px 20px 0;
+}
+
+.deleteConfirmHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.deleteConfirmContent {
+  padding: 16px 20px;
+}
+
+.deleteConfirmContent p {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.deleteConfirmContent p:last-child {
+  margin-bottom: 0;
+}
+
+.deleteConfirmContent .warning {
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.deleteConfirmActions {
+  padding: 0 20px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btnDeleteConfirmPtmanager {
+  padding: 8px 16px;
+  border: none;
+  background: #dc2626;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnDeleteConfirm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btnDeleteConfirm:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Error Messages */
+.errorMessage {
+  display: block;
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.formError {
+  padding: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  margin: 16px 20px 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Packages List View */
+.packagesListView {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  max-height: calc(85vh - 120px);
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.packagesListView::-webkit-scrollbar {
+  width: 8px;
+}
+
+.packagesListView::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.packagesListView::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.packagesListView::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.btnCreateNew {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnCreateNew:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.packagesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.packageCard {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.packageCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.packageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.packageName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.3;
+}
+
+.packageBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.badge.popular {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.packageDetails {
+  margin-bottom: 16px;
+}
+
+.packageType {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.packagePrice {
+  margin-bottom: 12px;
+}
+
+.originalPrice {
+  font-size: 14px;
+  color: #9ca3af;
+  text-decoration: line-through;
+  margin-right: 8px;
+}
+
+.finalPrice {
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.packageInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.infoItem .label {
+  color: #6b7280;
+}
+
+.infoItem .value {
+  color: #374151;
+  font-weight: 500;
+}
+
+.packageDescription {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
+}
+
+.packageBenefits {
+  margin-bottom: 16px;
+}
+
+.packageBenefits h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.packageBenefits ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.packageBenefits li {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 3px;
+  position: relative;
+  padding-left: 12px;
+}
+
+.packageBenefits li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #059669;
+  font-weight: bold;
+}
+
+.packageBenefits li.more {
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.packageBenefits li.more:before {
+  content: "...";
+  color: #9ca3af;
+}
+
+.packageActions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+  flex-wrap: wrap;
+}
+
+.btnEdit,
+.btnDeletePackage,
+.btnDisable,
+.btnEnable {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid;
+  text-decoration: none;
+}
+
+.btnEdit {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.btnEdit:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(29, 78, 216, 0.15);
+}
+
+.btnDisable {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #ea580c;
+}
+
+.btnDisable:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(234, 88, 12, 0.15);
+}
+
+.btnEnable {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+}
+
+.btnEnable:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.15);
+}
+
+.btnDeletePackage {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.btnDeletePackage:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15);
+}
+
+/* Disabled state for all buttons */
+.btnEdit:disabled,
+.btnDisable:disabled,
+.btnEnable:disabled,
+.btnDeletePackage:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyState h3 {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 18px;
+}
+
+.emptyState p {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.btnCreateFirst {
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnCreateFirst:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Form Header */
+.formHeader {
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btnBack {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnBack:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .ptPricingModal {
+    width: 95vw;
+    max-height: 95vh;
+    margin: 20px;
+  }
+
+  .packagesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .packageActions {
+    flex-direction: column;
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .formActions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .actionGroup {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel,
+  .btnSubmit,
+  .btnDelete {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .addBenefitGroup {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .priceSummary {
+    font-size: 13px;
+  }
+
+  .priceRow.final {
+    font-size: 14px;
+  }
+
+  .checkboxText {
+    font-size: 13px;
+  }
+}

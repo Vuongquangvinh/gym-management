@@ -5,7 +5,7 @@ import { ImageModal } from '../../../shared/components/ImageModal';
 import EmployeeFileUploadService from '../../../firebase/lib/features/employee/employee-file-upload.service.js';
 import { EmployeeModel } from '../../../firebase/lib/features/employee/employee.model.js';
 import Swal from 'sweetalert2';
-import './AddEmployeeModal.css';
+import styles from './AddEmployeeModal.module.css';
 
 export default function AddEmployeeModal({ isOpen, onClose }) {
   const { addEmployee } = useEmployees();
@@ -340,21 +340,24 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="add-employee-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className={styles.modalOverlay}
+         onClick={handleClose}>
+      <div className={styles.addEmployeeModal}
+         onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
           <h2>Thêm Nhân Viên Mới</h2>
-          <button className="close-btn" onClick={handleClose} disabled={isSubmitting}>
+          <button className={styles.closeBtn}
+         onClick={handleClose} disabled={isSubmitting}>
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="employee-form">
-          <div className="form-sections">
+        <form onSubmit={handleSubmit} className={styles.employeeForm}>
+          <div className={styles.formSections}>
             {/* Avatar Upload Section */}
-            <div className="form-section avatar-section">
+            <div className={`${styles.formSection} ${styles.avatarSection}`}>
               <h3>Ảnh Đại Diện</h3>
-              <div className="avatar-upload-container">
+              <div className={styles.avatarUploadContainer}>
                 <ImageUpload
                   currentImage={null}
                   onImageChange={handleImageChange}
@@ -365,7 +368,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                   acceptedFormats="image/jpeg,image/jpg,image/png"
                 />
                 {uploadingImage && (
-                  <div className="upload-status">
+                  <div className={styles.uploadStatus}>
                     <span>📤 Đang upload ảnh...</span>
                   </div>
                 )}
@@ -373,11 +376,11 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             </div>
 
             {/* Personal Information Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông Tin Cá Nhân</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Họ và Tên *</label>
                   <input
                     type="text"
@@ -387,10 +390,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     placeholder="Nhập họ và tên"
                     className={errors.fullName ? 'error' : ''}
                   />
-                  {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+                  {errors.fullName && <span className={styles.errorMessage}>{errors.fullName}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Giới Tính *</label>
                   <select
                     name="gender"
@@ -404,8 +407,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Ngày Sinh *</label>
                   <input
                     type="date"
@@ -414,10 +417,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     onChange={handleChange}
                     className={errors.dateOfBirth ? 'error' : ''}
                   />
-                  {errors.dateOfBirth && <span className="error-message">{errors.dateOfBirth}</span>}
+                  {errors.dateOfBirth && <span className={styles.errorMessage}>{errors.dateOfBirth}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Số Điện Thoại *</label>
                   <input
                     type="tel"
@@ -427,12 +430,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     placeholder="0901234567"
                     className={errors.phone ? 'error' : ''}
                   />
-                  {errors.phone && <span className="error-message">{errors.phone}</span>}
+                  {errors.phone && <span className={styles.errorMessage}>{errors.phone}</span>}
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Email *</label>
                   <input
                     type="email"
@@ -442,12 +445,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     placeholder="example@email.com"
                     className={errors.email ? 'error' : ''}
                   />
-                  {errors.email && <span className="error-message">{errors.email}</span>}
+                  {errors.email && <span className={styles.errorMessage}>{errors.email}</span>}
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Địa Chỉ *</label>
                   <textarea
                     name="address"
@@ -457,12 +460,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     rows="2"
                     className={errors.address ? 'error' : ''}
                   />
-                  {errors.address && <span className="error-message">{errors.address}</span>}
+                  {errors.address && <span className={styles.errorMessage}>{errors.address}</span>}
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Căn Cước Công Dân *</label>
                   <input
                     type="text"
@@ -472,17 +475,17 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     placeholder="Nhập 9 hoặc 12 chữ số (VD: 012345678 hoặc 012345678901)"
                     className={errors.idCard ? 'error' : ''}
                   />
-                  {errors.idCard && <span className="error-message">{errors.idCard}</span>}
+                  {errors.idCard && <span className={styles.errorMessage}>{errors.idCard}</span>}
                 </div>
               </div>
             </div>
 
             {/* Work Information Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông Tin Công Việc</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Vị Trí Làm Việc *</label>
                   <select
                     name="position"
@@ -499,10 +502,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     <option value="Vệ sinh">Vệ sinh</option>
                     <option value="Khác">Khác</option>
                   </select>
-                  {errors.position && <span className="error-message">{errors.position}</span>}
+                  {errors.position && <span className={styles.errorMessage}>{errors.position}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Quyền Hệ Thống *</label>
                   <select
                     name="role"
@@ -516,8 +519,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Ngày Bắt Đầu *</label>
                   <input
                     type="date"
@@ -526,10 +529,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     onChange={handleChange}
                     className={errors.startDate ? 'error' : ''}
                   />
-                  {errors.startDate && <span className="error-message">{errors.startDate}</span>}
+                  {errors.startDate && <span className={styles.errorMessage}>{errors.startDate}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Ca Làm Việc *</label>
                   <select
                     name="shift"
@@ -541,12 +544,12 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     <option value="fulltime">Fulltime (8:00-17:00)</option>
                     <option value="parttime">Partime</option>
                   </select>
-                  {errors.shift && <span className="error-message">{errors.shift}</span>}
+                  {errors.shift && <span className={styles.errorMessage}>{errors.shift}</span>}
                 </div>
               </div>
  
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Trạng Thái</label>
                   <select
                     name="status"
@@ -562,11 +565,11 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             </div>
 
             {/* Financial Information Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông Tin Lương</h3>
               
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label>Lương Cơ Bản (VNĐ) *</label>
                   <input
                     type="number"
@@ -578,10 +581,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     step="100000"
                     className={errors.salary ? 'error' : ''}
                   />
-                  {errors.salary && <span className="error-message">{errors.salary}</span>}
+                  {errors.salary && <span className={styles.errorMessage}>{errors.salary}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label>Tỷ Lệ Hoa Hồng (%)</label>
                   <input
                     type="number"
@@ -594,18 +597,18 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
                     step="0.5"
                     className={errors.commissionRate ? 'error' : ''}
                   />
-                  {errors.commissionRate && <span className="error-message">{errors.commissionRate}</span>}
+                  {errors.commissionRate && <span className={styles.errorMessage}>{errors.commissionRate}</span>}
                 </div>
               </div>
             </div>
 
             {/* Account Information Section - Only for PT and Admin */}
             {(formData.role === 'pt' || formData.role === 'admin') && (
-              <div className="form-section">
+              <div className={styles.formSection}>
                 <h3>Thông Tin Tài Khoản</h3>
               
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Tài Khoản Đăng Nhập</label>
                   <input
                     type="email"
@@ -625,8 +628,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
               </div>
 
               {generatedPassword && (
-                <div className="form-row">
-                  <div className="form-group full-width">
+                <div className={styles.formRow}>
+                  <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                     <label>Mật Khẩu Tạm Thời</label>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                       <input
@@ -683,11 +686,11 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             )}
 
             {/* Additional Information Section */}
-            <div className="form-section">
+            <div className={styles.formSection}>
               <h3>Thông Tin Bổ Sung</h3>
               
-              <div className="form-row">
-                <div className="form-group full-width">
+              <div className={styles.formRow}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                   <label>Ghi Chú</label>
                   <textarea
                     name="notes"
@@ -702,15 +705,15 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           </div>
 
           {errors.submit && (
-            <div className="form-error">
+            <div className={styles.formError}>
               {errors.submit}
             </div>
           )}
 
-          <div className="form-actions">
+          <div className={styles.formActions}>
             <button
               type="button"
-              className="btn-cancel-addemployee"
+              className={styles.btnCancelAddemployee}
               onClick={handleClose}
               disabled={isSubmitting}
             >
@@ -718,17 +721,17 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
             </button>
             <button
               type="submit"
-              className="btn-submit"
+              className={styles.btnSubmit}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <span className="spinner"></span>
+                  <span className={styles.spinner}></span>
                   Đang thêm...
                 </>
               ) : (
                 <>
-                  <span className="icon">👥</span>
+                  <span className={styles.icon}>👥</span>
                   Thêm Nhân Viên
                 </>
               )}

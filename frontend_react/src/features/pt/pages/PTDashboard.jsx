@@ -3,7 +3,7 @@ import { useAuth } from '../../../firebase/lib/features/auth/authContext';
 import { usePT } from '../../../firebase/lib/features/pt/pt.provider';
 import { useNotifications } from '../../../hooks/useNotifications';
 import MemberScheduleModal from '../components/MemberScheduleModal';
-import '../pt.css';
+import styles from '../pt.module.css';
 
 export default function PTDashboard() {
   const { currentUser } = useAuth();
@@ -41,35 +41,35 @@ export default function PTDashboard() {
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'PT';
 
   return (
-    <div className="pt-dashboard-container">
-      <div className="pt-welcome">
+    <div className={styles.ptDashboardContainer}>
+      <div className={styles.ptWelcome}>
         <h1>Chào mừng trở lại, {displayName}! 👋</h1>
         <p>Đây là tổng quan về hoạt động PT của bạn</p>
       </div>
 
-      <div className="pt-stats-grid">
-        <div className="pt-stat-card">
-          <div className="label">Tổng học viên</div>
-          <div className="value">{stats.totalClients}</div>
-          <div className="subtext">Đang hoạt động</div>
+      <div className={styles.ptStatsGrid}>
+        <div className={styles.ptStatCard}>
+          <div className={styles.label}>Tổng học viên</div>
+          <div className={styles.value}>{stats.totalClients}</div>
+          <div className={styles.subtext}>Đang hoạt động</div>
         </div>
 
-        <div className="pt-stat-card">
-          <div className="label">Gói đang bán</div>
-          <div className="value">{stats.activePackages}</div>
-          <div className="subtext">Gói tập hiện có</div>
+        <div className={styles.ptStatCard}>
+          <div className={styles.label}>Gói đang bán</div>
+          <div className={styles.value}>{stats.activePackages}</div>
+          <div className={styles.subtext}>Gói tập hiện có</div>
         </div>
 
-        <div className="pt-stat-card">
-          <div className="label">Doanh thu tháng này</div>
-          <div className="value">{stats.monthlyRevenue.toLocaleString('vi-VN')}₫</div>
-          <div className="subtext">Từ commission</div>
+        <div className={styles.ptStatCard}>
+          <div className={styles.label}>Doanh thu tháng này</div>
+          <div className={styles.value}>{stats.monthlyRevenue.toLocaleString('vi-VN')}₫</div>
+          <div className={styles.subtext}>Từ commission</div>
         </div>
 
-        <div className="pt-stat-card">
-          <div className="label">Đánh giá</div>
-          <div className="value">{stats.rating || 'N/A'}</div>
-          <div className="subtext">Trung bình từ học viên</div>
+        <div className={styles.ptStatCard}>
+          <div className={styles.label}>Đánh giá</div>
+          <div className={styles.value}>{stats.rating || 'N/A'}</div>
+          <div className={styles.subtext}>Trung bình từ học viên</div>
         </div>
       </div>
 

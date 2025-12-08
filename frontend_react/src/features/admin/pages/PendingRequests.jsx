@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePendingRequests } from '../../../firebase/lib/features/pending-request/pendingRequest.provider';
-import './PendingRequests.css';
+import styles from './PendingRequests.module.css';
 
 export default function PendingRequests() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -88,14 +88,14 @@ export default function PendingRequests() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      pending: { text: 'Chờ duyệt', class: 'badge-warning' },
-      approved: { text: 'Đã duyệt', class: 'badge-success' },
-      rejected: { text: 'Từ chối', class: 'badge-danger' },
-      cancelled: { text: 'Đã hủy', class: 'badge-secondary' }
+      pending: { text: 'Chờ duyệt', class: styles.badgeWarning },
+      approved: { text: 'Đã duyệt', class: styles.badgeSuccess },
+      rejected: { text: 'Từ chối', class: styles.badgeDanger },
+      cancelled: { text: 'Đã hủy', class: styles.badgeSecondary }
     };
     
-    const badge = badges[status] || { text: status, class: 'badge-secondary' };
-    return <span className={`badge ${badge.class}`}>{badge.text}</span>;
+    const badge = badges[status] || { text: status, class: styles.badgeSecondary };
+    return <span className={`${styles.badge} ${badge.class}`}>{badge.text}</span>;
   };
 
   const getTypeLabel = (type) => {
@@ -112,46 +112,46 @@ export default function PendingRequests() {
 
   if (loading) {
     return (
-      <div className="pending-requests-container">
-        <div className="loading">Đang tải...</div>
+      <div className={styles.pendingRequestsContainer}>
+        <div className={styles.loading}>Đang tải...</div>
       </div>
     );
   }
 
   return (
-    <div className="pending-requests-container">
-      <div className="page-header">
+    <div className={styles.pendingRequestsContainer}>
+      <div className={styles.pageHeader}>
         <h1>Yêu Cầu Chờ Duyệt</h1>
         <p>Quản lý các yêu cầu thay đổi thông tin từ nhân viên</p>
       </div>
 
-      <div className="filter-tabs">
-        <button 
-          className={filter === 'pending' ? 'active' : ''}
+      <div className={styles.filterTabs}>
+        <button
+          className={filter === 'pending' ? styles.active : ''}
           onClick={() => setFilter('pending')}
         >
           ⏳ Chờ duyệt ({counts.pending})
         </button>
-        <button 
-          className={filter === 'approved' ? 'active' : ''}
+        <button
+          className={filter === 'approved' ? styles.active : ''}
           onClick={() => setFilter('approved')}
         >
           ✅ Đã duyệt ({counts.approved})
         </button>
-        <button 
-          className={filter === 'rejected' ? 'active' : ''}
+        <button
+          className={filter === 'rejected' ? styles.active : ''}
           onClick={() => setFilter('rejected')}
         >
           ❌ Từ chối ({counts.rejected})
         </button>
-        <button 
-          className={filter === 'cancelled' ? 'active' : ''}
+        <button
+          className={filter === 'cancelled' ? styles.active : ''}
           onClick={() => setFilter('cancelled')}
         >
           🚫 Đã hủy ({counts.cancelled})
         </button>
-        <button 
-          className={filter === 'all' ? 'active' : ''}
+        <button
+          className={filter === 'all' ? styles.active : ''}
           onClick={() => setFilter('all')}
         >
           📋 Tất cả ({counts.all})
@@ -159,11 +159,11 @@ export default function PendingRequests() {
       </div>
 
       {requests.length === 0 ? (
-        <div className="empty-state">
+        <div className={styles.emptyState}>
           <p>Không có yêu cầu nào</p>
         </div>
       ) : (
-        <div className="requests-list">
+        <div className={styles.requestsList}>
           {requests.map(request => {
             const typeInfo = getTypeLabel(request.type);
             const isHighlighted = searchParams.get('requestId') === request.id;
@@ -171,90 +171,68 @@ export default function PendingRequests() {
               <div 
                 key={request.id} 
                 id={`request-${request.id}`}
-                className={`request-card ${request.status} ${isHighlighted ? 'highlighted' : ''}`}
-                style={isHighlighted ? { 
-                  border: '3px solid #007bff', 
-                  boxShadow: '0 4px 16px rgba(0,123,255,0.3)',
-                  animation: 'highlight-pulse 1.5s ease-in-out 3'
-                } : {}}
+                className={`${styles.requestCard} ${styles[request.status]} ${isHighlighted ? styles.highlighted : ''}`}
               >
-                <div className="request-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className={styles.requestHeader}>
+                  <div className={styles.avatarContainer}>
                     {/* Avatar */}
                     {request.employeeAvatar ? (
                       <img 
                         src={request.employeeAvatar.startsWith('http') ? request.employeeAvatar : `${window.location.origin}${request.employeeAvatar}`}
                         alt={request.employeeName || 'Avatar'}
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          border: '2px solid #007bff',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
+                        className={styles.avatar}
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.nextElementSibling.style.display = 'flex';
                         }}
                       />
                     ) : null}
-                    <div style={{
-                      display: request.employeeAvatar ? 'none' : 'flex',
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '20px',
-                      fontWeight: 700,
-                      border: '2px solid #667eea',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
+                    <div 
+                      className={styles.avatarPlaceholder}
+                      style={{ display: request.employeeAvatar ? 'none' : 'flex' }}
+                    >
                       {(request.employeeName || request.requestedByName || 'U').charAt(0).toUpperCase()}
                     </div>
                     
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '20px' }}>{typeInfo.icon}</span>
+                    <div className={styles.employeeInfo}>
+                      <div className={styles.employeeName}>
+                        <span className={styles.typeIcon}>{typeInfo.icon}</span>
                         <h3>{request.employeeName || request.requestedByName || 'N/A'}</h3>
                       </div>
-                      <p className="request-email">{request.employeeEmail || request.packageName || 'N/A'}</p>
+                      <p className={styles.requestEmail}>{request.employeeEmail || request.packageName || 'N/A'}</p>
                     </div>
                   </div>
                   {getStatusBadge(request.status)}
                 </div>
                 
-                <div className="request-body">
-                  <div className="request-info">
-                    <span className="label">Loại:</span>
-                    <span style={{ 
-                      color: typeInfo.color, 
-                      fontWeight: 600,
-                      background: `${typeInfo.color}15`,
-                      padding: '4px 10px',
-                      borderRadius: '6px'
-                    }}>
+                <div className={styles.requestBody}>
+                  <div className={styles.requestInfo}>
+                    <span className={styles.label}>Loại:</span>
+                    <span 
+                      className={styles.typeBadge}
+                      style={{ 
+                        color: typeInfo.color,
+                        background: `${typeInfo.color}15`
+                      }}
+                    >
                       {typeInfo.text}
                     </span>
                   </div>
-                  <div className="request-info">
-                    <span className="label">Ngày gửi:</span>
+                  <div className={styles.requestInfo}>
+                    <span className={styles.label}>Ngày gửi:</span>
                     <span>{request.createdAt?.toLocaleString('vi-VN')}</span>
                   </div>
                   {request.packageName && (
-                    <div className="request-info">
-                      <span className="label">Gói tập:</span>
-                      <span style={{ fontWeight: 600 }}>{request.packageName}</span>
+                    <div className={styles.requestInfo}>
+                      <span className={styles.label}>Gói tập:</span>
+                      <span className={styles.packageName}>{request.packageName}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="request-actions">
+                <div className={styles.requestActions}>
                   <button 
-                    className="btn-view"
+                    className={styles.btnView}
                     onClick={() => viewRequestDetails(request)}
                   >
                     👁️ Xem chi tiết
@@ -263,13 +241,13 @@ export default function PendingRequests() {
                   {request.status === 'pending' && (
                     <>
                       <button 
-                        className="btn-approve"
+                        className={styles.btnApprove}
                         onClick={() => approveRequest(request)}
                       >
                         ✓ Duyệt
                       </button>
                       <button 
-                        className="btn-reject"
+                        className={styles.btnReject}
                         onClick={() => rejectRequest(request.id, request)}
                       >
                         ✕ Từ chối
@@ -285,31 +263,15 @@ export default function PendingRequests() {
 
       {/* Load More Button */}
       {!loading && hasMore && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          padding: '24px',
-          marginTop: '16px'
-        }}>
+        <div className={styles.loadMoreContainer}>
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            style={{
-              padding: '12px 32px',
-              background: loadingMore ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: loadingMore ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-            }}
+            className={styles.btnLoadMore}
           >
             {loadingMore ? (
               <>
-                <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                <span className={styles.loadingIcon}>⏳</span>
                 {' '}Đang tải...
               </>
             ) : (
@@ -321,26 +283,11 @@ export default function PendingRequests() {
 
       {/* Show total loaded */}
       {!loading && requests.length > 0 && (
-        <div style={{
-          textAlign: 'center',
-          padding: '16px',
-          color: '#999',
-          fontSize: '13px'
-        }}>
+        <div className={styles.totalCount}>
           Đã hiển thị {requests.length} / {counts[filter] || counts.all} yêu cầu
         </div>
       )}
     </div>
   );
 }
-
-/* Add spin animation for loading icon */
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
 

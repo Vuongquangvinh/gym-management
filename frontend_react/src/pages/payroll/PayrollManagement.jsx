@@ -35,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import SalaryRecordModel from '../../firebase/lib/features/salary/salaryRecord.model.js';
 import SalaryService from '../../services/salary.service.js';
-import './PayrollManagement.css';
+import styles from './PayrollManagement.module.css';
 
 const PayrollManagement = () => {
   const [records, setRecords] = useState([]);
@@ -418,9 +418,9 @@ const PayrollManagement = () => {
   };
 
   return (
-    <div className="payroll-container">
-      <div className="payroll-header">
-        <Typography className="payroll-title">Quản lý Bảng lương</Typography>
+    <div className={styles.payrollContainer}>
+      <div className={styles.payrollHeader}>
+        <Typography className={styles.payrollTitle}>Quản lý Bảng lương</Typography>
         <Typography variant="body2" color="textSecondary">
           Quản lý lương, thưởng, phạt và các khoản phụ cấp cho nhân viên
         </Typography>
@@ -430,15 +430,15 @@ const PayrollManagement = () => {
       {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
 
       {/* Filters & Actions */}
-      <div className="filters-bar">
-        <div className="filters-left">
+      <div className={styles.filtersBar}>
+        <div className={styles.filtersLeft}>
           <TextField
             select
             label="Tháng"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
             size="small"
-            className="filter-input filter-input-month"
+            className={`${styles.filterInput} ${styles.filterInputMonth}`}
           >
             {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
               <MenuItem key={m} value={m}>Tháng {m}</MenuItem>
@@ -450,7 +450,7 @@ const PayrollManagement = () => {
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             size="small"
-            className="filter-input filter-input-year"
+            className={`${styles.filterInput} ${styles.filterInputYear}`}
           >
             {[2023, 2024, 2025, 2026].map(y => (
               <MenuItem key={y} value={y}>{y}</MenuItem>
@@ -458,9 +458,9 @@ const PayrollManagement = () => {
           </TextField>
         </div>
 
-        <div className="filters-right">
+        <div className={styles.filtersRight}>
           <Tooltip title="Tải lại dữ liệu">
-            <IconButton onClick={loadRecords} disabled={loading} className="btn-refresh">
+            <IconButton onClick={loadRecords} disabled={loading} className={styles.btnRefresh}>
               <RefreshIcon color="action" />
             </IconButton>
           </Tooltip>
@@ -471,7 +471,7 @@ const PayrollManagement = () => {
             startIcon={<CalculateIcon />}
             onClick={handleUpdateCommissions}
             disabled={loading}
-            className="btn-action"
+            className={styles.btnAction}
           >
             Cập nhật hoa hồng
           </Button>
@@ -481,7 +481,7 @@ const PayrollManagement = () => {
             startIcon={<AddIcon />}
             onClick={handleGenerateAll}
             disabled={loading}
-            className="btn-action"
+            className={styles.btnAction}
           >
             Tạo bảng lương
           </Button>
@@ -489,32 +489,32 @@ const PayrollManagement = () => {
       </div>
 
       {/* Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Tổng lương Gross</div>
-          <div className="stat-value">{formatCurrency(totalStats.totalGross)}</div>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Tổng lương Gross</div>
+          <div className={styles.statValue}>{formatCurrency(totalStats.totalGross)}</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Tổng lương Net</div>
-          <div className="stat-value highlight">{formatCurrency(totalStats.totalNet)}</div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Tổng lương Net</div>
+          <div className={`${styles.statValue} ${styles.highlight}`}>{formatCurrency(totalStats.totalNet)}</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Chờ duyệt</div>
-          <div className="stat-value" style={{ color: 'var(--warning-color)' }}>{totalStats.totalPending}</div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Chờ duyệt</div>
+          <div className={styles.statValue} style={{ color: 'var(--warning-color)' }}>{totalStats.totalPending}</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Đã duyệt</div>
-          <div className="stat-value" style={{ color: 'var(--primary-color)' }}>{totalStats.totalApproved}</div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Đã duyệt</div>
+          <div className={styles.statValue} style={{ color: 'var(--primary-color)' }}>{totalStats.totalApproved}</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Đã trả</div>
-          <div className="stat-value" style={{ color: 'var(--success-color)' }}>{totalStats.totalPaid}</div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Đã trả</div>
+          <div className={styles.statValue} style={{ color: 'var(--success-color)' }}>{totalStats.totalPaid}</div>
         </div>
       </div>
 
       {/* Table */}
-      <TableContainer component={Paper} className="table-container">
-        <Table className="payroll-table">
+      <TableContainer component={Paper} className={styles.tableContainer}>
+        <Table className={styles.payrollTable}>
           <TableHead>
             <TableRow>
               <TableCell>Nhân viên</TableCell>
@@ -565,26 +565,26 @@ const PayrollManagement = () => {
                   </TableCell>
                   <TableCell align="right">
                     <Box display="flex" flexDirection="column" alignItems="flex-end">
-                      {record.bonuses > 0 && <span className="amount-positive">+{formatCurrency(record.bonuses)}</span>}
-                      {record.penalties > 0 && <span className="amount-negative">-{formatCurrency(record.penalties)}</span>}
+                      {record.bonuses > 0 && <span className={styles.amountPositive}>+{formatCurrency(record.bonuses)}</span>}
+                      {record.penalties > 0 && <span className={styles.amountNegative}>-{formatCurrency(record.penalties)}</span>}
                       {record.bonuses === 0 && record.penalties === 0 && '-'}
                     </Box>
                   </TableCell>
                   <TableCell align="right">
                     {record.commission > 0 ? (
-                      <span className="amount-positive">{formatCurrency(record.commission)}</span>
+                      <span className={styles.amountPositive}>{formatCurrency(record.commission)}</span>
                     ) : '-'}
                   </TableCell>
                   <TableCell align="right">{formatCurrency(record.grossSalary)}</TableCell>
                   <TableCell align="right">
-                    <span className="net-salary">{formatCurrency(record.netSalary)}</span>
+                    <span className={styles.netSalary}>{formatCurrency(record.netSalary)}</span>
                   </TableCell>
                   <TableCell align="center">
                     <Chip 
                       label={getStatusLabel(record.status)} 
                       color={getStatusColor(record.status)}
                       size="small"
-                      className="status-chip"
+                      className={styles.statusChip}
                     />
                   </TableCell>
                   <TableCell align="center">
@@ -624,38 +624,38 @@ const PayrollManagement = () => {
 
       {/* Edit Dialog - Improved UX/UI */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="lg" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
-        <div className="dialog-title">
+        <div className={styles.dialogTitle}>
           <Typography variant="h6" fontWeight="bold">Chỉnh sửa bảng lương</Typography>
           <Typography variant="body2" color="text.secondary">
             {editingRecord?.employeeName} - {editingRecord?.position}
           </Typography>
         </div>
         
-        <div className="dialog-content">
+        <div className={styles.dialogContent}>
           {/* Salary Summary Card */}
-          <div className="summary-box">
-            <div className="summary-grid">
+          <div className={styles.summaryBox}>
+            <div className={styles.summaryGrid}>
               <div>
-                <div className="summary-item-label">Lương CB</div>
-                <div className="summary-item-value">
+                <div className={styles.summaryItemLabel}>Lương CB</div>
+                <div className={styles.summaryItemValue}>
                   {formatCurrency(editingRecord?.baseSalary || 0)}
                 </div>
               </div>
               <div>
-                <div className="summary-item-label">Tổng Gross</div>
-                <div className="summary-item-value" style={{ color: 'var(--primary-color)' }}>
+                <div className={styles.summaryItemLabel}>Tổng Gross</div>
+                <div className={styles.summaryItemValue} style={{ color: 'var(--primary-color)' }}>
                   {formatCurrency(calculateSalary().gross)}
                 </div>
               </div>
               <div>
-                <div className="summary-item-label">Tổng khấu trừ</div>
-                <div className="summary-item-value" style={{ color: 'var(--error-color)' }}>
+                <div className={styles.summaryItemLabel}>Tổng khấu trừ</div>
+                <div className={styles.summaryItemValue} style={{ color: 'var(--error-color)' }}>
                   -{formatCurrency(calculateSalary().totalDeductions)}
                 </div>
               </div>
               <div>
-                <div className="summary-item-label">Lương NET</div>
-                <div className="summary-item-value" style={{ color: 'var(--success-color)' }}>
+                <div className={styles.summaryItemLabel}>Lương NET</div>
+                <div className={styles.summaryItemValue} style={{ color: 'var(--success-color)' }}>
                   {formatCurrency(calculateSalary().net)}
                 </div>
               </div>
@@ -663,7 +663,7 @@ const PayrollManagement = () => {
           </div>
 
           {/* Tabs */}
-          <div className="dialog-tabs">
+          <div className={styles.dialogTabs}>
             <Tabs value={dialogTab} onChange={(e, v) => setDialogTab(v)} textColor="primary" indicatorColor="primary">
               <Tab label="⏱️ Công & Tăng ca" />
               <Tab label="💰 Phụ cấp" />
@@ -674,7 +674,7 @@ const PayrollManagement = () => {
 
           {/* Tab 0: Work Days & Overtime */}
           {dialogTab === 0 && (
-            <div className="form-grid-3">
+            <div className={styles.formGrid3}>
               <TextField
                 fullWidth
                 label="Ngày công thực tế"
@@ -702,7 +702,7 @@ const PayrollManagement = () => {
                 inputProps={{ inputMode: 'numeric' }}
                 helperText={`Thành tiền: ${formatCurrency(calculateSalary().overtimePay)}`}
               />
-              <div className="full-width">
+              <div className={styles.fullWidth}>
                 <TextField
                   fullWidth
                   multiline
@@ -718,8 +718,8 @@ const PayrollManagement = () => {
 
           {/* Tab 1: Allowances */}
           {dialogTab === 1 && (
-            <div className="form-grid-2">
-              <div className="full-width">
+            <div className={styles.formGrid2}>
+              <div className={styles.fullWidth}>
                 <Typography variant="subtitle2" color="primary" gutterBottom fontWeight="bold">
                   Tổng phụ cấp: {formatCurrency(calculateSalary().totalAllowances)}
                 </Typography>
@@ -768,7 +768,7 @@ const PayrollManagement = () => {
                 InputProps={{ startAdornment: <Typography sx={{ mr: 1 }}>📱</Typography> }}
                 placeholder="0"
               />
-              <div className="full-width">
+              <div className={styles.fullWidth}>
                 <TextField
                   fullWidth
                   label="Phụ cấp Khác"
@@ -786,8 +786,8 @@ const PayrollManagement = () => {
 
           {/* Tab 2: Deductions */}
           {dialogTab === 2 && (
-            <div className="form-grid-2">
-              <div className="full-width">
+            <div className={styles.formGrid2}>
+              <div className={styles.fullWidth}>
                 <Typography variant="subtitle2" color="error" gutterBottom fontWeight="bold">
                   Tổng khấu trừ: {formatCurrency(calculateSalary().totalDeductions)}
                 </Typography>
@@ -844,10 +844,10 @@ const PayrollManagement = () => {
 
           {/* Tab 3: Bonuses & Penalties */}
           {dialogTab === 3 && (
-            <div className="bonus-penalty-grid">
+            <div className={styles.bonusPenaltyGrid}>
               {/* Bonuses Section */}
-              <div className="bonus-section">
-                <div className="section-header">
+              <div className={styles.bonusSection}>
+                <div className={styles.sectionHeader}>
                   <Typography variant="subtitle1" fontWeight="bold" color="success.main">
                     🎁 Thưởng
                   </Typography>
@@ -857,7 +857,7 @@ const PayrollManagement = () => {
                 </div>
 
                 {/* Add new bonus */}
-                <div className="add-item-box">
+                <div className={styles.addItemBox}>
                   <TextField
                     fullWidth
                     label="Số tiền"
@@ -889,14 +889,14 @@ const PayrollManagement = () => {
                 </div>
 
                 {/* Bonus list */}
-                <div className="list-container">
+                <div className={styles.listContainer}>
                   {bonusList.length === 0 ? (
                     <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
                       Chưa có khoản thưởng nào
                     </Typography>
                   ) : (
                     bonusList.map((bonus, index) => (
-                      <div key={index} className="list-item">
+                      <div key={index} className={styles.listItem}>
                         <div style={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight="bold" color="success.main">
                             {formatCurrency(bonus.amount)}
@@ -922,8 +922,8 @@ const PayrollManagement = () => {
               </div>
 
               {/* Penalties Section */}
-              <div className="penalty-section">
-                <div className="section-header">
+              <div className={styles.penaltySection}>
+                <div className={styles.sectionHeader}>
                   <Typography variant="subtitle1" fontWeight="bold" color="error.main">
                     ⚠️ Phạt
                   </Typography>
@@ -933,7 +933,7 @@ const PayrollManagement = () => {
                 </div>
 
                 {/* Add new penalty */}
-                <div className="add-item-box">
+                <div className={styles.addItemBox}>
                   <TextField
                     fullWidth
                     label="Số tiền"
@@ -965,14 +965,14 @@ const PayrollManagement = () => {
                 </div>
 
                 {/* Penalty list */}
-                <div className="list-container">
+                <div className={styles.listContainer}>
                   {penaltyList.length === 0 ? (
                     <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
                       Chưa có khoản phạt nào
                     </Typography>
                   ) : (
                     penaltyList.map((penalty, index) => (
-                      <div key={index} className="list-item">
+                      <div key={index} className={styles.listItem}>
                         <div style={{ flex: 1 }}>
                           <Typography variant="body2" fontWeight="bold" color="error.main">
                             {formatCurrency(penalty.amount)}
@@ -1000,8 +1000,8 @@ const PayrollManagement = () => {
           )}
         </div>
         
-        <div className="dialog-actions">
-          <div className="dialog-actions-left">
+        <div className={styles.dialogActions}>
+          <div className={styles.dialogActionsLeft}>
             <Typography variant="body2" color="text.secondary">
               Lương NET cuối cùng:
             </Typography>

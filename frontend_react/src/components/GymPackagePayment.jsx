@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { createGymPayment } from '../services/paymentService';
 import { toast } from 'react-toastify';
-import './GymPackagePayment.css';
+import styles from './GymPackagePayment.module.css';
 
 /**
  * Component thanh toán gói tập gym
@@ -79,28 +79,28 @@ function GymPackagePayment({ packageInfo, userInfo, onSuccess, onError }) {
 
   return (
     <>
-      <div className="gym-package-payment">
-        <div className="package-details">
-          <h3 className="package-name">
+      <div className={styles.gymPackagePayment}>
+        <div className={styles.packageDetails}>
+          <h3 className={styles.packageName}>
             {packageInfo.name || packageInfo.PackageName}
           </h3>
-          <div className="package-info">
-            <div className="info-item">
-              <span className="label">Giá:</span>
-              <span className="value price">
+          <div className={styles.packageInfo}>
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Giá:</span>
+              <span className={`${styles.value} ${styles.price}`}>
                 {formatPrice(packageInfo.price || packageInfo.Price)}
               </span>
             </div>
-            <div className="info-item">
-              <span className="label">Thời hạn:</span>
-              <span className="value">
+            <div className={styles.infoItem}>
+              <span className={styles.label}>Thời hạn:</span>
+              <span className={styles.value}>
                 {packageInfo.duration || packageInfo.Duration} ngày
               </span>
             </div>
             {packageInfo.description || packageInfo.Description ? (
-              <div className="info-item full-width">
-                <span className="label">Mô tả:</span>
-                <span className="value">
+              <div className={`${styles.infoItem} ${styles.fullWidth}`}>
+                <span className={styles.label}>Mô tả:</span>
+                <span className={styles.value}>
                   {packageInfo.description || packageInfo.Description}
                 </span>
               </div>
@@ -109,18 +109,18 @@ function GymPackagePayment({ packageInfo, userInfo, onSuccess, onError }) {
         </div>
 
         <button
-          className="btn-payment"
+          className={styles.btnPayment}
           onClick={handlePaymentClick}
           disabled={loading}
         >
           {loading ? (
             <>
-              <span className="spinner"></span>
+              <span className={styles.spinner}></span>
               Đang xử lý...
             </>
           ) : (
             <>
-              <span className="icon">💳</span>
+              <span className={styles.icon}>💳</span>
               Thanh toán ngay
             </>
           )}
@@ -129,35 +129,35 @@ function GymPackagePayment({ packageInfo, userInfo, onSuccess, onError }) {
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div className="payment-modal-overlay" onClick={() => setShowConfirm(false)}>
-          <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className={styles.paymentModalOverlay} onClick={() => setShowConfirm(false)}>
+          <div className={styles.paymentModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
               <h3>Xác nhận thanh toán</h3>
               <button
-                className="close-btn"
+                className={styles.closeBtn}
                 onClick={() => setShowConfirm(false)}
               >
                 ×
               </button>
             </div>
-            <div className="modal-body">
+            <div className={styles.modalBody}>
               <p>Bạn có chắc chắn muốn thanh toán gói tập:</p>
-              <div className="confirm-details">
+              <div className={styles.confirmDetails}>
                 <p><strong>{packageInfo.name || packageInfo.PackageName}</strong></p>
                 <p>Giá: <strong>{formatPrice(packageInfo.price || packageInfo.Price)}</strong></p>
                 <p>Thời hạn: <strong>{packageInfo.duration || packageInfo.Duration} ngày</strong></p>
               </div>
             </div>
-            <div className="modal-footer">
+            <div className={styles.modalFooter}>
               <button
-                className="btn-cancel"
+                className={styles.btnCancel}
                 onClick={() => setShowConfirm(false)}
                 disabled={loading}
               >
                 Hủy
               </button>
               <button
-                className="btn-confirm"
+                className={styles.btnConfirm}
                 onClick={handleConfirmPayment}
                 disabled={loading}
               >

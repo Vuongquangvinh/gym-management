@@ -29,7 +29,7 @@ import {
   AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
 import { SalaryConfigModel } from '../../firebase/lib/features/salary/salary-config.model';
-import './SalaryConfigManagement.css';
+import styles from './SalaryConfigManagement.module.css';
 
 const ROLE_OPTIONS = [
   { value: 'PT', label: 'Personal Trainer (PT)' },
@@ -232,16 +232,16 @@ export default function SalaryConfigManagement() {
   };
 
   return (
-    <div className="salary-config-container">
-      <div className="page-header">
-        <Typography variant="h5" className="page-title">
+    <div className={styles.salaryConfigContainer}>
+      <div className={styles.pageHeader}>
+        <Typography variant="h5" className={styles.pageTitle}>
           Cấu hình Lương
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          className="btn-add"
+          onClick={handleOpenDialog}
+          className={styles.btnAdd}
         >
           Thêm Cấu hình
         </Button>
@@ -250,9 +250,9 @@ export default function SalaryConfigManagement() {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
 
-      <TableContainer component={Paper} className="config-table-container">
+      <TableContainer component={Paper} className={styles.configTableContainer}>
         <Table>
-          <TableHead className="config-table-head">
+          <TableHead className={styles.configTableHead}>
             <TableRow>
               <TableCell>Chức vụ</TableCell>
               <TableCell>Loại lương</TableCell>
@@ -282,13 +282,13 @@ export default function SalaryConfigManagement() {
                   (config.deductions?.tax || 0);
 
                 return (
-                  <TableRow key={config.id} className="config-table-row">
+                  <TableRow key={config.id} className={styles.configTableRow}>
                     <TableCell>
                       <Chip 
                         label={ROLE_OPTIONS.find(r => r.value === config.role)?.label || config.role}
                         color="primary"
                         size="small"
-                        className="role-chip"
+                        className={styles.roleChip}
                       />
                     </TableCell>
                     <TableCell>
@@ -320,7 +320,7 @@ export default function SalaryConfigManagement() {
           {editingConfig ? 'Chỉnh sửa Cấu hình Lương' : 'Thêm Cấu hình Lương Mới'}
         </DialogTitle>
         <DialogContent>
-          <div className="form-grid" style={{ marginTop: '16px' }}>
+          <div className={styles.formGrid} style={{ marginTop: '16px' }}>
             <FormControl fullWidth>
               <InputLabel>Chức vụ</InputLabel>
               <Select
@@ -370,8 +370,8 @@ export default function SalaryConfigManagement() {
           </div>
 
           {/* Allowances */}
-          <div className="dialog-section-title">Phụ cấp</div>
-          <div className="form-grid-4">
+          <div className={styles.dialogSectionTitle}>Phụ cấp</div>
+          <div className={styles.formGrid4}>
             <TextField
               fullWidth
               label="Nhà ở"
@@ -403,8 +403,8 @@ export default function SalaryConfigManagement() {
           </div>
 
           {/* Deductions */}
-          <div className="dialog-section-title">Khấu trừ</div>
-          <div className="form-grid">
+          <div className={styles.dialogSectionTitle}>Khấu trừ</div>
+          <div className={styles.formGrid}>
             <TextField
               fullWidth
               label="Bảo hiểm"

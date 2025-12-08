@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import './FaceRegistrationModal.css';
+import styles from './FaceRegistrationModal.module.css';
 
 const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSuccess }) => {
   const [step, setStep] = useState(1); // 1: Instructions, 2: Camera, 3: Success
@@ -177,46 +177,46 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
   if (!isOpen) return null;
 
   return (
-    <div className="face-registration-modal-overlay">
-      <div className="face-registration-modal">
-        <div className="modal-header">
+    <div className={styles.faceRegistrationModalOverlay}>
+      <div className={styles.faceRegistrationModal}>
+        <div className={styles.modalHeader}>
           <h2>📷 Đăng ký Face ID</h2>
-          <button className="close-btn" onClick={handleClose}>×</button>
+          <button className={styles.closeBtn} onClick={handleClose}>×</button>
         </div>
 
-        <div className="modal-content">
+        <div className={styles.modalContent}>
           {step === 1 && (
-            <div className="registration-step instructions">
-              <div className="step-icon">📋</div>
+            <div className={styles.registrationStep}>
+              <div className={styles.stepIcon}>📋</div>
               <h3>Hướng dẫn đăng ký Face ID</h3>
-              <div className="instructions-list">
-                <div className="instruction-item">
-                  <span className="instruction-number">1</span>
+              <div className={styles.instructionsList}>
+                <div className={styles.instructionItem}>
+                  <span className={styles.instructionNumber}>1</span>
                   <p>Đảm bảo ánh sáng đủ và khuôn mặt rõ ràng</p>
                 </div>
-                <div className="instruction-item">
-                  <span className="instruction-number">2</span>
+                <div className={styles.instructionItem}>
+                  <span className={styles.instructionNumber}>2</span>
                   <p>Nhìn thẳng vào camera, không đeo kính râm</p>
                 </div>
-                <div className="instruction-item">
-                  <span className="instruction-number">3</span>
+                <div className={styles.instructionItem}>
+                  <span className={styles.instructionNumber}>3</span>
                   <p>Giữ nguyên tư thế khi chụp ảnh</p>
                 </div>
-                <div className="instruction-item">
-                  <span className="instruction-number">4</span>
+                <div className={styles.instructionItem}>
+                  <span className={styles.instructionNumber}>4</span>
                   <p>Chỉ có một người trong khung hình</p>
                 </div>
               </div>
               
               {employee && (
-                <div className="employee-info">
+                <div className={styles.employeeInfo}>
                   <h4>Nhân viên: {employee.fullName}</h4>
                   <p>Vị trí: {employee.position}</p>
                 </div>
               )}
 
               <button 
-                className="btn-start-camera"
+                className={styles.btnStartCamera}
                 onClick={() => setStep(2)}
               >
                 📷 Bắt đầu chụp ảnh
@@ -225,35 +225,35 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
           )}
 
           {step === 2 && (
-            <div className="registration-step camera">
-              <div className="camera-container">
+            <div className={styles.registrationStep}>
+              <div className={styles.cameraContainer}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="camera-video"
+                  className={styles.cameraVideo}
                 />
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                <div className="camera-overlay">
-                  <div className="face-guide">
-                    <div className="guide-circle"></div>
+                <div className={styles.cameraOverlay}>
+                  <div className={styles.faceGuide}>
+                    <div className={styles.guideCircle}></div>
                     <p>Đặt khuôn mặt trong vòng tròn</p>
                   </div>
                 </div>
               </div>
 
-              <div className="camera-controls">
+              <div className={styles.cameraControls}>
                 <button 
-                  className="btn-capture"
+                  className={styles.btnCapture}
                   onClick={capturePhoto}
                   disabled={isCapturing}
                 >
                   {isCapturing ? '📸 Đang chụp...' : '📸 Chụp ảnh'}
                 </button>
                 <button 
-                  className="btn-cancel"
+                  className={styles.btnCancel}
                   onClick={handleClose}
                 >
                   ❌ Hủy
@@ -261,7 +261,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
               </div>
 
               {error && (
-                <div className="error-message">
+                <div className={styles.errorMessage}>
                   ❌ {error}
                 </div>
               )}
@@ -269,26 +269,26 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
           )}
 
           {step === 3 && (
-            <div className="registration-step preview">
-              <div className="step-icon">🖼️</div>
+            <div className={styles.registrationStep}>
+              <div className={styles.stepIcon}>🖼️</div>
               <h3>Xem trước ảnh</h3>
               
               {capturedImage && (
-                <div className="image-preview">
+                <div className={styles.imagePreview}>
                   <img src={capturedImage} alt="Captured face" />
                 </div>
               )}
 
-              <div className="preview-actions">
+              <div className={styles.previewActions}>
                 <button 
-                  className="btn-retake"
+                  className={styles.btnRetake}
                   onClick={retakePhoto}
                   disabled={isProcessing}
                 >
                   🔄 Chụp lại
                 </button>
                 <button 
-                  className="btn-confirm"
+                  className={styles.btnConfirm}
                   onClick={processRegistration}
                   disabled={isProcessing}
                 >
@@ -297,7 +297,7 @@ const FaceRegistrationModal = ({ isOpen, onClose, employee, onRegistrationSucces
               </div>
 
               {error && (
-                <div className="error-message">
+                <div className={styles.errorMessage}>
                   ❌ {error}
                 </div>
               )}

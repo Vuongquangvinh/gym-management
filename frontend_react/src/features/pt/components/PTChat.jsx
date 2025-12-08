@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatService } from '../services/ChatService';
 import { auth, storage } from '../../../firebase/lib/config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import './PTChat.css';
+import styles from './PTChat.module.css';
 
 export default function PTChat({ initialClient, onClose }) {
   // State cho xem toàn màn hình ảnh
@@ -194,16 +194,17 @@ export default function PTChat({ initialClient, onClose }) {
   };
 
   return (
-    <div className="pt-chat-container">
-      <div className="pt-chat-header">
+    <div className={styles.ptChatContainer}>
+      <div className={styles.ptChatHeader}>
         <h3>💬 Tin nhắn với khách hàng</h3>
-        {onClose && <button className="pt-chat-close" onClick={onClose}>×</button>}
+        {onClose && <button className={styles.ptChatClose} onClick={onClose}>×</button>}
       </div>
 
       {/* Overlay xem toàn màn hình ảnh */}
       {fullImageUrl && (
         <div
-          className="pt-chat-image-overlay"
+          
+        
           style={{
             position: 'fixed',
             top: 0,
@@ -306,23 +307,23 @@ export default function PTChat({ initialClient, onClose }) {
         </div>
       )}
 
-      <div className="pt-chat-body">
+      <div className={styles.ptChatBody}>
         {/* Sidebar - Client List (Horizontal) */}
         {!initialClient && (
-          <div className="pt-chat-sidebar">
-            <div className="sidebar-header">
+          <div className={styles.ptChatSidebar}>
+            <div className={styles.sidebarHeader}>
               <span>Khách hàng gần đây</span>
             </div>
-            <div className="client-list">
+            <div className={styles.clientList}>
               {clients.map((client) => (
                 <div
                   key={client.id}
-                  className={`client-item ${selectedClient?.id === client.id ? 'active' : ''}`}
+                  className={`${styles.clientItem} ${selectedClient?.id === client.id ? styles.active : ''}`}
                   onClick={() => handleClientSelect(client)}
                 >
-                  <div className="client-avatar">{getInitials(client.name)}</div>
-                  <div className="client-info">
-                    <div className="client-name">{client.name}</div>
+                  <div className={styles.clientAvatar}>{getInitials(client.name)}</div>
+                  <div className={styles.clientInfo}>
+                    <div className={styles.clientName}>{client.name}</div>
                   </div>
                 </div>
               ))}
@@ -331,28 +332,29 @@ export default function PTChat({ initialClient, onClose }) {
         )}
 
         {/* Chat Area */}
-        <div className="pt-chat-main">
+        <div className={styles.ptChatMain}>
           {selectedClient ? (
             <>
-              <div className="chat-header">
-                <div className="chat-client-avatar">{getInitials(selectedClient.name)}</div>
-                <div className="chat-client-name">{selectedClient.name}</div>
+              <div className={styles.chatHeader}>
+                <div className={styles.chatClientAvatar}>{getInitials(selectedClient.name)}</div>
+                <div className={styles.chatClientName}>{selectedClient.name}</div>
               </div>
 
-              <div className="chat-messages">
+              <div className={styles.chatMessages}>
                 {loading ? (
-                  <div className="chat-loading">
-                    <div className="loading-spinner"></div>
+                  <div className={styles.chatLoading}>
+                    <div className={styles.loadingSpinner}></div>
                     <div>Đang tải tin nhắn...</div>
                   </div>
                 ) : messages.length > 0 ? (
                   <>
                     {messages.map((msg) => (
-                      <div key={msg.id} className={`message ${msg.isFromPT ? 'message-pt' : 'message-client'}`}>
-                        <div className="message-bubble">
+                      <div key={msg.id} className={`${styles.message} ${msg.isFromPT ? styles.messagePt : styles.messageClient}`}>
+                        <div 
+        >
                           {/* Hiển thị hình ảnh nếu có */}
                           {msg.image_url && (
-                            <div className="message-image">
+                            <div className={styles.messageImage}>
                               <img
                                 src={msg.image_url}
                                 alt="Hình ảnh"
@@ -361,22 +363,21 @@ export default function PTChat({ initialClient, onClose }) {
                               />
                             </div>
                           )}
-                          <div className="message-text">{msg.text}</div>
-                          <div className="message-time">{formatTime(msg.timestamp)}</div>
+                          <div className={styles.messageText}>{msg.text}</div> <div className={styles.messageTime}>{formatTime(msg.timestamp)}</div>
                         </div>
                       </div>
                     ))}
                     <div ref={messagesEndRef} />
                   </>
                 ) : (
-                  <div className="chat-empty-messages">
-                    <div className="empty-icon">💭</div>
-                    <div className="empty-text">Chưa có tin nhắn nào</div>
+                  <div className={styles.chatEmptyMessages}>
+                    <div className={styles.emptyIcon}>💭</div>
+                    <div className={styles.emptyText}>Chưa có tin nhắn nào</div>
                   </div>
                 )}
               </div>
 
-              <form className="chat-input-form" onSubmit={handleSendMessage}>
+              <form className={styles.chatInputForm} onSubmit={handleSendMessage}>
                 {/* Hidden file input */}
                 <input
                   type="file"
@@ -389,7 +390,7 @@ export default function PTChat({ initialClient, onClose }) {
                 {/* Nút chọn hình ảnh */}
                 <button
                   type="button"
-                  className="chat-image-btn"
+                  className={styles.chatImageBtn}
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
                   title="Gửi hình ảnh"
@@ -399,21 +400,21 @@ export default function PTChat({ initialClient, onClose }) {
 
                 <input
                   type="text"
-                  className="chat-input"
+                  className={styles.chatInput}
                   placeholder={uploadingImage ? 'Đang gửi hình...' : 'Nhập tin nhắn...'}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   disabled={uploadingImage}
                 />
-                <button type="submit" className="chat-send-btn" disabled={uploadingImage}>
+                <button type="submit" className={styles.chatSendBtn} disabled={uploadingImage}>
                   <span>➤</span>
                 </button>
               </form>
             </>
           ) : (
-            <div className="chat-empty">
-              <div className="empty-icon">💬</div>
-              <div className="empty-text">Chọn một khách hàng để bắt đầu trò chuyện</div>
+            <div className={styles.chatEmpty}>
+              <div className={styles.emptyIcon}>💬</div>
+              <div className={styles.emptyText}>Chọn một khách hàng để bắt đầu trò chuyện</div>
             </div>
           )}
         </div>
@@ -421,3 +422,4 @@ export default function PTChat({ initialClient, onClose }) {
     </div>
   );
 }
+

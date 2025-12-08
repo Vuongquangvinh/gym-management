@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DataTableMember from '../components/DataTableMember.jsx';
 import AuthService from '../../../firebase/lib/features/auth/authService.js';
+import styles from './Members.module.css';
 
 export default function Members() {
   const [paymentStatus, setPaymentStatus] = useState(null);
@@ -147,27 +148,36 @@ export default function Members() {
     }
   };
 
-  // Dummy handlers for now
-  const handleEdit = (user) => alert('Sửa: ' + user.full_name);
-  const handleDisable = (user) => alert((user.membership_status === 'Active' ? 'Vô hiệu hóa: ' : 'Kích hoạt: ') + user.full_name);
-
   return (
-    <div className="card">
+    <div className={styles.membersPage}>
+      {/* Header */}
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>
+          <span className={styles.titleIcon}>👥</span>
+          Quản lý hội viên
+        </h1>
+        <div className={styles.headerActions}>
+          <button className={styles.btnSecondary} onClick={() => window.location.reload()}>
+            <span>🔄</span>
+            Làm mới
+          </button>
+        </div>
+      </div>
+
+      {/* Payment Status Alert */}
       {paymentStatus && (
-        <div 
-          style={{
-            padding: '15px',
-            marginBottom: '15px',
-            borderRadius: '4px',
-            backgroundColor: paymentStatus.success ? '#d4edda' : '#f8d7da',
-            color: paymentStatus.success ? '#155724' : '#721c24',
-            border: `1px solid ${paymentStatus.success ? '#c3e6cb' : '#f5c6cb'}`
-          }}
-        >
-          {paymentStatus.message}
+        <div className={`${styles.alertBox} ${paymentStatus.success ? styles.alertSuccess : styles.alertError}`}>
+          <span className={styles.alertIcon}>
+            {paymentStatus.success ? '✅' : '❌'}
+          </span>
+          <span>{paymentStatus.message}</span>
         </div>
       )}
-      <DataTableMember onEdit={handleEdit} onDisable={handleDisable} />
+
+      {/* Main Content */}
+      <div className={styles.contentCard}>
+        <DataTableMember />
+      </div>
     </div>
   );
 }

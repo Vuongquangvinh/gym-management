@@ -5,7 +5,7 @@ import { signIn } from '../../../firebase/lib/features/auth/auth.service.js'; //
 import notificationService from '../../../services/notificationService';
 
 import { cssVars } from '../../../shared/theme/colors';
-import './login.css';
+import styles from './login.module.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -91,26 +91,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <div className="bg-shapes">
-        <span className="shape s1" />
-        <span className="shape s2" />
-        <span className="shape s3" />
+    <div className={styles.loginPage}>
+      <div className={styles.bgShapes}>
+        <span className={`${styles.shape} ${styles.s1}`} />
+        <span className={`${styles.shape} ${styles.s2}`} />
+        <span className={`${styles.shape} ${styles.s3}`} />
       </div>
 
-      <div className="login-card">
-        <div className="brand">
-          <div className="logo">REPS</div>
-          <div className="brand-text">
+      <div className={styles.loginCard}>
+        <div className={styles.brand}>
+          <div className={styles.logo}>REPS</div>
+          <div className={styles.brandText}>
             <h1>One More Rep</h1>
             <p>Admin / Owner portal</p>
           </div>
         </div>
 
-        <form className="login-form" onSubmit={handleLogin} noValidate>
-          {error && <div className="form-error">{error}</div>}
+        <form className={styles.loginForm} onSubmit={handleLogin} noValidate>
+          {error && <div className={styles.formError}>{error}</div>}
 
-          <label className="field">
+          <label className={styles.field}>
             <span>Email</span>
             <input
               type="email"
@@ -121,7 +121,7 @@ export default function LoginPage() {
             />
           </label>
 
-          <label className="field">
+          <label className={styles.field}>
             <span>Mật khẩu</span>
             <input
               type="password"
@@ -132,25 +132,25 @@ export default function LoginPage() {
             />
           </label>
 
-          <div className="row between">
-            <label className="remember">
+          <div className={`${styles.row} ${styles.between}`}>
+            <label className={styles.remember}>
               <input type="checkbox" /> Ghi nhớ
             </label>
-            <Link className="text-link" to="/forgot-password">Quên mật khẩu?</Link>
+            <Link className={styles.textLink} to="/forgot-password">Quên mật khẩu?</Link>
           </div>
 
-          <button className="btn primary" type="submit" disabled={loading}>
-            {loading ? <span className="spinner" /> : 'Đăng nhập'}
+          <button className={`${styles.btn} ${styles.primary}`} type="submit" disabled={loading}>
+            {loading ? <span className={styles.spinner} /> : 'Đăng nhập'}
           </button>
 
-          <div className="or">hoặc</div>
+          <div className={styles.or}>hoặc</div>
 
-          <button type="button" className="btn outline" onClick={() => alert('Mở màn hình quét QR (mô phỏng)')}>
+          <button type="button" className={`${styles.btn} ${styles.outline}`} onClick={() => alert('Mở màn hình quét QR (mô phỏng)')}>
             Quét QR để vào phòng
           </button>
         </form>
 
-        <footer className="card-foot">
+        <footer className={styles.cardFoot}>
           <small>Chưa có tài khoản? <a href="#">Liên hệ quản trị</a></small>
         </footer>
       </div>

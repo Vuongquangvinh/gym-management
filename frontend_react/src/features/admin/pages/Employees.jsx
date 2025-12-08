@@ -4,7 +4,7 @@ import AddEmployeeModal from '../components/AddEmployeeModal.jsx';
 import EditEmployeeModal from '../components/EditEmployeeModal.jsx';
 import EmployeeAvatar from '../../../shared/components/EmployeeAvatar/EmployeeAvatar.jsx';
 import Swal from 'sweetalert2';
-import './Employees.css';
+import styles from './Employees.module.css';
 
 function EmployeesContent() {
   const {
@@ -125,61 +125,61 @@ function EmployeesContent() {
 
   if (loading) {
     return (
-      <div className="employees-loading">
-        <div className="loading-spinner"></div>
+      <div className={styles.employeesLoading}>
+        <div className={styles.loadingSpinner}></div>
         <p>Đang tải danh sách nhân viên...</p>
       </div>
     );
   }
 
   return (
-    <div className="employees-container">
+    <div className={styles.employeesContainer}>
       {/* Header */}
-      <div className="employees-header">
-        <div className="header-left">
+      <div className={styles.employeesHeader}>
+        <div className={styles.headerLeft}>
           <h1>Quản Lý Nhân Viên</h1>
           <p>Quản lý thông tin và theo dõi hoạt động nhân viên</p>
         </div>
-        <div className="header-actions">
+        <div className={styles.headerActions}>
           <button 
-            className="btn-add-employee"
+            className={styles.btnAddEmployee}
             onClick={() => setShowAddModal(true)}
           >
-            <span className="icon">👥</span>
+            <span className={styles.icon}>👥</span>
             Thêm Nhân Viên
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="employees-stats">
-        <div className="stat-card total">
-          <div className="stat-icon">👥</div>
-          <div className="stat-content">
+      <div className={styles.employeesStats}>
+        <div className={`${styles.statCard} ${styles.total}`}>
+          <div className={styles.statIcon}>👥</div>
+          <div className={styles.statContent}>
             <h3>{stats.total}</h3>
             <p>Tổng nhân viên</p>
           </div>
         </div>
         
-        <div className="stat-card active">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.active}`}>
+          <div className={styles.statIcon}>✅</div>
+          <div className={styles.statContent}>
             <h3>{stats.active}</h3>
             <p>Đang làm việc</p>
           </div>
         </div>
         
-        <div className="stat-card pt">
-          <div className="stat-icon">💪</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.pt}`}>
+          <div className={styles.statIcon}>💪</div>
+          <div className={styles.statContent}>
             <h3>{stats.pt}</h3>
             <p>PT</p>
           </div>
         </div>
         
-        <div className="stat-card recent">
-          <div className="stat-icon">📅</div>
-          <div className="stat-content">
+        <div className={`${styles.statCard} ${styles.recent}`}>
+          <div className={styles.statIcon}>📅</div>
+          <div className={styles.statContent}>
             <h3>{stats.recentHires}</h3>
             <p>Tuyển mới (30 ngày)</p>
           </div>
@@ -187,19 +187,19 @@ function EmployeesContent() {
       </div>
 
       {/* Filters */}
-      <div className="employees-filters">
-        <div className="filters-row-employees">
-          <div className="search-box-employees">
+      <div className={styles.employeesFilters}>
+        <div className={styles.filtersRowEmployees}>
+          <div className={styles.searchBoxEmployees}>
             <input
               type="text"
               placeholder="Tìm kiếm nhân viên (tên, email, SĐT)..."
               value={filters.searchQuery || ''}
               onChange={handleSearchChange}
             />
-            <span className="search-icon-employees">🔍</span>
+            <span className={styles.searchIconEmployees}>🔍</span>
           </div>
 
-          <div className="filter-group-employees">
+          <div className={styles.filterGroupEmployees}>
             <select
               value={filters.status || ''}
               onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -212,7 +212,7 @@ function EmployeesContent() {
             </select>
           </div>
 
-          <div className="filter-group-employees">
+          <div className={styles.filterGroupEmployees}>
             <select
               value={filters.position || ''}
               onChange={(e) => handleFilterChange('position', e.target.value)}
@@ -228,7 +228,7 @@ function EmployeesContent() {
             </select>
           </div>
 
-          <div className="filter-group-employees">
+          <div className={styles.filterGroupEmployees}>
             <select
               value={filters.role || ''}
               onChange={(e) => handleFilterChange('role', e.target.value)}
@@ -242,7 +242,7 @@ function EmployeesContent() {
           </div>
 
           {(filters.status || filters.position || filters.role || filters.searchQuery) && (
-            <button className="clear-filters-employees" onClick={clearFilters}>
+            <button className={styles.clearFiltersEmployees} onClick={clearFilters}>
               Xóa bộ lọc
             </button>
           )}
@@ -251,27 +251,27 @@ function EmployeesContent() {
 
       {/* Error State */}
       {error && (
-        <div className="employees-error">
+        <div className={styles.employeesError}>
           <p>❌ {error}</p>
         </div>
       )}
 
       {/* Employees Table */}
-      <div className="employees-table-container">
+      <div className={styles.employeesTableContainer}>
         {employees.length === 0 ? (
-          <div className="no-employees">
-            <div className="no-data-icon">👥</div>
+          <div className={styles.noEmployees}>
+            <div className={styles.noDataIcon}>👥</div>
             <h3>Chưa có nhân viên nào</h3>
             <p>Hãy thêm nhân viên đầu tiên cho phòng gym</p>
             <button 
-              className="btn-add-first"
+              className={styles.btnAddFirst}
               onClick={() => setShowAddModal(true)}
             >
               Thêm nhân viên đầu tiên
             </button>
           </div>
         ) : (
-          <div className="employees-table">
+          <div className={styles.employeesTable}>
             <table>
               <thead>
                 <tr>
@@ -288,8 +288,8 @@ function EmployeesContent() {
                 {employees.map((employee) => (
                   <tr key={employee._id}>
                     <td>
-                      <div className="employee-info">
-                        <div className="avatar">
+                      <div className={styles.employeeInfo}>
+                        <div className={styles.avatar}>
                           {employee.avatarUrl ? (
                             <EmployeeAvatar 
                               src={employee.avatarUrl} 
@@ -302,39 +302,39 @@ function EmployeesContent() {
                             />
                           ) : null}
                           <span 
-                            className="avatar-text"
+                            className={styles.avatarText}
                             style={{ display: employee.avatarUrl ? 'none' : 'flex' }}
                           >
                             {employee.fullName.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div className="info">
+                        <div className={styles.info}>
                           <h4>{employee.fullName}</h4>
-                          <p className="employee-id">ID: {employee._id.slice(-6)}</p>
+                          <p className={styles.employeeId}>ID: {employee._id.slice(-6)}</p>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <div className="contact-info">
-                        <p className="phone">📞 {employee.phone}</p>
-                        <p className="email">📧 {employee.email}</p>
+                      <div className={styles.contactInfo}>
+                        <p className={styles.phone}>📞 {employee.phone}</p>
+                        <p className={styles.email}>📧 {employee.email}</p>
                       </div>
                     </td>
                     <td>
                       <span 
-                        className="position-badge"
+                        className={styles.positionBadge}
                         style={{ backgroundColor: getPositionColor(employee.position) }}
                       >
                         {employee.position}
                       </span>
                       {employee.position === 'PT' && employee.totalClients > 0 && (
-                        <small className="client-count">
+                        <small className={styles.clientCount}>
                           {employee.totalClients} khách hàng
                         </small>
                       )}
                     </td>
                     <td>
-                      <span className={`status-badge-employees ${getStatusBadge(employee.status)}`}>
+                      <span className={`${styles.statusBadgeEmployees} ${styles[getStatusBadge(employee.status).replace('status-', 'status')]}`}>
                         {employee.status === 'active' && 'Đang làm việc'}
                         {employee.status === 'inactive' && 'Tạm nghỉ'}
                         {employee.status === 'resigned' && 'Đã nghỉ việc'}
@@ -342,10 +342,10 @@ function EmployeesContent() {
                       </span>
                     </td>
                     <td>
-                      <div className="salary-info">
-                        <span className="salary">{formatSalary(employee.salary)}</span>
+                      <div className={styles.salaryInfo}>
+                        <span className={styles.salary}>{formatSalary(employee.salary)}</span>
                         {employee.commissionRate > 0 && (
-                          <small className="commission">
+                          <small className={styles.commission}>
                             +{employee.commissionRate}% hoa hồng
                           </small>
                         )}
@@ -353,16 +353,16 @@ function EmployeesContent() {
                     </td>
                     <td>{formatDate(employee.startDate)}</td>
                     <td>
-                      <div className="action-buttons">
+                      <div className={styles.actionButtons}>
                         <button
-                          className="btn-edit-employee"
+                          className={styles.btnEditEmployee}
                           onClick={() => handleEditEmployee(employee)}
                           title="Chỉnh sửa"
                         >
                           ✏️
                         </button>
                         <button
-                          className=" btn-delete-employee"
+                          className={styles.btnDeleteEmployee}
                           onClick={() => handleDeleteClick(employee)}
                           title="Xóa"
                         >
@@ -377,20 +377,20 @@ function EmployeesContent() {
 
             {/* Load More Button */}
             {hasMore && (
-              <div className="load-more-section">
+              <div className={styles.loadMoreSection}>
                 <button
-                  className={`load-more-btn ${loadingMore ? 'loading' : ''}`}
+                  className={`${styles.loadMoreBtn} ${loadingMore ? styles.loading : ''}`}
                   onClick={fetchMore}
                   disabled={loadingMore}
                 >
                   {loadingMore ? (
                     <>
-                      <div className="spinner"></div>
+                      <div className={styles.spinner}></div>
                       Đang tải thêm...
                     </>
                   ) : (
                     <>
-                      <span className="icon">⬇️</span>
+                      <span className={styles.icon}>⬇️</span>
                       Tải thêm nhân viên
                     </>
                   )}

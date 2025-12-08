@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './PasswordDisplayModal.css';
+import styles from './PasswordDisplayModal.module.css';
 
 export default function PasswordDisplayModal({ isOpen, onClose, accountInfo }) {
   const [copied, setCopied] = useState(false);
@@ -16,38 +16,38 @@ export default function PasswordDisplayModal({ isOpen, onClose, accountInfo }) {
   };
 
   return (
-    <div className="password-modal-overlay" onClick={onClose}>
-      <div className="password-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="password-modal-header">
+    <div className={styles.passwordModalOverlay} onClick={onClose}>
+      <div className={styles.passwordModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.passwordModalHeader}>
           <h2>✅ Tài khoản đã được tạo!</h2>
         </div>
 
-        <div className="password-modal-content">
-          <div className="success-icon">
+        <div className={styles.passwordModalContent}>
+          <div className={styles.successIcon}>
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="#28a745" strokeWidth="2"/>
               <path d="M8 12l2 2 4-4" stroke="#28a745" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
 
-          <p className="employee-name">
+          <p className={styles.employeeName}>
             Tài khoản cho <strong>{fullName}</strong> đã được tạo thành công!
           </p>
 
-          <div className="credentials-box">
-            <div className="credential-row">
-              <label>Email:</label>
-              <div className="credential-value">{email}</div>
+          <div className={styles.credentialsBox}>
+            <div className={styles.credentialRow}>
+              <label>Email</label>
+              <div className={styles.credentialValue}>{email}</div>
             </div>
-            <div className="credential-row">
-              <label>Mật khẩu tạm thời:</label>
-              <div className="credential-value password-value">{tempPassword}</div>
+            <div className={styles.credentialRow}>
+              <label>Mật khẩu tạm thời</label>
+              <div className={`${styles.credentialValue} ${styles.passwordValue}`}>{tempPassword}</div>
             </div>
           </div>
 
-          <div className="warning-box">
-            <div className="warning-icon">⚠️</div>
-            <div className="warning-text">
+          <div className={styles.warningBox}>
+            <div className={styles.warningIcon}>⚠️</div>
+            <div className={styles.warningText}>
               <strong>Lưu ý quan trọng:</strong>
               <ul>
                 <li>Vui lòng gửi thông tin đăng nhập này cho nhân viên</li>
@@ -57,11 +57,11 @@ export default function PasswordDisplayModal({ isOpen, onClose, accountInfo }) {
             </div>
           </div>
 
-          <div className="button-group">
-            <button className="copy-btn" onClick={handleCopy}>
-              {copied ? '✓ Đã copy!' : '📋 Copy thông tin'}
+          <div className={styles.buttonGroup}>
+            <button className={styles.copyBtn} onClick={handleCopy}>
+              {copied ? '✓ Đã sao chép' : '📋 Sao chép thông tin'}
             </button>
-            <button className="close-btn-primary" onClick={onClose}>
+            <button className={styles.closeBtnPrimary} onClick={onClose}>
               Đóng
             </button>
           </div>

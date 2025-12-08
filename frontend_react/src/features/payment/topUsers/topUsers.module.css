@@ -1,0 +1,49 @@
+.topUserCard {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+}
+
+.topUserCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.topUserCard:hover::before {
+  opacity: 1;
+}
+
+/* Animation for cards */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.topUserCard {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Stagger animation */
+.topUserCard:nth-child(1) { animation-delay: 0.05s; }
+.topUserCard:nth-child(2) { animation-delay: 0.1s; }
+.topUserCard:nth-child(3) { animation-delay: 0.15s; }
+.topUserCard:nth-child(4) { animation-delay: 0.2s; }
+.topUserCard:nth-child(5) { animation-delay: 0.25s; }
+.topUserCard:nth-child(6) { animation-delay: 0.3s; }
+.topUserCard:nth-child(7) { animation-delay: 0.35s; }
+.topUserCard:nth-child(8) { animation-delay: 0.4s; }
+.topUserCard:nth-child(9) { animation-delay: 0.45s; }
+.topUserCard:nth-child(10) { animation-delay: 0.5s; }

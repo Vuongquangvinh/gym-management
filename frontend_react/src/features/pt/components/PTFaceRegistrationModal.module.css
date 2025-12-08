@@ -1,0 +1,382 @@
+﻿/* PT Face Registration Modal Styles */
+.ptFaceRegistrationModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.ptFaceRegistrationModal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: pt-modalSlideIn 0.3s ease-out;
+}
+
+@keyframes pt-modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ptModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.ptModalHeader h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ptCloseBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.ptCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.ptModalContent {
+  padding: 32px;
+}
+
+.ptRegistrationStep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ptStepIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.ptRegistrationStep h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #2c3e50;
+}
+
+/* Instructions */
+.ptInstructionsList {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.ptInstructionItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.ptInstructionItem:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+}
+
+.ptInstructionNumber {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.ptInstructionItem p {
+  margin: 0;
+  font-size: 15px;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.ptEmployeeInfo {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border-left: 4px solid #007bff;
+}
+
+.ptEmployeeInfo h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #1976d2;
+}
+
+.ptEmployeeInfo p {
+  margin: 0;
+  font-size: 14px;
+  color: #546e7a;
+}
+
+.ptBtnStartCamera {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.ptBtnStartCamera:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* Camera */
+.ptCameraContainer {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.ptCameraVideo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ptCameraOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ptFaceGuide {
+  text-align: center;
+}
+
+.ptGuideCircle {
+  width: 240px;
+  height: 240px;
+  border: 4px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: pt-pulse 2s infinite;
+}
+
+@keyframes pt-pulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 1);
+    transform: scale(1.02);
+  }
+}
+
+.ptFaceGuide p {
+  margin-top: 16px;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 15px;
+}
+
+.ptCameraControls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+}
+
+.ptBtnCapture,
+.ptBtnCancel {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptBtnCapture {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  flex: 1;
+}
+
+.ptBtnCapture:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.ptBtnCapture:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ptBtnCancel {
+  background: #6c757d;
+  color: white;
+}
+
+.ptBtnCancel:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Preview */
+.ptImagePreview {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.ptImagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ptPreviewActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.ptBtnRetake,
+.ptBtnConfirm {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptBtnRetake {
+  background: #6c757d;
+  color: white;
+}
+
+.ptBtnRetake:hover:not(:disabled) {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.ptBtnConfirm {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.ptBtnConfirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.ptBtnRetake:disabled,
+.ptBtnConfirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ptErrorMessage {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .ptFaceRegistrationModal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .ptModalContent {
+    padding: 20px;
+  }
+
+  .ptGuideCircle {
+    width: 200px;
+    height: 200px;
+  }
+
+  .ptCameraControls {
+    flex-direction: column;
+  }
+
+  .pt-btn-capture,
+  .ptBtnCancel {
+    width: 100%;
+  }
+}
+
+
+
+

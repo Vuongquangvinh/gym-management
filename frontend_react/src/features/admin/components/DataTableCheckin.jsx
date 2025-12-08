@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import "./DataTableCheckin.css";
+import styles from './DataTableCheckin.module.css';
 import { useCheckins } from "../../../firebase/lib/features/checkin";
 import EditCheckinModal from "./EditCheckinModal.jsx";
 import { toast } from 'react-toastify';
@@ -62,13 +63,13 @@ export default function DataTableCheckin({ onAddCheckin }) {
     debouncedSearch(value, dateFilter, sourceFilter);
   }, [debouncedSearch, dateFilter, sourceFilter]);
 
-  // Maintain focus after re-render
+  // Maintain focus after rerender
   useEffect(() => {
     if (shouldMaintainFocusRef.current && inputRef.current) {
       const input = inputRef.current;
       const cursorPosition = input.selectionStart;
       
-      // Re-focus và restore cursor position
+      // Refocus và restore cursor position
       input.focus();
       input.setSelectionRange(cursorPosition, cursorPosition);
       
@@ -181,7 +182,7 @@ export default function DataTableCheckin({ onAddCheckin }) {
         pauseOnHover: true,
         draggable: true,
       });
-      throw error; // Re-throw để modal có thể handle
+      throw error; // Rethrow để modal có thể handle
     }
   }, [deleteCheckin]);
 
@@ -223,10 +224,10 @@ export default function DataTableCheckin({ onAddCheckin }) {
   // Loading state
   if (loading) {
     return (
-      <div className="checkin-page">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Đang tải dữ liệu check-in...</p>
+      <div className={styles.checkinPage}>
+        <div className={styles.loadingState}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Đang tải dữ liệu checkin...</p>
         </div>
       </div>
     );
@@ -235,13 +236,13 @@ export default function DataTableCheckin({ onAddCheckin }) {
   // Error state
   if (error) {
     return (
-      <div className="checkin-page">
-        <div className="error-state">
-          <div className="error-icon">❌</div>
+      <div className={styles.checkinPage}>
+        <div className={styles.errorState}>
+          <div className={styles.errorIcon}>❌</div>
           <h3>Có lỗi xảy ra</h3>
           <p>Lỗi: {error.message}</p>
           <button 
-            className="retry-btn"
+            className={styles.retryBtn}
             onClick={() => window.location.reload()}
           >
             Thử lại
@@ -252,23 +253,23 @@ export default function DataTableCheckin({ onAddCheckin }) {
   }
 
   return (
-    <div className="checkin-page">
+    <div className={styles.checkinPage}>
       {/* Header Section */}
-      <div className="header-content">
-        <div className="header-main">
-          <div className="header-text">
-            <h1 className="page-title">Quản lý Check-in</h1>
-            <p className="page-subtitle">Theo dõi và quản lý lịch sử check-in của thành viên</p>
+      <div className={styles.headerContent}>
+        <div className={styles.headerMain}>
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>Quản lý Checkin</h1>
+            <p className={styles.pageSubtitle}>Theo dõi và quản lý lịch sử checkin của thành viên</p>
           </div>
           {onAddCheckin && (
-            <div className="header-actions">
+            <div className={styles.headerActions}>
               <button 
-                className="add-checkin-btn"
+                className={styles.addCheckinBtn}
                 onClick={onAddCheckin}
-                title="Thêm check-in mới"
+                title="Thêm checkin mới"
               >
-                <span className="btn-icon">➕</span>
-                <span className="btn-text">Thêm check-in</span>
+                <span className={styles.btnIcon}>➕</span>
+                <span className={styles.btnText}>Thêm checkin</span>
               </button>
             </div>
           )}
@@ -276,66 +277,66 @@ export default function DataTableCheckin({ onAddCheckin }) {
       </div>
 
       {/* Quick Stats */}
-      <div className="quick-stats-checkins">
-        <div className="stat-card-checkins">
-          <div className="stat-header-checkins">
-            <div className="stat-title-checkins">Check-ins hiện tại</div>
-            <div className="stat-icon-checkins current">👥</div>
+      <div className={styles.quickStatsCheckins}>
+        <div className={styles.statCardCheckins}>
+          <div className={styles.statHeaderCheckins}>
+            <div className={styles.statTitleCheckins}>Check-ins hiện tại</div>
+            <div className={styles.statIconCheckins}>👥</div>
           </div>
-          <div className="stat-value-checkins">{checkins.length}</div>
-          <div className="stat-description-checkins">Tổng số lượt check-in</div>
+          <div className={styles.statValueCheckins}>{checkins.length}</div>
+          <div className={styles.statDescriptionCheckins}>Tổng số lượt checkin</div>
         </div>
 
-        <div className="stat-card-checkins">
-          <div className="stat-header-checkins">
-            <div className="stat-title-checkins">Hôm nay</div>
-            <div className="stat-icon-checkins today">🕐</div>
+        <div className={styles.statCardCheckins}>
+          <div className={styles.statHeaderCheckins}>
+            <div className={styles.statTitleCheckins}>Hôm nay</div>
+            <div className={styles.statIconCheckins}>🕐</div>
           </div>
-          <div className="stat-value-checkins">
+          <div className={styles.statValueCheckins}>
             {checkins.filter(c => {
               const today = new Date();
               const checkinDate = c.checkedAt?.toDate ? c.checkedAt.toDate() : new Date(c.checkedAt);
               return checkinDate.toDateString() === today.toDateString();
             }).length}
           </div>
-          <div className="stat-description-checkins">Check-in trong ngày</div>
+          <div className={styles.statDescriptionCheckins}>Checkin trong ngày</div>
         </div>
 
-        <div className="stat-card-checkins">
-          <div className="stat-header-checkins">
-            <div className="stat-title-checkins">QR Code</div>
-            <div className="stat-icon-checkins qr">📱</div>
+        <div className={styles.statCardCheckins}>
+          <div className={styles.statHeaderCheckins}>
+            <div className={styles.statTitleCheckins}>QR Code</div>
+            <div className={styles.statIconCheckins}>📱</div>
           </div>
-          <div className="stat-value-checkins">
+          <div className={styles.statValueCheckins}>
             {checkins.filter(c => c.source === 'QR').length}
           </div>
-          <div className="stat-description-checkins">Quét QR Code</div>
+          <div className={styles.statDescriptionCheckins}>Quét QR Code</div>
         </div>
       </div>
 
       {/* Filters Card */}
-      <div className="filters-card">
-        <div className="filters-header">
-          <div className="filters-title-section">
-            <div className="filters-icon">🔍</div>
-            <h3 className="filters-title">Bộ lọc tìm kiếm</h3>
+      <div className={styles.filtersCard}>
+        <div className={styles.filtersHeader}>
+          <div className={styles.filtersTitleSection}>
+            <div className={styles.filtersIcon}>🔍</div>
+            <h3 className={styles.filtersTitle}>Bộ lọc tìm kiếm</h3>
           </div>
-          <div className="filters-summary">
+          <div className={styles.filtersSummary}>
             {(searchQuery || dateFilter || sourceFilter) && (
-              <span className="active-filters">
+              <span className={styles.activeFilters}>
                 {[searchQuery && 'Tìm kiếm', dateFilter && 'Ngày', sourceFilter && 'Nguồn'].filter(Boolean).join(', ')} đang được áp dụng
               </span>
             )}
           </div>
         </div>
         
-        <div className="filters-content">
-          <div className="filter-group search-group">
-            <label className="filter-label">
-              <span className="label-icon">👤</span>
+        <div className={styles.filtersContent}>
+          <div className={`${styles.filterGroup} ${styles.searchGroup}`}>
+            <label className={styles.filterLabel}>
+              <span className={styles.labelIcon}>👤</span>
               Tìm kiếm thành viên
             </label>
-            <div className="input-wrapper">
+            <div className={styles.inputWrapper}>
               <input
                 ref={inputRef}
                 type="text"
@@ -349,60 +350,60 @@ export default function DataTableCheckin({ onAddCheckin }) {
                 onBlur={() => {
                   console.log('Input blurred');
                 }}
-                className="filter-input search-input"
+                className={styles.filterInput}
               />
-              <div className="input-icon">🔍</div>
+              <div className={styles.inputIcon}>🔍</div>
             </div>
           </div>
           
-          <div className="filter-group date-group">
-            <label className="filter-label">
-              <span className="label-icon">📅</span>
+          <div className={`${styles.filterGroup} ${styles.dateGroup}`}>
+            <label className={styles.filterLabel}>
+              <span className={styles.labelIcon}>📅</span>
               Chọn ngày
             </label>
-            <div className="input-wrapper">
+            <div className={styles.inputWrapper}>
               <input
                 type="date"
                 value={dateFilter}
                 onChange={handleDateChange}
-                className="filter-input date-input"
+                className={styles.filterInput}
               />
-              <div className="input-icon">📅</div>
+              <div className={styles.inputIcon}>📅</div>
             </div>
             {dateFilter && (
-              <div className="filter-hint">
+              <div className={styles.filterHint}>
                 Hiển thị check-in từ {new Date(dateFilter).toLocaleDateString('vi-VN')}
               </div>
             )}
           </div>
           
-          <div className="filter-group source-group">
-            <label className="filter-label">
-              <span className="label-icon">📱</span>
-              Nguồn check-in
+          <div className={`${styles.filterGroup} ${styles.sourceGroup}`}>
+            <label className={styles.filterLabel}>
+              <span className={styles.labelIcon}>📱</span>
+              Nguồn checkin
             </label>
-            <div className="select-wrapper">
+            <div className={styles.selectWrapper}>
               <select
                 value={sourceFilter}
                 onChange={handleSourceChange}
-                className="filter-input source-select"
+                className={`${styles.filterInput} ${styles.sourceSelect}`}
               >
                 <option value="">🔄 Tất cả nguồn</option>
                 <option value="QR">📱 QR Code</option>
                 <option value="manual">✋ Thủ công</option>
               </select>
-              <div className="select-arrow">▼</div>
+              <div className={styles.selectArrow}>▼</div>
             </div>
             {sourceFilter && (
-              <div className="filter-hint">
-                Chỉ hiển thị check-in từ {sourceFilter === 'QR' ? 'QR Code' : 'nhập thủ công'}
+              <div className={styles.filterHint}>
+                Chỉ hiển thị checkin từ {sourceFilter === 'QR' ? 'QR Code' : 'nhập thủ công'}
               </div>
             )}
           </div>
           
-          <div className="filter-actions">
+          <div className={styles.filterActions}>
             <button 
-              className="filter-btn secondary"
+              className={`${styles.filterBtn} ${styles.secondary}`}
               onClick={() => {
                 setSearchQuery('');
                 setDateFilter('');
@@ -417,22 +418,22 @@ export default function DataTableCheckin({ onAddCheckin }) {
       </div>
 
       {/* Data Table Card */}
-      <div className="table-card">
-        <div className="table-header">
-          <div className="table-title-section">
-            <h3 className="table-title">
-              <span className="table-icon">📊</span>
-              Lịch sử check-in
+      <div className={styles.tableCard}>
+        <div className={styles.tableHeader}>
+          <div className={styles.tableTitleSection}>
+            <h3 className={styles.tableTitle}>
+              <span className={styles.tableIcon}>📊</span>
+              Lịch sử checkin
             </h3>
-            <div className="table-stats">
-              <span className="total-count">{checkins.length} mục</span>
-              <div className="status-indicators">
-                <span className="indicator qr-indicator">
-                  <span className="dot"></span>
+            <div className={styles.tableStats}>
+              <span className={styles.totalCount}>{checkins.length} mục</span>
+              <div className={styles.statusIndicators}>
+                <span className={`${styles.indicator} ${styles.qrIndicator}`}>
+                  <span className={styles.dot}></span>
                   QR Code ({checkins.filter(c => c.source === 'QR').length})
                 </span>
-                <span className="indicator manual-indicator">
-                  <span className="dot"></span>
+                <span className={`${styles.indicator} ${styles.manualIndicator}`}>
+                  <span className={styles.dot}></span>
                   Thủ công ({checkins.filter(c => c.source === 'manual').length})
                 </span>
               </div>
@@ -440,44 +441,44 @@ export default function DataTableCheckin({ onAddCheckin }) {
           </div>
         </div>
         
-        <div className="table-wrapper">
+        <div className={styles.tableWrapper}>
           {/* Data Table */}
-          <table className="datatable-checkin">
+          <table className={styles.datatableCheckin}>
             <thead>
               <tr>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">👤</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>👤</span>
                     <span>Thành viên</span>
                   </div>
                 </th>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">📞</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>📞</span>
                     <span>Số điện thoại</span>
                   </div>
                 </th>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">⏰</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>⏰</span>
                     <span>Thời gian</span>
                   </div>
                 </th>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">📱</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>📱</span>
                     <span>Nguồn</span>
                   </div>
                 </th>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">💪</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>💪</span>
                     <span>Gói tập</span>
                   </div>
                 </th>
                 <th>
-                  <div className="th-content">
-                    <span className="th-icon">⚙️</span>
+                  <div className={styles.thContent}>
+                    <span className={styles.thIcon}>⚙️</span>
                     <span>Thao tác</span>
                   </div>
                 </th>
@@ -486,51 +487,51 @@ export default function DataTableCheckin({ onAddCheckin }) {
             <tbody>
               {checkins.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="datatable-empty">
-                    <div className="empty-state">
-                      <div className="empty-icon">📝</div>
-                      <div className="empty-text">Không có dữ liệu check-in</div>
-                      <div className="empty-hint">Hãy thử thay đổi bộ lọc hoặc kiểm tra lại kết nối</div>
+                  <td colSpan={6} className={styles.datatableEmpty}>
+                    <div className={styles.emptyState}>
+                      <div className={styles.emptyIcon}>📝</div>
+                      <div className={styles.emptyText}>Không có dữ liệu checkin</div>
+                      <div className={styles.emptyHint}>Hãy thử thay đổi bộ lọc hoặc kiểm tra lại kết nối</div>
                     </div>
                   </td>
                 </tr>
               ) : (
                 checkins.map((checkin, index) => (
-                  <tr key={checkin.id} className={`table-row ${index % 2 === 0 ? 'even' : 'odd'}`}>
-                    <td className="member-cell">
-                      <div className="member-name">{checkin.memberName || 'Không rõ tên'}</div>
+                  <tr key={checkin.id} className={styles.tableRow}>
+                    <td className={styles.memberCell}>
+                      <div className={styles.memberName}>{checkin.memberName || 'Không rõ tên'}</div>
                     </td>
-                    <td className="phone-cell">
-                      <div className="phone-wrapper">
-                        <span className="phone-number">{checkin.memberPhone || '-'}</span>
+                    <td className={styles.phoneCell}>
+                      <div className={styles.phoneWrapper}>
+                        <span className={styles.phoneNumber}>{checkin.memberPhone || '-'}</span>
                       </div>
                     </td>
-                    <td className="time-cell">
-                      <div className="time-wrapper">
-                        <span className="time-value">{formatDateTime(checkin.checkedAt)}</span>
+                    <td className={styles.timeCell}>
+                      <div className={styles.timeWrapper}>
+                        <span className={styles.timeValue}>{formatDateTime(checkin.checkedAt)}</span>
                       </div>
                     </td>
-                    <td className="source-cell">
-                      <span className={`source-badge ${checkin.source === 'QR' ? 'source-qr' : 'source-manual'}`}>
-                        <span className="source-icon">
+                    <td className={styles.sourceCell}>
+                      <span className={checkin.source === 'QR' ? styles.sourceQr : styles.sourceManual}>
+                        <span className={styles.sourceIcon}>
                           {checkin.source === 'QR' ? '📱' : '✋'}
                         </span>
-                        <span className="source-text">
+                        <span className={styles.sourceText}>
                           {checkin.source === 'QR' ? 'QR Code' : 'Thủ công'}
                         </span>
                       </span>
                     </td>
-                    <td className="package-cell">
-                      <span className="package-name">{checkin.packageId || '-'}</span>
+                    <td className={styles.packageCell}>
+                      <span className={styles.packageName}>{checkin.packageId || '-'}</span>
                     </td>
-                    <td className="action-cell">
+                    <td className={styles.actionCell}>
                       <button 
-                        className="edit-btn"
+                        className={styles.editBtn}
                         onClick={() => handleEditCheckin(checkin)}
-                        title="Sửa thời gian check-in"
+                        title="Sửa thời gian checkin"
                       >
-                        <span className="edit-icon">✏️</span>
-                        <span className="edit-text">Sửa</span>
+                        <span className={styles.editIcon}>✏️</span>
+                        <span className={styles.editText}>Sửa</span>
                       </button>
                     </td>
                   </tr>
@@ -542,29 +543,29 @@ export default function DataTableCheckin({ onAddCheckin }) {
 
         {/* Load More Section */}
         {hasMore && (
-          <div className="load-more-section">
-            <div className="load-more-decoration">
-              <div className="decoration-line"></div>
-              <div className="decoration-text">Còn nhiều dữ liệu hơn</div>
-              <div className="decoration-line"></div>
+          <div className={styles.loadMoreSection}>
+            <div className={styles.loadMoreDecoration}>
+              <div className={styles.decorationLine}></div>
+              <div className={styles.decorationText}>Còn nhiều dữ liệu hơn</div>
+              <div className={styles.decorationLine}></div>
             </div>
             <button 
-              className="load-more-btn" 
+              className={styles.loadMoreBtn} 
               onClick={handleLoadMore} 
               disabled={loadingMore}
             >
-              <div className="btn-content">
-                <span className="btn-icon">
+              <div className={styles.btnContent}>
+                <span className={styles.btnIcon}>
                   {loadingMore ? '⏳' : '📥'}
                 </span>
-                <span className="btn-text">
-                  {loadingMore ? 'Đang tải dữ liệu...' : 'Tải thêm check-in'}
+                <span className={styles.btnText}>
+                  {loadingMore ? 'Đang tải dữ liệu...' : 'Tải thêm checkin'}
                 </span>
-                {!loadingMore && <span className="btn-arrow">↓</span>}
+                {!loadingMore && <span className={styles.btnArrow}>↓</span>}
               </div>
               {loadingMore && (
-                <div className="loading-progress">
-                  <div className="progress-bar"></div>
+                <div className={styles.loadingProgress}>
+                  <div className={styles.progressBar}></div>
                 </div>
               )}
             </button>
@@ -573,15 +574,15 @@ export default function DataTableCheckin({ onAddCheckin }) {
 
         {/* No More Data Message */}
         {!hasMore && checkins.length > 0 && (
-          <div className="no-more-section">
-            <div className="completion-decoration">
-              <div className="completion-line"></div>
-              <div className="completion-icon">✅</div>
-              <div className="completion-line"></div>
+          <div className={styles.noMoreSection}>
+            <div className={styles.completionDecoration}>
+              <div className={styles.completionLine}></div>
+              <div className={styles.completionIcon}>✅</div>
+              <div className={styles.completionLine}></div>
             </div>
-            <div className="completion-text">
-              <div className="completion-title">Đã hiển thị tất cả dữ liệu</div>
-              <div className="completion-subtitle">Tổng cộng {checkins.length} lượt check-in</div>
+            <div className={styles.completionText}>
+              <div className={styles.completionTitle}>Đã hiển thị tất cả dữ liệu</div>
+              <div className={styles.completionSubtitle}>Tổng cộng {checkins.length} lượt checkin</div>
             </div>
           </div>
         )}

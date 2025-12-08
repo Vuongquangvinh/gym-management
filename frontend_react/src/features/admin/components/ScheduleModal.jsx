@@ -3,7 +3,7 @@ import { X, Clock, Calendar, User, Trash2 } from 'lucide-react';
 import { useSchedule } from '../../../firebase/lib/features/schedule/schedule.provider.jsx';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-import './ScheduleModal.css';
+import styles from './ScheduleModal.module.css';
 
 const ScheduleModal = ({ 
   isOpen, 
@@ -264,11 +264,11 @@ const ScheduleModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="schedule-modal-overlay">
-      <div className="schedule-modal">
-        <div className="modal-header">
-        <div className="modal-title">
-          <Calendar className="title-icon" size={20} />
+    <div className={styles.scheduleModalOverlay}>
+      <div className={styles.scheduleModal}>
+        <div className={styles.modalHeader}>
+        <div className={styles.modalTitle}>
+          <Calendar className={styles.titleIcon} size={20} />
           <span>
             {employee 
               ? `Lịch làm việc - ${employee.fullName || employee.name}`
@@ -276,33 +276,33 @@ const ScheduleModal = ({
             }
           </span>
         </div>
-          <button className="close-button" onClick={handleClose}>
+          <button className={styles.closeButton} onClick={handleClose}>
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-content">
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
+          <div className={styles.formContent}>
             {/* Employee Info or Selection */}
             {employee ? (
-              <div className="employee-info-section">
-                <div className="employee-avatar">
+              <div className={styles.employeeInfoSection}>
+                <div className={styles.employeeAvatar}>
                   {employee.avatarUrl ? (
                     <img src={employee.avatarUrl} alt={employee.fullName || employee.name} />
                   ) : (
                     <span>{(employee.fullName || employee.name).charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <div className="employee-details">
+                <div className={styles.employeeDetails}>
                   <h3>{employee.fullName || employee.name}</h3>
                   <p>{employee.position}</p>
-                  <span className={`shift-badge ${employee.shift}`}>
+                  <span className={`${styles.shiftBadge} ${employee.shift}`}>
                     {employee.shift === 'fulltime' ? 'Fulltime' : 'Parttime'}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label htmlFor="employeeId">
                   <User size={16} />
                   Chọn nhân viên
@@ -313,7 +313,7 @@ const ScheduleModal = ({
                   value={formData.employeeId}
                   onChange={handleInputChange}
                   required
-                  className="form-input"
+                  className={styles.formInput}
                 >
                   <option value="">-- Chọn nhân viên --</option>
                   {(() => {
@@ -338,8 +338,8 @@ const ScheduleModal = ({
             )}
 
             {/* Form Fields */}
-            <div className="form-fields">
-              <div className="form-group">
+            <div className={styles.formFields}>
+              <div className={styles.formGroup}>
                 <label htmlFor="date">
                   <Calendar size={16} />
                   Ngày làm việc
@@ -351,12 +351,12 @@ const ScheduleModal = ({
                   value={formData.date}
                   onChange={handleInputChange}
                   required
-                  className="form-input"
+                  className={styles.formInput}
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
                   <label htmlFor="startTime">
                     <Clock size={16} />
                     Giờ bắt đầu
@@ -368,11 +368,11 @@ const ScheduleModal = ({
                     value={formData.startTime}
                     onChange={handleInputChange}
                     required
-                    className="form-input"
+                    className={styles.formInput}
                   />
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label htmlFor="endTime">
                     <Clock size={16} />
                     Giờ kết thúc
@@ -384,12 +384,12 @@ const ScheduleModal = ({
                     value={formData.endTime}
                     onChange={handleInputChange}
                     required
-                    className="form-input"
+                    className={styles.formInput}
                   />
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label htmlFor="notes">
                   Ghi chú (tùy chọn)
                 </label>
@@ -399,18 +399,18 @@ const ScheduleModal = ({
                   value={formData.notes}
                   onChange={handleInputChange}
                   placeholder="Nhập ghi chú cho lịch làm việc..."
-                  className="form-textarea"
+                  className={styles.formTextarea}
                   rows={3}
                 />
               </div>
             </div>
           </div>
 
-          <div className="modal-actions">
+          <div className={styles.modalActions}>
             {currentScheduleId && (
               <button
                 type="button"
-                className="btn-delete"
+                className={styles.btnDelete}
                 onClick={handleDeleteClick}
                 disabled={isSaving}
                 title={canDeleteSchedule() ? 'Xóa lịch làm việc' : 'Không thể xóa vì đã check-in'}
@@ -421,7 +421,7 @@ const ScheduleModal = ({
             )}
             <button
               type="button"
-              className="btn-cancel"
+              className={styles.btnCancel}
               onClick={handleClose}
               disabled={isSaving}
             >
@@ -429,7 +429,7 @@ const ScheduleModal = ({
             </button>
             <button
               type="submit"
-              className="btn-save"
+              className={styles.btnSave}
               disabled={isSaving}
             >
               {isSaving ? 'Đang lưu...' : 'Lưu lịch'}
