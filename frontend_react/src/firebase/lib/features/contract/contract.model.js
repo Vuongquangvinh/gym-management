@@ -135,6 +135,13 @@ export class ContractModel {
     this.updatedAt = updatedAt; // Thời gian cập nhật
     this.startDate = startDate; // Ngày bắt đầu contract
     this.endDate = endDate; // Ngày kết thúc contract
+
+    // ⭐ Commission fields
+    this.commissionAmount = 0; // Số tiền hoa hồng cho PT
+    this.commissionRate = 0; // % hoa hồng (lưu để tham khảo)
+    this.commissionPaid = false; // Đã trả hoa hồng chưa
+    this.commissionPaidDate = null; // Ngày trả
+    this.commissionPaidInPayrollId = null; // ID của payroll đã trả
   }
 
   /**
@@ -169,7 +176,7 @@ export class ContractModel {
       schedule = new WeeklySchedule({});
     }
 
-    return new ContractModel({
+    const contract = new ContractModel({
       id: id,
       userId: map.userId || "",
       ptId: map.ptId || "",
@@ -185,6 +192,15 @@ export class ContractModel {
       startDate: map.startDate || null,
       endDate: map.endDate || null,
     });
+
+    // ⭐ Map commission fields
+    contract.commissionAmount = map.commissionAmount || 0;
+    contract.commissionRate = map.commissionRate || 0;
+    contract.commissionPaid = map.commissionPaid || false;
+    contract.commissionPaidDate = map.commissionPaidDate || null;
+    contract.commissionPaidInPayrollId = map.commissionPaidInPayrollId || null;
+
+    return contract;
   }
 
   static fromFirestore(doc) {
@@ -207,6 +223,13 @@ export class ContractModel {
       updatedAt: this.updatedAt,
       startDate: this.startDate,
       endDate: this.endDate,
+
+      // ⭐ Commission fields
+      commissionAmount: this.commissionAmount,
+      commissionRate: this.commissionRate,
+      commissionPaid: this.commissionPaid,
+      commissionPaidDate: this.commissionPaidDate,
+      commissionPaidInPayrollId: this.commissionPaidInPayrollId,
     };
   }
 
@@ -354,6 +377,20 @@ export class ContractModel {
       });
 
       console.log("Payment info updated successfully");
+
+      // ⭐ Tính và lưu hoa hồng khi payment thành công
+      if (paymentStatus === "PAID") {
+        try {
+          await this.calculateAndSaveCommission(contractId);
+          console.log("✅ Commission calculated and saved");
+        } catch (error) {
+          console.error(
+            "⚠️ Error calculating commission (non-blocking):",
+            error
+          );
+          // Không throw error để không block payment flow
+        }
+      }
     } catch (error) {
       console.error("Error updating payment info:", error);
       throw error;
@@ -415,6 +452,61 @@ export class ContractModel {
       startDate: startDate !== undefined ? startDate : this.startDate,
       endDate: endDate !== undefined ? endDate : this.endDate,
     });
+  }
+
+  /**
+   * ⭐ Tính và lưu hoa hồng khi contract được paid
+   */
+  static async calculateAndSaveCommission(contractId) {
+    try {
+      console.log("🔄 Calculating commission for contract:", contractId);
+
+      // 1. Get contract
+      const contract = await this.getContractById(contractId);
+      if (!contract) {
+        console.error("❌ Contract not found");
+        return null;
+      }
+
+      if (contract.status !== "paid") {
+        console.log("⚠️ Contract not paid yet, skipping commission");
+        return null;
+      }
+
+      // 2. Get package info
+      const PTPackageModel = (await import("../pt/pt-package.model.js"))
+        .default;
+      const ptPackage = await PTPackageModel.getById(contract.ptPackageId);
+
+      if (!ptPackage) {
+        console.error("❌ PT Package not found");
+        return null;
+      }
+
+      // 3. Tính hoa hồng
+      const commissionRate = ptPackage.commissionRate || 15;
+      const commissionAmount = ptPackage.price * (commissionRate / 100);
+
+      console.log("💰 Commission calculated:", {
+        packagePrice: ptPackage.price,
+        commissionRate: commissionRate + "%",
+        commissionAmount,
+      });
+
+      // 4. Lưu vào contract
+      const contractRef = doc(db, "contracts", contractId);
+      await updateDoc(contractRef, {
+        commissionAmount,
+        commissionRate,
+        updatedAt: Timestamp.now(),
+      });
+
+      console.log("✅ Commission saved to contract");
+      return commissionAmount;
+    } catch (error) {
+      console.error("❌ Error calculating commission:", error);
+      throw error;
+    }
   }
 }
 

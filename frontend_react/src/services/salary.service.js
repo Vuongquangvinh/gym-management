@@ -1,6 +1,7 @@
 import SalaryRecordModel from "../firebase/lib/features/salary/salaryRecord.model.js";
 import { SalaryConfigModel } from "../firebase/lib/features/salary/salary-config.model.js";
 import EmployeeModel from "../firebase/lib/features/employee/employee.model.js";
+import { CommissionService } from "../firebase/lib/features/salary/commission.service.js"; // ⭐ Import CommissionService
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase/lib/config/firebase.js";
 
@@ -55,6 +56,28 @@ export class SalaryService {
       // Lấy cấu hình lương
       const config = await this.getSalaryConfigForEmployee(employee);
 
+      // ⭐ Tính hoa hồng cho PT (nếu là PT)
+      let commissionAmount = 0;
+      let commissionDetails = null;
+
+      if (employee.position === "PT" || employee.role === "pt") {
+        try {
+          const commissionData =
+            await CommissionService.calculateMonthlyCommission(
+              employee._id,
+              month,
+              year
+            );
+          commissionAmount = commissionData.total;
+          commissionDetails = commissionData.contracts;
+          console.log(
+            `💰 Commission for ${employee.fullName}: ${commissionAmount} VND`
+          );
+        } catch (error) {
+          console.error("Error calculating commission:", error);
+        }
+      }
+
       // Tạo salary record
       const salaryRecord = new SalaryRecordModel({
         employeeId: employee._id,
@@ -92,7 +115,7 @@ export class SalaryService {
         bonuses: 0,
         penalties: 0,
 
-        commission: 0,
+        commission: commissionAmount, // ⭐ Hoa hồng PT
         commissionRate: employee.commissionRate || 0,
 
         status: "PENDING",
@@ -100,6 +123,11 @@ export class SalaryService {
         // Override với các giá trị tùy chỉnh
         ...overrides,
       });
+
+      // ⭐ Lưu commission details nếu có
+      if (commissionDetails && commissionDetails.length > 0) {
+        salaryRecord.commissionDetails = commissionDetails;
+      }
 
       // Tính toán và lưu
       await salaryRecord.save();

@@ -705,6 +705,48 @@ export async function confirmPaymentManual(req, res) {
 
       console.log("✅ Contract updated to PAID status");
 
+      // ⭐ Tính và lưu hoa hồng cho PT (dựa trên commissionRate của Employee)
+      try {
+        console.log("🔄 Calculating commission for contract:", contractId);
+
+        // Get PT Employee to get commission rate
+        const ptDoc = await db
+          .collection("employees")
+          .doc(orderInfo.ptId)
+          .get();
+
+        if (ptDoc.exists) {
+          const ptData = ptDoc.data();
+          const commissionRate = ptData.commissionRate || 15; // Default 15% nếu chưa set
+          const commissionAmount = orderInfo.amount * (commissionRate / 100);
+
+          console.log("💰 Commission calculated:", {
+            ptId: orderInfo.ptId,
+            ptName: ptData.fullName || "N/A",
+            packagePrice: orderInfo.amount,
+            commissionRate: commissionRate + "%",
+            commissionAmount,
+          });
+
+          // Update contract with commission info
+          await db.collection("contracts").doc(contractId).update({
+            commissionAmount,
+            commissionRate,
+            commissionPaid: false,
+          });
+
+          console.log("✅ Commission saved to contract");
+        } else {
+          console.warn("⚠️ PT Employee not found, skipping commission");
+        }
+      } catch (commissionError) {
+        console.error(
+          "❌ Error calculating commission (non-blocking):",
+          commissionError
+        );
+        // Don't block payment flow if commission calculation fails
+      }
+
       // Update order status
       await updateOrderStatus(orderCode, {
         status: "PAID",

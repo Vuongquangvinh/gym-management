@@ -12,8 +12,8 @@ class ApiConfig {
   // Thiết bị thật: Dùng IP máy tính (ví dụ: 192.168.3.181)
   // static const String baseUrl = 'http://10.0.2.2:3000';
 
-  // url điện thoại - CẬP NHẬT: 192.168.3.181 (IP hiện tại của máy)
-  static const String baseUrl = 'http://192.168.3.181:3000';
+  // url điện thoại - CẬP NHẬT: 192.168.1.140 (IP hiện tại của máy)
+  static const String baseUrl = 'http://192.168.1.140:3000';
 
   // API endpoints
   static const String payosApi = '$baseUrl/api/payos';

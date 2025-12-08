@@ -37,6 +37,9 @@ import SalaryRecordModel from '../../firebase/lib/features/salary/salaryRecord.m
 import SalaryService from '../../services/salary.service.js';
 import styles from './PayrollManagement.module.css';
 
+import { CommissionService } from '../../firebase/lib/features/salary/commission.service.js'; // ⭐ Import CommissionService
+
+
 const PayrollManagement = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -258,6 +261,17 @@ const PayrollManagement = () => {
       setError('');
       
       await record.markAsPaid();
+      
+      // ⭐ Đánh dấu hoa hồng đã trả (nếu có)
+      if (record.commission > 0 && record.commissionDetails?.length > 0) {
+        try {
+          const contractIds = record.commissionDetails.map(c => c.id);
+          await CommissionService.markCommissionAsPaid(contractIds, record._id);
+          console.log('✅ Marked commissions as paid for contracts:', contractIds);
+        } catch (error) {
+          console.error('Error marking commissions as paid:', error);
+        }
+      }
       
       setSuccess('✅ Đã đánh dấu thanh toán');
       await loadRecords();
@@ -641,6 +655,15 @@ const PayrollManagement = () => {
                   {formatCurrency(editingRecord?.baseSalary || 0)}
                 </div>
               </div>
+              {/* ⭐ Hiển thị hoa hồng nếu có */}
+              {editingRecord?.commission > 0 && (
+                <div>
+                  <div className="summary-item-label">Hoa hồng PT 💰</div>
+                  <div className="summary-item-value" style={{ color: 'var(--success-color)' }}>
+                    {formatCurrency(editingRecord.commission)}
+                  </div>
+                </div>
+              )}
               <div>
                 <div className={styles.summaryItemLabel}>Tổng Gross</div>
                 <div className={styles.summaryItemValue} style={{ color: 'var(--primary-color)' }}>
@@ -661,6 +684,60 @@ const PayrollManagement = () => {
               </div>
             </div>
           </div>
+
+          {/* ⭐ Commission Details Section - Chỉ hiển thị nếu có hoa hồng */}
+          {editingRecord?.commission > 0 && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
+              <Typography variant="h6" color="success.dark" gutterBottom>
+                💰 Hoa hồng PT
+              </Typography>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body1" fontWeight="bold">
+                  Tổng hoa hồng:
+                </Typography>
+                <Typography variant="body1" fontWeight="bold" color="success.dark">
+                  {formatCurrency(editingRecord.commission)}
+                </Typography>
+              </Box>
+              
+              {editingRecord.commissionDetails?.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" fontWeight="bold" gutterBottom>
+                    Chi tiết ({editingRecord.commissionDetails.length} gói):
+                  </Typography>
+                  
+                  <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                    {editingRecord.commissionDetails.map((detail, idx) => (
+                      <Box 
+                        key={idx} 
+                        sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between',
+                          py: 0.5,
+                          borderBottom: idx < editingRecord.commissionDetails.length - 1 
+                            ? '1px solid rgba(0,0,0,0.1)' 
+                            : 'none'
+                        }}
+                      >
+                        <Box>
+                          <Typography variant="body2">
+                            • {detail.packageName}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {detail.rate}% hoa hồng
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {formatCurrency(detail.amount)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          )}
 
           {/* Tabs */}
           <div className={styles.dialogTabs}>

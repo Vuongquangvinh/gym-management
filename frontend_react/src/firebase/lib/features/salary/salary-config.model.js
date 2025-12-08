@@ -120,6 +120,11 @@ export class SalaryConfigModel {
     // Notes
     notes = "",
 
+    // ⭐ PT Commission Settings (chỉ cho PT role)
+    isPT = false, // Flag để biết là PT
+    includeCommissionInPayroll = true, // Tính hoa hồng vào payroll
+    commissionTaxRate = 10, // % thuế trên hoa hồng (có thể khác với thuế lương)
+
     // Metadata
     createdBy = "",
     createdAt = null,
@@ -164,6 +169,11 @@ export class SalaryConfigModel {
     this.endDate = endDate;
 
     this.notes = notes;
+
+    // ⭐ PT settings
+    this.isPT = isPT || employeeRole === EMPLOYEE_ROLE.PT;
+    this.includeCommissionInPayroll = includeCommissionInPayroll;
+    this.commissionTaxRate = commissionTaxRate;
 
     this.createdBy = createdBy;
     this.createdAt = createdAt;
@@ -461,6 +471,11 @@ export class SalaryConfigModel {
 
       notes: this.notes,
 
+      // ⭐ PT settings
+      isPT: this.isPT,
+      includeCommissionInPayroll: this.includeCommissionInPayroll,
+      commissionTaxRate: this.commissionTaxRate,
+
       createdBy: this.createdBy,
       createdAt: this.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -477,6 +492,15 @@ export class SalaryConfigModel {
     return new SalaryConfigModel({
       id: doc.id,
       ...data,
+
+      // ⭐ Đảm bảo PT settings được load
+      isPT: data.isPT || data.employeeRole === EMPLOYEE_ROLE.PT,
+      includeCommissionInPayroll:
+        data.includeCommissionInPayroll !== undefined
+          ? data.includeCommissionInPayroll
+          : true,
+      commissionTaxRate: data.commissionTaxRate || 10,
+
       effectiveDate: data.effectiveDate?.toDate?.() || data.effectiveDate,
       endDate: data.endDate?.toDate?.() || data.endDate,
       createdAt: data.createdAt?.toDate?.() || data.createdAt,
