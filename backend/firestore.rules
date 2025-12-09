@@ -15,6 +15,18 @@ service cloud.firestore {
       match /body_measurements/{measurementId} {
         allow read, write: if true;
       }
+      
+      // Meal plans subcollection
+      match /meal_plans/{planId} {
+        allow read, write: if true;
+      }
+      
+      // Progress photos subcollection
+      match /progress_photos/{photoId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null;
+      }
     }
     
     // Admins collection

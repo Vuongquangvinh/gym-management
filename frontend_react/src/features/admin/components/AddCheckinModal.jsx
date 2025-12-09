@@ -92,6 +92,23 @@ export default function AddCheckinModal({ isOpen, onClose }) {
       setIsSaving(true);
       setError('');
 
+      // ✅ Kiểm tra membership status
+      if (selectedMember.membership_status !== 'Active') {
+        throw new Error('Thành viên này không còn active. Vui lòng gia hạn gói tập trước khi check-in.');
+      }
+
+      // ✅ Kiểm tra gói tập còn hạn
+      if (selectedMember.package_end_date) {
+        const packageEndDate = selectedMember.package_end_date?.toDate?.() || 
+                              new Date(selectedMember.package_end_date);
+        
+        if (packageEndDate < new Date()) {
+          throw new Error('Gói tập đã hết hạn. Vui lòng gia hạn trước khi check-in.');
+        }
+      } else {
+        throw new Error('Thành viên chưa có gói tập. Vui lòng đăng ký gói tập trước khi check-in.');
+      }
+
       const checkinData = {
         memberId: selectedMember.id || selectedMember._id,
         memberName: selectedMember.full_name || selectedMember.name || '',
@@ -232,11 +249,26 @@ export default function AddCheckinModal({ isOpen, onClose }) {
                 <div className={styles.selectedLabel}>Đã chọn:</div>
                 <div className={styles.selectedInfo}>
                   <span className={styles.selectedName}>
-                    {selectedMember.fullname || selectedMember.name}
+                    {selectedMember.full_name || selectedMember.name}
                   </span>
                   <span className={styles.selectedPhone}>
                     {selectedMember.phone_number || selectedMember.phone}
                   </span>
+                  <span 
+                    className={styles.selectedStatus}
+                    style={{ 
+                      color: selectedMember.membership_status === 'Active' ? '#22c55e' : 
+                             selectedMember.membership_status === 'Expired' ? '#ef4444' : '#f59e0b'
+                    }}
+                  >
+                    {selectedMember.membership_status || 'Unknown'}
+                  </span>
+                  {selectedMember.package_end_date && (
+                    <span className={styles.selectedExpiry}>
+                      Hết hạn: {(selectedMember.package_end_date?.toDate?.() || 
+                        new Date(selectedMember.package_end_date)).toLocaleDateString('vi-VN')}
+                    </span>
+                  )}
                 </div>
               </div>
             )}

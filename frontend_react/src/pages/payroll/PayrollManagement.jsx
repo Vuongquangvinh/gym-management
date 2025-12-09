@@ -18,7 +18,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  Alert,
   Tooltip,
   CircularProgress,
   Tabs,
@@ -36,6 +35,7 @@ import {
 import SalaryRecordModel from '../../firebase/lib/features/salary/salaryRecord.model.js';
 import SalaryService from '../../services/salary.service.js';
 import styles from './PayrollManagement.module.css';
+import Swal from 'sweetalert2';
 
 import { CommissionService } from '../../firebase/lib/features/salary/commission.service.js'; // ⭐ Import CommissionService
 
@@ -45,8 +45,6 @@ const PayrollManagement = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [dialogTab, setDialogTab] = useState(0);
   const [focusedField, setFocusedField] = useState(null);
   
@@ -92,52 +90,93 @@ const PayrollManagement = () => {
   const loadRecords = async () => {
     try {
       setLoading(true);
-      setError('');
       const data = await SalaryRecordModel.getByMonthYear(selectedMonth, selectedYear);
       setRecords(data);
     } catch (err) {
-      setError('Không thể tải dữ liệu: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải dữ liệu',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleGenerateAll = async () => {
-    if (!window.confirm(`Tạo bảng lương cho TẤT CẢ nhân viên tháng ${selectedMonth}/${selectedYear}?`)) {
-      return;
-    }
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Tạo bảng lương',
+      text: `Tạo bảng lương cho TẤT CẢ nhân viên tháng ${selectedMonth}/${selectedYear}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Tạo',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
       
       const results = await SalaryService.generateMonthlySalaryRecords(selectedMonth, selectedYear);
       
-      setSuccess(`✅ Thành công: ${results.success.length} | ⏭️ Bỏ qua: ${results.skipped.length} | ❌ Lỗi: ${results.failed.length}`);
-      
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Hoàn tất!',
+        html: `✅ Thành công: ${results.success.length}<br>⏭️ Bỏ qua: ${results.skipped.length}<br>❌ Lỗi: ${results.failed.length}`,
+        confirmButtonColor: '#667eea',
+        timer: 3000,
+      });
     } catch (err) {
-      setError('Lỗi tạo bảng lương: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tạo bảng lương',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleUpdateCommissions = async () => {
-    if (!window.confirm(`Cập nhật hoa hồng cho PT tháng ${selectedMonth}/${selectedYear}?`)) {
-      return;
-    }
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Cập nhật hoa hồng',
+      text: `Cập nhật hoa hồng cho PT tháng ${selectedMonth}/${selectedYear}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Cập nhật',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#667eea',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
       
       await SalaryService.updatePTCommissionsForMonth(selectedMonth, selectedYear);
       
-      setSuccess('✅ Đã cập nhật hoa hồng cho PT');
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Đã cập nhật hoa hồng cho PT',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi cập nhật hoa hồng: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi cập nhật hoa hồng',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
@@ -183,7 +222,6 @@ const PayrollManagement = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      setError('');
 
       // Tính tổng từ list và tạo notes
       const totalBonuses = getTotalBonuses();
@@ -218,47 +256,85 @@ const PayrollManagement = () => {
 
       await editingRecord.save();
 
-      setSuccess('✅ Đã cập nhật bảng lương');
       setOpenDialog(false);
       setEditingRecord(null);
       setBonusList([]);
       setPenaltyList([]);
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Đã cập nhật bảng lương',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi lưu bảng lương: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi lưu bảng lương',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (record) => {
-    if (!window.confirm(`Duyệt bảng lương của ${record.employeeName}?`)) {
-      return;
-    }
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Duyệt bảng lương',
+      text: `Duyệt bảng lương của ${record.employeeName}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Duyệt',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#4caf50',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
       
       await record.approve('admin'); // TODO: Get actual user ID
       
-      setSuccess('✅ Đã duyệt bảng lương');
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã duyệt!',
+        text: 'Đã duyệt bảng lương',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi duyệt bảng lương: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi duyệt bảng lương',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleMarkPaid = async (record) => {
-    if (!window.confirm(`Đánh dấu đã thanh toán lương cho ${record.employeeName}?`)) {
-      return;
-    }
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Xác nhận thanh toán',
+      text: `Đánh dấu đã thanh toán lương cho ${record.employeeName}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Xác nhận',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#4caf50',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
       
       await record.markAsPaid();
       
@@ -273,30 +349,60 @@ const PayrollManagement = () => {
         }
       }
       
-      setSuccess('✅ Đã đánh dấu thanh toán');
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Đã đánh dấu thanh toán',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi thanh toán: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi thanh toán',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (record) => {
-    if (!window.confirm(`Xóa bảng lương của ${record.employeeName}?`)) {
-      return;
-    }
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Xác nhận xóa',
+      text: `Xóa bảng lương của ${record.employeeName}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
       
       await SalaryRecordModel.delete(record._id);
       
-      setSuccess('✅ Đã xóa bảng lương');
       await loadRecords();
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã xóa!',
+        text: 'Đã xóa bảng lương',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi xóa bảng lương: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi xóa bảng lương',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
@@ -347,7 +453,12 @@ const PayrollManagement = () => {
   // Bonus/Penalty management
   const addBonus = () => {
     if (!newBonus.amount || !newBonus.reason) {
-      alert('Vui lòng nhập đầy đủ số tiền và lý do');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        text: 'Vui lòng nhập đầy đủ số tiền và lý do',
+        confirmButtonColor: '#667eea',
+      });
       return;
     }
     const amount = parseNumber(newBonus.amount);
@@ -361,7 +472,12 @@ const PayrollManagement = () => {
 
   const addPenalty = () => {
     if (!newPenalty.amount || !newPenalty.reason) {
-      alert('Vui lòng nhập đầy đủ số tiền và lý do');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        text: 'Vui lòng nhập đầy đủ số tiền và lý do',
+        confirmButtonColor: '#667eea',
+      });
       return;
     }
     const amount = parseNumber(newPenalty.amount);
@@ -440,10 +556,7 @@ const PayrollManagement = () => {
         </Typography>
       </div>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-
-      {/* Filters & Actions */}
+      {/* Filters & Actions */
       <div className={styles.filtersBar}>
         <div className={styles.filtersLeft}>
           <TextField
@@ -502,7 +615,7 @@ const PayrollManagement = () => {
         </div>
       </div>
 
-      {/* Stats */}
+          }
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>Tổng lương Gross</div>
@@ -658,8 +771,8 @@ const PayrollManagement = () => {
               {/* ⭐ Hiển thị hoa hồng nếu có */}
               {editingRecord?.commission > 0 && (
                 <div>
-                  <div className="summary-item-label">Hoa hồng PT 💰</div>
-                  <div className="summary-item-value" style={{ color: 'var(--success-color)' }}>
+                  <div className={styles.summaryItemLabel}>Hoa hồng PT 💰</div>
+                  <div className={styles.summaryItemValue} style={{ color: 'var(--success-color)' }}>
                     {formatCurrency(editingRecord.commission)}
                   </div>
                 </div>

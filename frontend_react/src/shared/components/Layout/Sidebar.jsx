@@ -184,7 +184,7 @@ export default function Sidebar() {
           <NavLink to="/admin/financial" className={({isActive})=> isActive? styles.active:''}><Icon name="financial"/> Tài chính</NavLink>
           <NavLink to="/admin/operating-expenses" className={({isActive})=> isActive? styles.active:''}><Icon name="financial"/> Chi phí vận hành</NavLink>
           <NavLink to="/admin/payroll" className={({isActive})=> isActive? styles.active:''}><Icon name="payroll"/> Bảng lương</NavLink>
-          <NavLink to="/admin/reports" className={({isActive})=> isActive? styles.active:''}><Icon name="reports"/> Báo cáo</NavLink>
+      
           <NavLink to="/admin/settings" className={({isActive})=> isActive? styles.active:''}><Icon name="settings"/> Cài đặt</NavLink>
         </nav>
 

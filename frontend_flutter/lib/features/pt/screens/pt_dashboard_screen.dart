@@ -135,124 +135,149 @@ class _PTDashboardScreenState extends State<PTDashboardScreen> {
 
     return Scaffold(
       backgroundColor: context.background,
-      appBar: AppBar(
-        title: Text(
-          'PT Dashboard',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: context.textPrimary,
-          ),
-        ),
-        backgroundColor: context.surface,
-        elevation: 0,
-        centerTitle: false,
-        foregroundColor: context.textPrimary,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              color: context.isDarkMode
-                  ? Colors.grey.shade800
-                  : Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(Icons.settings_outlined, color: context.textPrimary),
-              onPressed: () {
-                Navigator.pushNamed(context, '/pt/settings');
-              },
-            ),
-          ),
-        ],
-      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadData,
-              child: SingleChildScrollView(
+              child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Section
-                    _buildWelcomeCard(displayName),
-                    const SizedBox(height: 24),
-
-                    // Stats Section
-                    Text(
-                      'Tổng quan',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: context.textPrimary,
+                slivers: [
+                  // Custom App Bar
+                  SliverAppBar(
+                    expandedHeight: 120,
+                    floating: false,
+                    pinned: true,
+                    backgroundColor: context.surface,
+                    elevation: 0,
+                    flexibleSpace: FlexibleSpaceBar(
+                      titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                      title: Text(
+                        'PT Dashboard',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: context.textPrimary,
+                          fontSize: 24,
+                        ),
+                      ),
+                      background: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primary.withOpacity(0.1),
+                              context.surface,
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.2,
-                      children: [
-                        _buildStatCard(
-                          label: 'Tổng học viên',
-                          value: totalClients.toString(),
-                          icon: Icons.people_outline,
-                          color: const Color(0xFF4E73DF), // Blue
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/pt/clients'),
+                    actions: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 16),
+                        decoration: BoxDecoration(
+                          color: context.isDarkMode
+                              ? Colors.grey.shade800.withOpacity(0.5)
+                              : Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: context.border.withOpacity(0.5),
+                            width: 1,
+                          ),
                         ),
-                        _buildStatCard(
-                          label: 'Gói đang bán',
-                          value: activePackages.toString(),
-                          icon: Icons.inventory_2_outlined,
-                          color: const Color(0xFF1CC88A), // Green
-                          onTap: () {
-                            if (employeeData != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PTPackagesScreen(
-                                    ptId: employeeData!['id'],
-                                  ),
-                                ),
-                              );
-                            }
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.settings_outlined,
+                            color: context.textPrimary,
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/pt/settings');
                           },
+                          tooltip: 'Cài đặt',
                         ),
-                        _buildStatCard(
-                          label: 'Hoa hồng tháng',
-                          value: currencyFormat.format(monthlyRevenue),
-                          icon: Icons.monetization_on_outlined,
-                          color: const Color(0xFF36B9CC), // Cyan
-                        ),
-                        _buildStatCard(
-                          label: 'Đánh giá',
-                          value: rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
-                          icon: Icons.star_outline,
-                          color: const Color(0xFFF6C23E), // Yellow
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
+                      ),
+                    ],
+                  ),
 
-                    // Quick Actions Section
-                    Text(
-                      'Thao tác nhanh',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: context.textPrimary,
+                  // Content
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Welcome Section
+                          _buildWelcomeCard(displayName),
+                          const SizedBox(height: 24),
+
+                          // Stats Section
+                          Text(
+                            'Tổng quan',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: context.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 1.2,
+                            children: [
+                              _buildStatCard(
+                                label: 'Tổng học viên',
+                                value: totalClients.toString(),
+                                icon: Icons.people_outline,
+                                color: const Color(0xFF4E73DF), // Blue
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/pt/clients'),
+                              ),
+                              _buildStatCard(
+                                label: 'Gói đang bán',
+                                value: activePackages.toString(),
+                                icon: Icons.inventory_2_outlined,
+                                color: const Color(0xFF1CC88A), // Green
+                                onTap: () {
+                                  if (employeeData != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PTPackagesScreen(
+                                          ptId: employeeData!['id'],
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                              _buildStatCard(
+                                label: 'Hoa hồng tháng',
+                                value: currencyFormat.format(monthlyRevenue),
+                                icon: Icons.monetization_on_outlined,
+                                color: const Color(0xFF36B9CC), // Cyan
+                              ),
+                              _buildStatCard(
+                                label: 'Đánh giá',
+                                value: rating > 0
+                                    ? rating.toStringAsFixed(1)
+                                    : 'N/A',
+                                icon: Icons.star_outline,
+                                color: const Color(0xFFF6C23E), // Yellow
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Quick Actions Section
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildQuickActions(context),
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );

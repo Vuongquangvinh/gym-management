@@ -179,18 +179,34 @@
 
 .selectedInfo {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .selectedName {
-  font-weight: 500;
+  font-weight: 600;
   color: #1f2937;
+  font-size: 14px;
 }
 
 .selectedPhone {
-  font-size: 12px;
+  font-size: 13px;
   color: #6b7280;
+}
+
+.selectedStatus {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.1);
+  width: fit-content;
+}
+
+.selectedExpiry {
+  font-size: 12px;
+  color: #0369a1;
+  font-weight: 500;
 }
 
 /* Time Input */

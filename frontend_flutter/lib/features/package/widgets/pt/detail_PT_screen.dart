@@ -451,30 +451,195 @@ class _DetailPTScreenState extends State<DetailPTScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ...ptInfo.certificates.map(
-                            (c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle_rounded,
-                                    color: AppColors.success,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      c.toString(),
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        color: context.textSecondary,
+                          ...ptInfo.certificates.map((c) {
+                            final certString = c.toString();
+                            final isImageUrl =
+                                certString.startsWith('http') &&
+                                (certString.contains('firebase') ||
+                                    certString.contains('.jpg') ||
+                                    certString.contains('.jpeg') ||
+                                    certString.contains('.png') ||
+                                    certString.contains('.gif'));
+
+                            if (isImageUrl) {
+                              // Hiển thị hình ảnh chứng chỉ
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // Hiển thị ảnh full screen
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          backgroundColor: Colors.black,
+                                          child: Stack(
+                                            children: [
+                                              Center(
+                                                child: InteractiveViewer(
+                                                  child: Image.network(
+                                                    certString,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                top: 10,
+                                                right: 10,
+                                                child: IconButton(
+                                                  icon: const Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                    size: 30,
+                                                  ),
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 200,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: AppColors.success.withOpacity(
+                                            0.3,
+                                          ),
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Image.network(
+                                            certString,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            loadingBuilder: (context, child, progress) {
+                                              if (progress == null)
+                                                return child;
+                                              return Container(
+                                                height: 200,
+                                                color: Colors.grey[200],
+                                                child: Center(
+                                                  child: CircularProgressIndicator(
+                                                    value:
+                                                        progress.expectedTotalBytes !=
+                                                            null
+                                                        ? progress.cumulativeBytesLoaded /
+                                                              progress
+                                                                  .expectedTotalBytes!
+                                                        : null,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            errorBuilder:
+                                                (context, error, stack) {
+                                                  return Container(
+                                                    height: 200,
+                                                    color: Colors.grey[200],
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.error_outline,
+                                                          color: Colors.red,
+                                                          size: 40,
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Text(
+                                                          'Không thể tải ảnh',
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                                color:
+                                                                    Colors.red,
+                                                                fontSize: 12,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                          ),
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.success,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.verified,
+                                                    color: Colors.white,
+                                                    size: 14,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Chứng chỉ',
+                                                    style: GoogleFonts.inter(
+                                                      color: Colors.white,
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
+                                ),
+                              );
+                            } else {
+                              // Hiển thị text chứng chỉ
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: AppColors.success,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        certString,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: context.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          }),
                         ],
                       ),
                     ),

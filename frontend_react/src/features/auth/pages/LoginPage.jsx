@@ -78,12 +78,20 @@ export default function LoginPage() {
         navigate('/admin');
       }
     } catch (err) {
+      console.error('Login error:', err);
       let friendlyMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      
+      // Xử lý lỗi too-many-requests
+      if (err.message?.includes('auth/too-many-requests') || err.code === 'auth/too-many-requests') {
+        friendlyMessage = "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi 15-30 phút rồi thử lại.";
+      } else if (err.message?.includes('auth/user-not-found') || err.message?.includes('auth/wrong-password')) {
         friendlyMessage = "Email hoặc mật khẩu không chính xác.";
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (err.message?.includes('auth/invalid-email')) {
         friendlyMessage = "Địa chỉ email không hợp lệ.";
+      } else if (err.message?.includes('auth/invalid-credential')) {
+        friendlyMessage = "Thông tin đăng nhập không hợp lệ.";
       }
+      
       setError(friendlyMessage);
     } finally {
       setLoading(false);
