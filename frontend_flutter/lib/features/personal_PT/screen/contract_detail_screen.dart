@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../model/contract.mode.dart';
 import '../provider/contract_provider.dart';
 import '../widget/pt_info_card.dart';
@@ -8,6 +9,7 @@ import '../widget/package_info_card.dart';
 import '../widget/editable_weekly_schedule_widget.dart';
 import '../../../theme/colors.dart';
 import '../../chat/screens/chat_screen.dart';
+import '../../widgets/review_dialog.dart';
 
 /// Màn hình chi tiết contract
 class ContractDetailScreen extends StatefulWidget {
@@ -24,9 +26,11 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Load thông tin đầy đủ
+    // Load thông tin đầy đủ từ Firestore để có fields mới nhất (isReviewed, etc)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ContractDetailProvider>().loadFromContract(widget.contract);
+      context.read<ContractDetailProvider>().loadContractDetail(
+        widget.contract.id,
+      );
     });
   }
 
@@ -85,7 +89,10 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
             );
           }
 
+          // Dùng provider.contract nếu có (đã load full từ Firestore),
+          // fallback về widget.contract chỉ cho UI ban đầu
           final contract = provider.contract ?? widget.contract;
+          final isFullyLoaded = provider.contract != null;
 
           return SingleChildScrollView(
             // Không padding ngang để card sát mép
@@ -217,6 +224,19 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                 // 7. Thông tin thanh toán
                 if (contract.paymentStatus != null)
                   _buildPaymentInfoSection(context, contract),
+
+                // 8. Nút đánh giá PT (chỉ hiện khi contract đã hoàn thành và chưa review)
+                // Chỉ hiển thị khi đã load full contract từ Firestore
+                if (isFullyLoaded &&
+                    contract.status == 'completed' &&
+                    !contract.isReviewed)
+                  _buildReviewButton(context, contract, provider),
+
+                // 9. Hiển thị review đã gửi (nếu có)
+                if (isFullyLoaded &&
+                    contract.isReviewed &&
+                    contract.reviewId != null)
+                  _buildExistingReview(context, contract),
               ],
             ),
           );
@@ -556,5 +576,162 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   String _formatDateTime(DateTime date) {
     return DateFormat('dd/MM/yyyy HH:mm').format(date);
+  }
+
+  /// Nút đánh giá PT
+  Widget _buildReviewButton(
+    BuildContext context,
+    ContractModel contract,
+    ContractDetailProvider provider,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFFFB800).withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.star_rate, size: 48, color: Color(0xFFFFB800)),
+            const SizedBox(height: 12),
+            Text(
+              'Hợp đồng đã hoàn thành!',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Hãy chia sẻ trải nghiệm của bạn với huấn luyện viên này',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  // Sử dụng userId từ contract thay vì FirebaseAuth
+                  // vì app có thể dùng hệ thống auth khác
+                  final userId = contract.userId;
+
+                  if (userId.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Không xác định được người dùng'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Lấy thông tin user từ Firestore nếu cần
+                  String? userName;
+                  String? userAvatar;
+
+                  try {
+                    final userDoc = await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .get();
+
+                    if (userDoc.exists) {
+                      final userData = userDoc.data();
+                      userName = userData?['name'] ?? userData?['fullName'];
+                      userAvatar =
+                          userData?['avatar'] ?? userData?['avatarUrl'];
+                    }
+                  } catch (e) {
+                    print('Warning: Could not fetch user info: $e');
+                  }
+
+                  final result = await showReviewDialog(
+                    context: context,
+                    contractId: contract.id,
+                    userId: userId,
+                    ptId: contract.ptId,
+                    ptName: provider.ptEmployee?.fullName ?? 'Huấn luyện viên',
+                    userName: userName,
+                    userAvatar: userAvatar,
+                  );
+
+                  // Reload contract detail nếu review thành công
+                  if (result == true && mounted) {
+                    await context
+                        .read<ContractDetailProvider>()
+                        .loadContractDetail(contract.id);
+                  }
+                },
+                icon: const Icon(Icons.rate_review),
+                label: const Text(
+                  'Đánh giá huấn luyện viên',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFB800),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 3,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Hiển thị review đã gửi
+  Widget _buildExistingReview(BuildContext context, ContractModel contract) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Bạn đã đánh giá huấn luyện viên này',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

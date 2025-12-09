@@ -21,11 +21,21 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userRole = prefs.getString('userRole') ?? 'user';
+
     await Future.delayed(const Duration(milliseconds: 800)); // hiệu ứng splash
+
+    if (!mounted) return;
+
     if (isLoggedIn) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      // Kiểm tra role để điều hướng đúng màn hình
+      if (userRole == 'pt') {
+        Navigator.of(context).pushReplacementNamed('/pt');
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const WelcomeScreen()),

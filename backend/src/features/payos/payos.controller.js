@@ -736,6 +736,21 @@ export async function confirmPaymentManual(req, res) {
           });
 
           console.log("✅ Commission saved to contract");
+
+          // ⭐ Tăng totalClients của PT
+          const currentTotalClients = ptData.totalClients || 0;
+          await db
+            .collection("employees")
+            .doc(orderInfo.ptId)
+            .update({
+              totalClients: currentTotalClients + 1,
+            });
+
+          console.log(
+            `✅ PT totalClients updated: ${currentTotalClients} → ${
+              currentTotalClients + 1
+            }`
+          );
         } else {
           console.warn("⚠️ PT Employee not found, skipping commission");
         }

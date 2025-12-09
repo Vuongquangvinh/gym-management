@@ -249,7 +249,7 @@ class WelcomeScreen extends StatelessWidget {
             SecondaryButton(
               text: 'Đăng nhập',
               onPressed: () {
-                Navigator.pushNamed(context, '/login');
+                Navigator.pushNamed(context, '/role-selection');
               },
             ),
           ],

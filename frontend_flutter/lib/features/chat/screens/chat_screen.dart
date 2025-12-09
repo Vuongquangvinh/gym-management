@@ -141,11 +141,19 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isUploadingImage = false;
   int _lastMessageCount = 0; // Theo dõi số lượng tin nhắn
 
+  // Lazy loading states
+  final List<ChatMessage> _messages = [];
+  DocumentSnapshot? _lastDocument;
+  bool _isLoadingMore = false;
+  bool _hasMoreMessages = true;
+  static const int _messagesPerPage = 20;
+
   @override
   void initState() {
     super.initState();
     _initializeChat();
     _initializeNotifications();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -153,6 +161,17 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    // Load more when scrolling to top (80% from top)
+    if (_scrollController.position.pixels <=
+            _scrollController.position.minScrollExtent + 200 &&
+        !_isLoadingMore &&
+        _hasMoreMessages &&
+        _chatId != null) {
+      _loadMoreMessages();
+    }
   }
 
   Future<void> _initializeChat() async {
@@ -169,83 +188,113 @@ class _ChatScreenState extends State<ChatScreen> {
       print('📱 PT ID from widget: ${widget.ptId}');
       print('📧 Email: ${user.email}');
 
-      String? clientId =
-          widget.clientId; // ← Ưu tiên dùng clientId được truyền vào
+      String? clientId = widget.clientId;
 
-      // Nếu không có clientId được truyền vào, thử các cách query
-      if (clientId == null) {
-        // CÁCH 1: Thử query users bằng email
-        try {
-          print('🔍 Trying to find user by email...');
-          final queryByEmail = await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: user.email)
-              .limit(1)
-              .get();
+      // Xác định vai trò: PT hay Client?
+      // PT mode: currentUser.uid == ptId (PT đang chat với client của mình)
+      // Client mode: currentUser.uid != ptId (Client đang chat với PT)
+      bool isPTMode = (authUid == widget.ptId);
 
-          if (queryByEmail.docs.isNotEmpty) {
-            final doc = queryByEmail.docs.first;
-            clientId = doc.data()['_id'] as String? ?? doc.id;
-            print('✅ Found by email! _id: $clientId, doc.id: ${doc.id}');
-          }
-        } catch (e) {
-          print('⚠️ Query by email failed: $e');
+      if (isPTMode) {
+        // MODE PT: PT đang chat với client
+        // currentUserId = PT's UID (authUid)
+        // clientId đã được truyền vào từ PTClientDetailScreen
+        print('👨‍🏫 PT MODE: PT chatting with client');
+        print('✅ PT ID (authUid): $authUid');
+        print('✅ Client ID (from param): $clientId');
+
+        if (clientId == null || clientId.isEmpty) {
+          throw Exception('PT mode requires clientId parameter');
         }
 
-        // CÁCH 2: Thử query bằng field uid
-        if (clientId == null) {
+        _currentUserId = authUid; // PT là người gửi
+      } else {
+        // MODE CLIENT: Client đang chat với PT
+        print('👤 CLIENT MODE: Client chatting with PT');
+
+        // Nếu clientId đã được truyền vào, dùng luôn (từ contract_detail_screen)
+        if (clientId != null && clientId.isNotEmpty) {
+          print('✅ Using provided clientId: $clientId');
+          _currentUserId = clientId; // Client là người gửi
+        } else {
+          // Nếu không có clientId, cần query để lấy từ users collection
+          print('🔍 No clientId provided, querying from users collection...');
+
+          // CÁCH 1: Thử query users bằng email
           try {
-            print('🔍 Trying to find user by uid field...');
-            final queryByUid = await FirebaseFirestore.instance
+            print('🔍 Trying to find user by email...');
+            final queryByEmail = await FirebaseFirestore.instance
                 .collection('users')
-                .where('uid', isEqualTo: authUid)
+                .where('email', isEqualTo: user.email)
                 .limit(1)
                 .get();
 
-            if (queryByUid.docs.isNotEmpty) {
-              final doc = queryByUid.docs.first;
+            if (queryByEmail.docs.isNotEmpty) {
+              final doc = queryByEmail.docs.first;
               clientId = doc.data()['_id'] as String? ?? doc.id;
-              print('✅ Found by uid field! _id: $clientId, doc.id: ${doc.id}');
+              print('✅ Found by email! _id: $clientId, doc.id: ${doc.id}');
             }
           } catch (e) {
-            print('⚠️ Query by uid failed: $e');
+            print('⚠️ Query by email failed: $e');
           }
-        }
 
-        // CÁCH 3: Thử lấy trực tiếp bằng authUid làm document ID
-        if (clientId == null) {
-          try {
-            print('🔍 Trying to get user document by Auth UID as doc ID...');
-            final docById = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(authUid)
-                .get();
+          // CÁCH 2: Thử query bằng field uid
+          if (clientId == null) {
+            try {
+              print('🔍 Trying to find user by uid field...');
+              final queryByUid = await FirebaseFirestore.instance
+                  .collection('users')
+                  .where('uid', isEqualTo: authUid)
+                  .limit(1)
+                  .get();
 
-            if (docById.exists) {
-              clientId = docById.data()?['_id'] as String? ?? docById.id;
-              print('✅ Found by doc ID! _id: $clientId');
+              if (queryByUid.docs.isNotEmpty) {
+                final doc = queryByUid.docs.first;
+                clientId = doc.data()['_id'] as String? ?? doc.id;
+                print(
+                  '✅ Found by uid field! _id: $clientId, doc.id: ${doc.id}',
+                );
+              }
+            } catch (e) {
+              print('⚠️ Query by uid failed: $e');
             }
-          } catch (e) {
-            print('⚠️ Get by doc ID failed: $e');
           }
-        }
 
-        // CÁCH 4: Fallback - dùng authUid luôn
-        if (clientId == null || clientId.isEmpty) {
-          print('⚠️ All methods failed, using Auth UID as client ID');
-          clientId = authUid;
+          // CÁCH 3: Thử lấy trực tiếp bằng authUid làm document ID
+          if (clientId == null) {
+            try {
+              print('🔍 Trying to get user document by Auth UID as doc ID...');
+              final docById = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(authUid)
+                  .get();
+
+              if (docById.exists) {
+                clientId = docById.data()?['_id'] as String? ?? docById.id;
+                print('✅ Found by doc ID! _id: $clientId');
+              }
+            } catch (e) {
+              print('⚠️ Get by doc ID failed: $e');
+            }
+          }
+
+          // CÁCH 4: Fallback - dùng authUid luôn
+          if (clientId == null || clientId.isEmpty) {
+            print('⚠️ All methods failed, using Auth UID as client ID');
+            clientId = authUid;
+          }
+
+          _currentUserId = clientId; // Client là người gửi
         }
-      } else {
-        print('✅ Using provided clientId: $clientId');
       }
 
-      _currentUserId = clientId;
-      print('✅ Final Client ID: $_currentUserId');
+      print('✅ Current User ID (sender): $_currentUserId');
+      print('✅ Client ID for chat room: $clientId');
 
       // Tạo hoặc lấy chat room - Format: ${ptId}_${clientId}
       final chatRoom = await _chatService.getOrCreateChat(
         widget.ptId,
-        _currentUserId!,
+        clientId,
       );
 
       setState(() {
@@ -255,6 +304,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
       print('✅ Chat initialized: $_chatId');
       print('🔑 Expected format: ${widget.ptId}_$_currentUserId');
+
+      // Load initial messages
+      await _loadInitialMessages();
+      // Listen to new messages
+      _listenToNewMessages();
     } catch (e) {
       print('❌ Error initializing chat: $e');
       setState(() => _isLoading = false);
@@ -264,6 +318,109 @@ class _ChatScreenState extends State<ChatScreen> {
         ).showSnackBar(SnackBar(content: Text('Lỗi khởi tạo chat: $e')));
       }
     }
+  }
+
+  Future<void> _loadInitialMessages() async {
+    if (_chatId == null) return;
+
+    try {
+      print('📥 Loading initial messages for chatId: $_chatId');
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(_chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(_messagesPerPage)
+          .get();
+
+      print('📊 Query returned ${querySnapshot.docs.length} messages');
+
+      if (querySnapshot.docs.isNotEmpty) {
+        _lastDocument = querySnapshot.docs.last;
+        final messages = querySnapshot.docs
+            .map((doc) => ChatMessage.fromFirestore(doc))
+            .toList();
+
+        setState(() {
+          _messages.clear();
+          _messages.addAll(messages.reversed);
+          _hasMoreMessages = querySnapshot.docs.length == _messagesPerPage;
+        });
+
+        print('✅ Loaded ${messages.length} initial messages');
+        _scrollToBottom();
+      } else {
+        print('⚠️ No messages found in chatId: $_chatId');
+        print(
+          '🔍 Check if messages collection exists at: chats/$_chatId/messages',
+        );
+        setState(() => _hasMoreMessages = false);
+      }
+    } catch (e) {
+      print('❌ Error loading initial messages: $e');
+    }
+  }
+
+  Future<void> _loadMoreMessages() async {
+    if (_chatId == null || _isLoadingMore || !_hasMoreMessages) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(_chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .startAfterDocument(_lastDocument!)
+          .limit(_messagesPerPage)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        _lastDocument = querySnapshot.docs.last;
+        final newMessages = querySnapshot.docs
+            .map((doc) => ChatMessage.fromFirestore(doc))
+            .toList();
+
+        setState(() {
+          _messages.insertAll(0, newMessages.reversed);
+          _hasMoreMessages = querySnapshot.docs.length == _messagesPerPage;
+        });
+
+        print('✅ Loaded ${newMessages.length} more messages');
+      } else {
+        setState(() => _hasMoreMessages = false);
+      }
+    } catch (e) {
+      print('❌ Error loading more messages: $e');
+    } finally {
+      setState(() => _isLoadingMore = false);
+    }
+  }
+
+  void _listenToNewMessages() {
+    if (_chatId == null) return;
+
+    FirebaseFirestore.instance
+        .collection('chats')
+        .doc(_chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .listen((snapshot) {
+          for (var change in snapshot.docChanges) {
+            if (change.type == DocumentChangeType.added) {
+              final message = ChatMessage.fromFirestore(change.doc);
+
+              // Only add if not already in list
+              if (!_messages.any((m) => m.id == message.id)) {
+                setState(() => _messages.add(message));
+                _showNotificationForMessage(message);
+                _scrollToBottom();
+              }
+            }
+          }
+        });
   }
 
   /// Khởi tạo notification service
@@ -451,75 +608,54 @@ class _ChatScreenState extends State<ChatScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Messages List - REALTIME
+                // Messages List - LAZY LOADING
                 Expanded(
                   child: _chatId == null
                       ? const Center(child: Text('Đang khởi tạo chat...'))
-                      : StreamBuilder<List<ChatMessage>>(
-                          stream: _chatService.subscribeToMessages(_chatId!),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Center(
-                                child: Text('Lỗi: ${snapshot.error}'),
-                              );
-                            }
-
-                            if (!snapshot.hasData) {
+                      : _messages.isEmpty && !_isLoading
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Chưa có tin nhắn nào',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount:
+                              _messages.length + (_isLoadingMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            // Loading indicator at top
+                            if (index == 0 && _isLoadingMore) {
                               return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-
-                            final messages = snapshot.data!;
-
-                            // Kiểm tra tin nhắn mới và hiển thị notification
-                            if (messages.isNotEmpty &&
-                                messages.length > _lastMessageCount) {
-                              // Có tin nhắn mới
-                              final latestMessage = messages.last;
-                              _showNotificationForMessage(latestMessage);
-                            }
-                            _lastMessageCount = messages.length;
-
-                            if (messages.isEmpty) {
-                              return const Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.chat_bubble_outline,
-                                      size: 64,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      'Chưa có tin nhắn nào',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
                                 ),
                               );
                             }
 
-                            // Scroll to bottom when new messages arrive
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              _scrollToBottom();
-                            });
+                            final messageIndex = _isLoadingMore
+                                ? index - 1
+                                : index;
+                            final message = _messages[messageIndex];
+                            final isMe = message.senderId == _currentUserId;
 
-                            return ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.all(16),
-                              itemCount: messages.length,
-                              itemBuilder: (context, index) {
-                                final message = messages[index];
-                                final isMe = message.senderId == _currentUserId;
-
-                                return _MessageBubble(
-                                  message: message,
-                                  isMe: isMe,
-                                  ptAvatarUrl: widget.ptAvatarUrl,
-                                );
-                              },
+                            return _MessageBubble(
+                              message: message,
+                              isMe: isMe,
+                              ptAvatarUrl: widget.ptAvatarUrl,
                             );
                           },
                         ),

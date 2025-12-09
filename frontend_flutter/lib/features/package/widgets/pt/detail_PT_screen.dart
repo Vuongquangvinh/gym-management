@@ -2,21 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../model/employee.model.dart';
+import '../../../model/pt_review.model.dart';
+import '../../../services/review_service.dart';
+import '../../../widgets/rating_stars.dart';
 import '../../../../theme/colors.dart';
 import '../../../../shared/widgets/network_avatar.dart';
 import 'pt_packages_screen.dart';
 
 final _logger = Logger();
 
-class DetailPTScreen extends StatelessWidget {
+class DetailPTScreen extends StatefulWidget {
   final EmployeeModel pt;
   const DetailPTScreen({Key? key, required this.pt}) : super(key: key);
 
   @override
+  State<DetailPTScreen> createState() => _DetailPTScreenState();
+}
+
+class _DetailPTScreenState extends State<DetailPTScreen> {
+  final _reviewService = ReviewService();
+  List<PTReviewModel> _reviews = [];
+  Map<String, dynamic>? _reviewStats;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    try {
+      final reviews = await _reviewService.getReviewsByPtId(widget.pt.id);
+      final stats = await _reviewService.getPTReviewStats(widget.pt.id);
+
+      // 🔥 SYNC: Đảm bảo rating trong employees collection luôn đúng
+      // Chỉ update nếu khác với rating hiện tại (tránh unnecessary writes)
+      if (widget.pt.rating != stats['averageRating'] ||
+          widget.pt.totalReviews != stats['totalReviews']) {
+        _reviewService.calculateAndUpdatePTRating(widget.pt.id).catchError((e) {
+          _logger.w('Could not sync PT rating: $e');
+          // Không block UI nếu sync lỗi
+        });
+      }
+
+      if (mounted) {
+        setState(() {
+          _reviews = reviews;
+          _reviewStats = stats;
+        });
+      }
+    } catch (e) {
+      _logger.e('Error loading reviews', error: e);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ptInfo = pt.ptInfo;
+    final ptInfo = widget.pt.ptInfo;
     return Scaffold(
       backgroundColor: context.background,
       body: CustomScrollView(
@@ -80,7 +125,7 @@ class DetailPTScreen extends StatelessWidget {
                             ],
                           ),
                           child: NetworkAvatar(
-                            avatarUrl: pt.avatarUrl,
+                            avatarUrl: widget.pt.avatarUrl,
                             size: 112,
                             placeholderIcon: Icons.person,
                           ),
@@ -88,7 +133,7 @@ class DetailPTScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         // Name
                         Text(
-                          pt.fullName,
+                          widget.pt.fullName,
                           style: GoogleFonts.inter(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
@@ -149,27 +194,41 @@ class DetailPTScreen extends StatelessWidget {
                         child: _StatCard(
                           icon: Icons.star_rounded,
                           label: 'Đánh giá',
-                          value: ptInfo?.formattedRating ?? '0.0',
+                          value: widget.pt.rating > 0
+                              ? widget.pt.rating.toStringAsFixed(1)
+                              : '0.0',
                           color: AppColors.warning,
                           context: context,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.rate_review_rounded,
+                          label: 'Lượt đánh giá',
+                          value: '${widget.pt.totalReviews}',
+                          color: AppColors.info,
+                          context: context,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _StatCard(
                           icon: Icons.people_rounded,
                           label: 'Khách hàng',
-                          value: '${pt.totalClients}',
+                          value: '${widget.pt.totalClients}',
                           color: AppColors.accent,
                           context: context,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _StatCard(
                           icon: Icons.cake_rounded,
                           label: 'Tuổi',
-                          value: pt.age != null ? '${pt.age}' : 'N/A',
+                          value: widget.pt.age != null
+                              ? '${widget.pt.age}'
+                              : 'N/A',
                           color: AppColors.primary,
                           context: context,
                         ),
@@ -205,13 +264,13 @@ class DetailPTScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         _ContactItem(
                           icon: Icons.email_rounded,
-                          text: pt.email,
+                          text: widget.pt.email,
                           context: context,
                         ),
                         const SizedBox(height: 12),
                         _ContactItem(
                           icon: Icons.phone_rounded,
-                          text: pt.phone,
+                          text: widget.pt.phone,
                           context: context,
                         ),
                       ],
@@ -767,7 +826,7 @@ class DetailPTScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      PTPackagesScreen(pt: pt),
+                                      PTPackagesScreen(pt: widget.pt),
                                 ),
                               );
                             }
@@ -852,6 +911,149 @@ class DetailPTScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // Reviews Section
+                  if (_reviewStats != null &&
+                      _reviewStats!['totalReviews'] > 0) ...[
+                    const SizedBox(height: 24),
+                    _SectionCard(
+                      context: context,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star_rounded,
+                                color: AppColors.warning,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Đánh giá từ học viên',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.textPrimary,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${_reviewStats!['totalReviews']} đánh giá',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: context.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Average rating with stars
+                          Row(
+                            children: [
+                              Text(
+                                _reviewStats!['averageRating'].toStringAsFixed(
+                                  1,
+                                ),
+                                style: GoogleFonts.inter(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w800,
+                                  color: context.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    RatingStars(
+                                      rating: _reviewStats!['averageRating'],
+                                      size: 24,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Trung bình từ ${_reviewStats!['totalReviews']} đánh giá',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: context.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Rating distribution
+                          RatingDistributionWidget(
+                            distribution: Map<int, int>.from(
+                              _reviewStats!['ratingDistribution'],
+                            ),
+                            totalReviews: _reviewStats!['totalReviews'],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Recent reviews
+                    if (_reviews.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _SectionCard(
+                        context: context,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nhận xét gần đây',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: context.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ..._reviews
+                                .take(5)
+                                .map(
+                                  (review) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: _ReviewCard(
+                                      review: review,
+                                      context: context,
+                                    ),
+                                  ),
+                                ),
+                            if (_reviews.length > 5) ...[
+                              Center(
+                                child: TextButton(
+                                  onPressed: () {
+                                    // TODO: Show all reviews dialog
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => _AllReviewsDialog(
+                                        reviews: _reviews,
+                                        ptName: widget.pt.fullName,
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Xem tất cả ${_reviews.length} đánh giá',
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+
                   const SizedBox(height: 32),
                 ],
               ),
@@ -882,7 +1084,8 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
+      height: 110,
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         color: context.card,
         borderRadius: BorderRadius.circular(16),
@@ -896,31 +1099,37 @@ class _StatCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: context.textPrimary,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 2),
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 10,
               color: context.textSecondary,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -991,6 +1200,171 @@ class _ContactItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Review Card Widget
+class _ReviewCard extends StatelessWidget {
+  final PTReviewModel review;
+  final BuildContext context;
+
+  const _ReviewCard({required this.review, required this.context});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.border, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Avatar + Name + Rating
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundImage: review.userAvatar != null
+                    ? NetworkImage(review.userAvatar!)
+                    : null,
+                child: review.userAvatar == null
+                    ? Icon(Icons.person, color: AppColors.primary)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review.userName ?? 'Học viên',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    RatingStars(rating: review.rating.toDouble(), size: 14),
+                  ],
+                ),
+              ),
+              Text(
+                _formatDate(review.createdAt),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: context.textSecondary,
+                ),
+              ),
+            ],
+          ),
+
+          // Comment
+          if (review.comment.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              review.comment,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: context.textPrimary,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(Timestamp timestamp) {
+    final date = timestamp.toDate();
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Hôm nay';
+    } else if (difference.inDays == 1) {
+      return 'Hôm qua';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} ngày trước';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()} tuần trước';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+}
+
+// All Reviews Dialog
+class _AllReviewsDialog extends StatelessWidget {
+  final List<PTReviewModel> reviews;
+  final String ptName;
+
+  const _AllReviewsDialog({required this.reviews, required this.ptName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tất cả đánh giá',
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ptName,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+
+            // Reviews list
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: reviews.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  return _ReviewCard(review: reviews[index], context: context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

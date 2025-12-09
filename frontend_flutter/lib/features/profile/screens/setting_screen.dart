@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../../theme/colors.dart';
 import '../../../providers/theme_provider.dart';
 import '../components/option.dart';
@@ -301,21 +302,12 @@ class _SettingScreenState extends State<SettingScreen> {
                       },
                     ),
                     SettingOption(
-                      icon: Icons.language,
-                      title: 'Ngôn ngữ',
-                      subtitle: 'Tiếng Anh (US)',
-                      iconColor: AppColors.info,
-                      onTap: () {
-                        _showLanguageDialog(context);
-                      },
-                    ),
-                    SettingOption(
                       icon: Icons.location_on_outlined,
                       title: 'Dịch vụ vị trí',
-                      subtitle: 'Tìm phòng gym gần bạn',
+                      subtitle: 'Trường ĐH Kỹ thuật Công nghệ Cần Thơ',
                       iconColor: AppColors.cardio,
-                      onTap: () {
-                        _showSnackBar(context, 'Đã nhấn vào Dịch vụ vị trí');
+                      onTap: () async {
+                        await _openGymLocation();
                       },
                     ),
                     SettingOption(
@@ -436,46 +428,6 @@ class _SettingScreenState extends State<SettingScreen> {
             : (context.isDarkMode ? AppColors.surfaceDark : AppColors.primary),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Chọn ngôn ngữ'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildLanguageOption(context, '🇺🇸 Tiếng Anh (US)', true),
-            _buildLanguageOption(context, '🇻🇳 Tiếng Việt', false),
-            _buildLanguageOption(context, '🇯🇵 日本語', false),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(
-    BuildContext context,
-    String language,
-    bool isSelected,
-  ) {
-    return ListTile(
-      title: Text(language),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: AppColors.primary)
-          : null,
-      onTap: () {
-        Navigator.pop(context);
-        _showSnackBar(context, 'Đã chuyển ngôn ngữ sang $language');
-      },
     );
   }
 
@@ -684,5 +636,44 @@ class _SettingScreenState extends State<SettingScreen> {
         const Text('© 2025 Nhóm Quản lý phòng gym'),
       ],
     );
+  }
+
+  /// Open gym location in Google Maps using coordinates
+  Future<void> _openGymLocation() async {
+    try {
+      _showSnackBar(context, 'Đang mở vị trí phòng gym...');
+
+      // Coordinates for Trường đại học kỹ thuật công nghệ Cần Thơ
+      const lat = 10.0469;
+      const lng = 105.7683;
+      const label = 'Trường ĐH Kỹ thuật Công nghệ Cần Thơ';
+
+      // Google Maps URL - mở trực tiếp đến vị trí với zoom cao
+      final mapsUrl =
+          'geo:$lat,$lng?q=$lat,$lng(${Uri.encodeComponent(label)})&z=17';
+
+      if (await canLaunchUrlString(mapsUrl)) {
+        await launchUrlString(mapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: sử dụng web URL nếu geo: scheme không hoạt động
+        final webUrl =
+            'https://www.google.com/maps/place/${Uri.encodeComponent(label)}/@$lat,$lng,17z';
+        if (await canLaunchUrlString(webUrl)) {
+          await launchUrlString(webUrl, mode: LaunchMode.externalApplication);
+        } else {
+          _showSnackBar(
+            context,
+            'Không thể mở Google Maps trên thiết bị này',
+            isError: true,
+          );
+        }
+      }
+    } catch (e) {
+      _showSnackBar(
+        context,
+        'Lỗi khi mở vị trí: ${e.toString()}',
+        isError: true,
+      );
+    }
   }
 }

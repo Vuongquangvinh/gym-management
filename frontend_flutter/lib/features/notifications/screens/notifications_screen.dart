@@ -24,6 +24,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadUserId() async {
     final userId = await UserModel.getMemberId();
+    print('🔍 Loading notifications for userId: $userId');
+
+    // Debug: Check ALL notifications in database
+    final allNotifications = await FirebaseFirestore.instance
+        .collection('notifications')
+        .limit(5)
+        .get();
+    print('📊 Total notifications in DB: ${allNotifications.docs.length}');
+    for (var doc in allNotifications.docs) {
+      final data = doc.data();
+      print(
+        '  - Notification userId: ${data['userId']}, title: ${data['title']}',
+      );
+    }
+
     setState(() {
       _userId = userId;
     });
@@ -140,22 +155,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ),
                 )
-              : SliverToBoxAdapter(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('notifications')
-                        .where('userId', isEqualTo: _userId)
-                        .orderBy('createdAt', descending: true)
-                        .limit(50)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        final errorMessage = snapshot.error.toString();
-                        final isIndexBuilding =
-                            errorMessage.contains('index') ||
-                            errorMessage.contains('FAILED_PRECONDITION');
+              : StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('notifications')
+                      .where('userId', isEqualTo: _userId)
+                      .orderBy('createdAt', descending: true)
+                      .limit(50)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    // Debug: Log query info
+                    if (snapshot.hasData) {
+                      print(
+                        '📬 Query returned ${snapshot.data!.docs.length} notifications for userId: $_userId',
+                      );
+                      if (snapshot.data!.docs.isNotEmpty) {
+                        final firstDoc =
+                            snapshot.data!.docs.first.data()
+                                as Map<String, dynamic>;
+                        print(
+                          '📄 First notification userId field: ${firstDoc['userId']}',
+                        );
+                      }
+                    }
+                    if (snapshot.hasError) {
+                      final errorMessage = snapshot.error.toString();
+                      final isIndexBuilding =
+                          errorMessage.contains('index') ||
+                          errorMessage.contains('FAILED_PRECONDITION');
 
-                        return Center(
+                      return SliverFillRemaining(
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -211,17 +240,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ],
                             ],
                           ),
-                        );
-                      }
+                        ),
+                      );
+                    }
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SliverFillRemaining(
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
 
-                      final notifications = snapshot.data?.docs ?? [];
+                    final notifications = snapshot.data?.docs ?? [];
 
-                      if (notifications.isEmpty) {
-                        return Center(
+                    if (notifications.isEmpty) {
+                      return SliverFillRemaining(
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -240,53 +273,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                             ],
                           ),
-                        );
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: notifications.length,
-                          itemBuilder: (context, index) {
-                            final notification =
-                                NotificationModel.fromFirestore(
-                                  notifications[index],
-                                );
-                            return _NotificationCard(
-                              notification: notification,
-                              isDark: isDark,
-                              onTap: () async {
-                                if (!notification.isRead) {
-                                  await NotificationModel.markAsRead(
-                                    notification.id,
-                                  );
-                                }
-                                _handleNotificationTap(context, notification);
-                              },
-                              onDelete: () async {
-                                await NotificationModel.delete(notification.id);
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Đã xóa thông báo'),
-                                      duration: Duration(seconds: 1),
-                                      backgroundColor: AppColors.error,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            );
-                          },
                         ),
                       );
-                    },
-                  ),
+                    }
+
+                    // Use SliverPadding + SliverList for better performance
+                    return SliverPadding(
+                      padding: const EdgeInsets.all(16),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final notification = NotificationModel.fromFirestore(
+                            notifications[index],
+                          );
+                          return _NotificationCard(
+                            key: ValueKey(notification.id),
+                            notification: notification,
+                            isDark: isDark,
+                            onTap: () async {
+                              if (!notification.isRead) {
+                                await NotificationModel.markAsRead(
+                                  notification.id,
+                                );
+                              }
+                              _handleNotificationTap(context, notification);
+                            },
+                            onDelete: () async {
+                              await NotificationModel.delete(notification.id);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Đã xóa thông báo'),
+                                    duration: Duration(seconds: 1),
+                                    backgroundColor: AppColors.error,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        }, childCount: notifications.length),
+                      ),
+                    );
+                  },
                 ),
         ],
       ),

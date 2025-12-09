@@ -5,7 +5,16 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read, write: if true;
-      // Production: allow read, write: if request.auth != null;
+      
+      // Water tracking subcollection
+      match /water_tracking/{trackingId} {
+        allow read, write: if true;
+      }
+      
+      // Body measurements subcollection
+      match /body_measurements/{measurementId} {
+        allow read, write: if true;
+      }
     }
     
     // Admins collection
@@ -17,157 +26,113 @@ service cloud.firestore {
     // Check-ins collection
     match /checkins/{document=**} {
       allow read, write: if true;
-      // Production: allow read, write: if request.auth != null;
     }
     
-    // Spending users collection (admin creates users here first)
+    // Spending users collection
     match /spending_users/{document=**} {
       allow read, write: if true;
-      // Production: allow read, write: if request.auth != null;
     }
     
-    // Packages collection - THÊM RULE NÀY
+    // Packages collection
     match /packages/{packageId} {
-      allow read: if true; // Cho phép mọi người xem gói tập
-      allow write: if true; // Chỉ admin mới được tạo/sửa/xóa gói
-      // Production: allow write: if request.auth != null && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+      allow read: if true;
+      allow write: if true;
     }
     
     // Employees collection
     match /employees/{employeeId} {
       allow read, write: if true;
-      // Production: allow read, write: if request.auth != null;
     }
     
-    // PT Packages collection - Gói dịch vụ PT
+    // PT Packages collection (support both naming conventions)
     match /ptPackages/{packageId} {
-      allow read: if true; // Cho phép đọc gói PT (cho app và admin)
-      allow write: if true; // Cho phép tạo/sửa/xóa gói PT
-      // Production: allow write: if request.auth != null;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
-    // Payment Orders collection - Lịch sử thanh toán
-    match /payment_orders/{orderCode} {
-      // Cho phép đọc tất cả (vì đã có protected route)
-      // User sẽ tự filter ở frontend, Admin xem tất cả
+    match /pt_packages/{packageId} {
       allow read: if true;
-      
-      // Cho phép tạo/sửa (backend webhook và admin manual confirm)
+      allow write: if request.auth != null;
+    }
+    
+    // Payment Orders collection
+    match /payment_orders/{orderCode} {
+      allow read: if true;
       allow create, update: if true;
-      
-      // Cho phép xóa (admin)
       allow delete: if true;
     }
     
-    // Contracts collection - Hợp đồng giữa Member và PT
+    // Schedule collection
+    match /schedule/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Employee Check-ins collection
+    match /employee_checkins/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Contracts collection
     match /contracts/{contractId} {
-      allow read: if true; // Cho phép đọc (member xem hợp đồng của mình, PT xem của học viên)
-      allow create: if true; // Cho phép member tạo hợp đồng mới
-      allow update: if true; // Cho phép PT và member cập nhật trạng thái
-      allow delete: if true; // Cho phép admin xóa nếu cần
-      // Production: 
-      // allow read: if request.auth != null && 
-      //   (resource.data.userId == request.auth.uid || resource.data.ptId == request.auth.uid);
-      // allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // allow update: if request.auth != null && 
-      //   (resource.data.userId == request.auth.uid || resource.data.ptId == request.auth.uid);
+      allow read: if true; 
+      allow create: if true; 
+      allow update: if true; 
+      allow delete: if true; 
     }
     
-    // Chats collection - Chat giữa PT và Client
+    // Pending Requests collection
+    match /pendingRequests/{document=**} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Notifications collection
+    match /notifications/{document=**} {
+      allow read, write: if true;
+    }
+   
+    // Chats collection
     match /chats/{chatId} {
-      // Helper function to check if user is participant
-      function isParticipant() {
-        return request.auth != null && request.auth.uid in resource.data.participants;
-      }
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
       
-      function isCreatingAsParticipant() {
-        return request.auth != null && request.auth.uid in request.resource.data.participants;
-      }
-      
-      // Cho phép đọc nếu user là một trong các participants
-      allow read: if isParticipant();
-      
-      // Cho phép tạo chat mới nếu user là PT hoặc client trong chat đó
-      allow create: if isCreatingAsParticipant();
-      
-      // Cho phép update nếu user là participant (để cập nhật lastMessage)
-      allow update: if isParticipant();
-      
-      // Messages subcollection
       match /messages/{messageId} {
-        // Helper function to get chat participants
-        function getChatParticipants() {
-          return get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-        }
-        
-        // Cho phép đọc tin nhắn nếu user là participant của chat
-        allow read: if request.auth != null && 
-                      request.auth.uid in getChatParticipants();
-        
-        // Cho phép tạo tin nhắn nếu sender_id là current user và user là participant
-        allow create: if request.auth != null && 
-                        request.resource.data.sender_id == request.auth.uid &&
-                        request.auth.uid in getChatParticipants();
-        
-        // Cho phép update tin nhắn (để đánh dấu đã đọc)
-        allow update: if request.auth != null && 
-                        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update: if request.auth != null;
       }
     }
     
-    // Notifications collection - Real-time notifications
-    match /notifications/{notificationId} {
-      // Cho phép đọc nếu là người nhận
-      allow read: if request.auth != null && 
-                    request.auth.uid == resource.data.recipientId;
-      
-      // Chỉ backend mới được tạo notification (qua Admin SDK)
-      allow create: if false;
-      
-      // Cho phép update để đánh dấu đã đọc
-      allow update: if request.auth != null && 
-                      request.auth.uid == resource.data.recipientId &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
-      
-      // Không cho phép xóa từ client
-      allow delete: if false;
-    }
-    
-    // Financial Management Collections - Thu chi lợi nhuận
-    
-    // Expenses collection - Chi phí
+    // Financial Collections
     match /expenses/{expenseId} {
-      allow read: if true; // Cho phép admin đọc
-      allow write: if true; // Cho phép admin tạo/sửa/xóa
-      // Production: allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // Expense Categories collection - Danh mục chi phí
     match /expense_categories/{categoryId} {
-      allow read: if true; // Cho phép admin đọc
-      allow write: if true; // Cho phép admin tạo/sửa/xóa
-      // Production: allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // Salary Configs collection - Cấu hình lương
     match /salary_configs/{configId} {
-      allow read: if true; // Cho phép admin đọc
-      allow write: if true; // Cho phép admin tạo/sửa/xóa
-      // Production: allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // Budgets collection - Ngân sách
     match /budgets/{budgetId} {
-      allow read: if true; // Cho phép admin đọc
-      allow write: if true; // Cho phép admin tạo/sửa/xóa
-      // Production: allow read, write: if request.auth != null;
+      allow read, write: if true;
     }
     
-    // Salary Records collection - Bảng lương thực tế hàng tháng
     match /salary_records/{recordId} {
-      allow read: if true; // Cho phép admin đọc
-      allow write: if true; // Cho phép admin tạo/sửa/xóa
-      // Production: allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if true;
     }
+    
+    match /pt_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true;
+    }
+    
+    // Pending Requests already exists above, no need for ptEditRequests collection
   }
 }

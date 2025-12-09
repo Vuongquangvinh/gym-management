@@ -24,7 +24,7 @@ class _MyContractsScreenState extends State<MyContractsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -221,8 +221,6 @@ class _MyContractsScreenState extends State<MyContractsScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 tabs: const [
                   Tab(text: 'Tất cả'),
-                  Tab(text: 'Chờ duyệt'),
-                  Tab(text: 'Đang hoạt động'),
                   Tab(text: 'Đã hoàn thành'),
                 ],
               ),
@@ -239,22 +237,10 @@ class _MyContractsScreenState extends State<MyContractsScreen>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildTabContent(provider, provider.contracts, isDark),
                       _buildTabContent(
                         provider,
                         provider.contracts
-                            .where((c) => c.status == 'pending')
-                            .toList(),
-                        isDark,
-                      ),
-                      _buildTabContent(
-                        provider,
-                        provider.contracts
-                            .where(
-                              (c) =>
-                                  c.status == 'active' ||
-                                  c.status == 'approved',
-                            )
+                            .where((c) => c.status != 'completed')
                             .toList(),
                         isDark,
                       ),

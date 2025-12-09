@@ -115,6 +115,10 @@ class ContractModel {
   final Timestamp? startDate; // Ngày bắt đầu contract (PT set khi lên lịch)
   final Timestamp? endDate; // Ngày kết thúc contract (PT set khi lên lịch)
 
+  // Review tracking
+  final bool isReviewed; // Đã đánh giá PT chưa
+  final String? reviewId; // ID của review (nếu đã đánh giá)
+
   ContractModel({
     required this.id,
     required this.userId,
@@ -130,6 +134,8 @@ class ContractModel {
     this.updatedAt,
     this.startDate,
     this.endDate,
+    this.isReviewed = false,
+    this.reviewId,
   });
 
   // Computed property để lấy danh sách time slots (cho backward compatibility)
@@ -179,6 +185,8 @@ class ContractModel {
       updatedAt: map['updatedAt'] as Timestamp?,
       startDate: map['startDate'] as Timestamp?,
       endDate: map['endDate'] as Timestamp?,
+      isReviewed: map['isReviewed'] ?? false,
+      reviewId: map['reviewId'],
     );
   }
 
@@ -202,6 +210,8 @@ class ContractModel {
       'updatedAt': updatedAt,
       'startDate': startDate,
       'endDate': endDate,
+      'isReviewed': isReviewed,
+      'reviewId': reviewId,
     };
   }
 

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/colors.dart';
 import '../../../features/chat/screens/chat_list_screen.dart';
 import '../../model/user.model.dart';
+import '../screens/nutrition_screen.dart';
 
 class QuickActionsWidget extends StatelessWidget {
   final UserPackageInfo? userPackageInfo;
@@ -90,7 +91,7 @@ class QuickActionsWidget extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // Hàng 3: Nhắn tin (xanh dương - service/communication)
+        // Hàng 3: Nhắn tin và Dinh dưỡng
         Row(
           children: [
             Expanded(
@@ -114,8 +115,36 @@ class QuickActionsWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Placeholder cho cân đối layout (có thể thêm action khác sau)
-            Expanded(child: SizedBox()),
+            Expanded(
+              child: _QuickActionCard(
+                icon: Icons.restaurant_menu_rounded,
+                title: 'Dinh dưỡng',
+                subtitle: 'Chế độ ăn',
+                gradient: LinearGradient(
+                  colors: [Color(0xFFF59E0B), Color(0xFFFBBF24)], // Vàng cam
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                onTap: () {
+                  if (userPackageInfo?.user != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            NutritionScreen(user: userPackageInfo!.user),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Không thể tải thông tin người dùng'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ],

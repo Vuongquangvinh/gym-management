@@ -49,6 +49,14 @@
       ]
     },
     {
+      "collectionGroup": "pt_reviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ptId", "mode": "ASCENDING" },
+        { "fieldPath": "createdAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "notifications",
       "queryScope": "COLLECTION",
       "fields": [
@@ -78,6 +86,20 @@
       "fields": [
         { "fieldPath": "sender_id", "mode": "ASCENDING" },
         { "fieldPath": "is_read", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "body_measurements",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "measured_at", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "water_tracking",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "date", "mode": "DESCENDING" }
       ]
     }
   ],

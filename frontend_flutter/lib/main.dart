@@ -10,9 +10,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'theme/colors.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/auth/screens/role_selection_screen.dart';
+import 'feature_pt/auth_pt/screen/pt_login_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/map_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
+import 'features/pt/screens/pt_main_screen.dart';
+import 'features/pt/screens/pt_settings_screen.dart';
 import 'features/package/utils/navigation_helper.dart';
 import 'features/qr_checkin/screens/qr_screen.dart';
 import 'features/qr_checkin/screens/checkin_history_screen.dart';
@@ -235,8 +239,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               case '/onboarding3':
                 page = const Onboarding3Screen();
                 break;
+              case '/role-selection':
+                page = const RoleSelectionScreen();
+                break;
               case '/login':
                 page = const LoginScreen();
+                break;
+              case '/pt-login':
+                page = const PtLoginScreen();
+                break;
+              case '/pt':
+                page = const PTMainScreen();
+                break;
+              case '/pt/settings':
+                page = const PTSettingsScreen();
                 break;
               case '/home':
                 page = const HomeScreen();

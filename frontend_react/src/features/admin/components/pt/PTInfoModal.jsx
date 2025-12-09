@@ -74,6 +74,21 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
       const convertToObjectArray = (items, prefix = 'item') => {
         if (!items || items.length === 0) return [];
         return items.map((item, index) => {
+          // If item is a Firebase Storage URL (string starting with https://firebasestorage)
+          if (typeof item === 'string' && item.startsWith('https://firebasestorage')) {
+            return {
+              id: `${prefix}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
+              text: `${prefix === 'cert' ? 'Chứng chỉ' : 'Thành tích'} ${index + 1}`,
+              images: [{
+                id: `img_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,
+                url: item,
+                fileName: item.split('/').pop().split('?')[0], // Extract filename from URL
+                uploadedAt: new Date()
+              }]
+            };
+          }
+          
+          // If item is a plain string (not a URL)
           if (typeof item === 'string') {
             return {
               id: `${prefix}_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`,

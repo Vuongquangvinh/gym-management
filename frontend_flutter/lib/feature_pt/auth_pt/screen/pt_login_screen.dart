@@ -114,10 +114,10 @@ class _PtLoginScreenState extends State<PtLoginScreen>
       );
       await ptAuthProvider.signInWithEmail(email, password);
       setState(() => _isLoading = false);
-      // TODO: Chuyển hướng sang trang PT home hoặc dashboard
+      // Chuyển hướng sang trang PT app
       if (mounted) {
-        logger.i("đăng nhập thành công");
-        Navigator.pushReplacementNamed(context, '/home');
+        logger.i("PT đăng nhập thành công");
+        Navigator.pushReplacementNamed(context, '/pt');
       }
     } catch (e) {
       setState(() {

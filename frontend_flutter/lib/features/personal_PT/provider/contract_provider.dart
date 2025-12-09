@@ -26,6 +26,9 @@ class ContractProvider with ChangeNotifier {
 
       _contracts = await ContractModel.getContractsByUserId(userId);
 
+      // ⭐ Tự động cập nhật status = completed nếu đã hết hạn
+      await _autoUpdateCompletedContracts();
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -33,6 +36,46 @@ class ContractProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       logger.e('Error fetching contracts: $e');
+    }
+  }
+
+  /// Tự động cập nhật contracts đã hết hạn thành completed
+  Future<void> _autoUpdateCompletedContracts() async {
+    try {
+      final now = DateTime.now();
+      final batch = FirebaseFirestore.instance.batch();
+      bool hasUpdates = false;
+
+      for (var contract in _contracts) {
+        // Chỉ update nếu status = 'active' hoặc 'paid' và endDate đã qua
+        if ((contract.status == 'active' || contract.status == 'paid') &&
+            contract.endDate != null) {
+          final endDate = contract.endDate!.toDate();
+          if (endDate.isBefore(now)) {
+            // Đã hết hạn → update status = completed
+            final docRef = FirebaseFirestore.instance
+                .collection('contracts')
+                .doc(contract.id);
+            batch.update(docRef, {
+              'status': 'completed',
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+            hasUpdates = true;
+            logger.i('Auto-updating contract ${contract.id} to completed');
+          }
+        }
+      }
+
+      if (hasUpdates) {
+        await batch.commit();
+        // Refresh lại danh sách sau khi update
+        _contracts = await ContractModel.getContractsByUserId(
+          _contracts.first.userId,
+        );
+      }
+    } catch (e) {
+      logger.e('Error auto-updating completed contracts: $e');
+      // Không throw error để không ảnh hưởng đến việc hiển thị
     }
   }
 
@@ -44,6 +87,9 @@ class ContractProvider with ChangeNotifier {
       notifyListeners();
 
       _contracts = await ContractModel.getContractsByPtId(ptId);
+
+      // ⭐ Tự động cập nhật status = completed nếu đã hết hạn
+      await _autoUpdateCompletedContracts();
 
       _isLoading = false;
       notifyListeners();

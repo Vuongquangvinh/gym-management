@@ -104,6 +104,7 @@ class AuthProvider with ChangeNotifier {
           final userId = userQuery.docs.first.id;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userId', userId);
+          await prefs.setString('userRole', 'user');
           await prefs.setBool('isLoggedIn', true); // Đánh dấu đã đăng nhập
           return null; // Thành công
         } catch (e, stack) {
@@ -146,6 +147,7 @@ class AuthProvider with ChangeNotifier {
         final userId = userQuery.docs.first.id;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userId', userId);
+        await prefs.setString('userRole', 'user');
         await prefs.setBool('isLoggedIn', true);
       }
       return null; // Thành công
@@ -161,6 +163,9 @@ class AuthProvider with ChangeNotifier {
       // Xóa thông tin đăng nhập trong SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('userId');
+      await prefs.remove('userRole');
+      await prefs.remove('employeeId');
+      await prefs.remove('ptEmail');
       await prefs.setBool('isLoggedIn', false);
 
       // Không xóa thông tin sinh trắc học khi logout

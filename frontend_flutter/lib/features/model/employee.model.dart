@@ -111,6 +111,8 @@ class EmployeeModel {
   String idCard; // CMND/CCCD
   String notes;
   PTInfo? ptInfo; // Thông tin PT (chỉ có khi position = 'PT')
+  double rating; // Đánh giá trung bình từ reviews (0-5)
+  int totalReviews; // Tổng số đánh giá từ học viên
 
   EmployeeModel({
     this.id = '',
@@ -135,6 +137,8 @@ class EmployeeModel {
     this.idCard = '',
     this.notes = '',
     this.ptInfo,
+    this.rating = 0.0,
+    this.totalReviews = 0,
   });
 
   /// Chuyển đổi từ Firestore DocumentSnapshot
@@ -170,6 +174,8 @@ class EmployeeModel {
       ptInfo: data['ptInfo'] != null
           ? PTInfo.fromMap(data['ptInfo'] as Map<String, dynamic>)
           : null,
+      rating: _parseDouble(data['rating']) ?? 0.0,
+      totalReviews: data['totalReviews'] ?? 0,
     );
   }
 
@@ -193,9 +199,11 @@ class EmployeeModel {
       'salary': salary,
       'commissionRate': commissionRate,
       'totalClients': totalClients,
-      'avatarUrl': avatarUrl,
+      avatarUrl: avatarUrl,
       'idCard': idCard,
       'notes': notes,
+      'rating': rating,
+      'totalReviews': totalReviews,
     };
 
     // Chỉ thêm ptInfo nếu là PT
@@ -268,6 +276,16 @@ class EmployeeModel {
       years--;
     }
     return years < 0 ? 0 : years;
+  }
+
+  /// Get formatted rating text (e.g., "4.5")
+  String get formattedRating {
+    return rating.toStringAsFixed(1);
+  }
+
+  /// Get rating with star emoji (e.g., "4.5 ⭐")
+  String get ratingWithStar {
+    return '${rating.toStringAsFixed(1)} ⭐';
   }
 
   /// Get status display text in Vietnamese

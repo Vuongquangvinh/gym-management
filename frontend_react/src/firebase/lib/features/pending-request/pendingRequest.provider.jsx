@@ -145,7 +145,7 @@ export function PendingRequestProvider({ children }) {
       } else if (request.type === 'package_create') {
         // Create new package
         const { collection, addDoc } = await import('firebase/firestore');
-        const packagesRef = collection(db, 'pt_packages');
+        const packagesRef = collection(db, 'ptPackages');
         await addDoc(packagesRef, {
           ...request.data,
           ptId: request.ptId,
@@ -153,26 +153,75 @@ export function PendingRequestProvider({ children }) {
           updatedAt: new Date()
         });
       } else if (request.type === 'package_update') {
-        // Update existing package
-        const packageRef = doc(db, 'pt_packages', request.packageId);
+        // Update existing package - check both collection names
+        const { getDoc } = await import('firebase/firestore');
+        let packageRef = doc(db, 'ptPackages', request.packageId);
+        let packageDoc = await getDoc(packageRef);
+        
+        // If not found in ptPackages, try pt_packages
+        if (!packageDoc.exists()) {
+          packageRef = doc(db, 'pt_packages', request.packageId);
+          packageDoc = await getDoc(packageRef);
+        }
+        
+        if (!packageDoc.exists()) {
+          throw new Error(`Package ${request.packageId} not found in either collection`);
+        }
+        
         await updateDoc(packageRef, {
           ...request.data,
           updatedAt: new Date()
         });
       } else if (request.type === 'package_delete') {
-        // Delete package
-        const packageRef = doc(db, 'pt_packages', request.packageId);
+        // Delete package - check both collection names
+        const { getDoc } = await import('firebase/firestore');
+        let packageRef = doc(db, 'ptPackages', request.packageId);
+        let packageDoc = await getDoc(packageRef);
+        
+        if (!packageDoc.exists()) {
+          packageRef = doc(db, 'pt_packages', request.packageId);
+          packageDoc = await getDoc(packageRef);
+        }
+        
+        if (!packageDoc.exists()) {
+          throw new Error(`Package ${request.packageId} not found in either collection`);
+        }
+        
         await deleteDoc(packageRef);
       } else if (request.type === 'package_enable') {
-        // Enable package
-        const packageRef = doc(db, 'pt_packages', request.packageId);
+        // Enable package - check both collection names
+        const { getDoc } = await import('firebase/firestore');
+        let packageRef = doc(db, 'ptPackages', request.packageId);
+        let packageDoc = await getDoc(packageRef);
+        
+        if (!packageDoc.exists()) {
+          packageRef = doc(db, 'pt_packages', request.packageId);
+          packageDoc = await getDoc(packageRef);
+        }
+        
+        if (!packageDoc.exists()) {
+          throw new Error(`Package ${request.packageId} not found in either collection`);
+        }
+        
         await updateDoc(packageRef, {
           isActive: true,
           updatedAt: new Date()
         });
       } else if (request.type === 'package_disable') {
-        // Disable package
-        const packageRef = doc(db, 'pt_packages', request.packageId);
+        // Disable package - check both collection names
+        const { getDoc } = await import('firebase/firestore');
+        let packageRef = doc(db, 'ptPackages', request.packageId);
+        let packageDoc = await getDoc(packageRef);
+        
+        if (!packageDoc.exists()) {
+          packageRef = doc(db, 'pt_packages', request.packageId);
+          packageDoc = await getDoc(packageRef);
+        }
+        
+        if (!packageDoc.exists()) {
+          throw new Error(`Package ${request.packageId} not found in either collection`);
+        }
+        
         await updateDoc(packageRef, {
           isActive: false,
           updatedAt: new Date()

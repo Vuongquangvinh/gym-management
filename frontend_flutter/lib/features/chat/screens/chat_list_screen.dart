@@ -16,7 +16,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _currentUserId;
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   List<PTInfo> _ptList = [];
+  final List<String> _allPtIds = []; // Tất cả PT IDs cần load
+  int _currentBatchIndex = 0;
+  static const int _batchSize = 10; // Load 10 PT mỗi lần
+  final ScrollController _scrollController = ScrollController();
   // Map PT id sang userId (Firestore doc id) từ contract
   final Map<String, String> _ptIdToUserId = {};
 
@@ -24,6 +29,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void initState() {
     super.initState();
     _loadPTList();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.8 &&
+        !_isLoadingMore &&
+        _currentBatchIndex * _batchSize < _allPtIds.length) {
+      _loadMorePTs();
+    }
   }
 
   Future<String?> _findFirestoreUserDocId(String authUid) async {
@@ -96,12 +117,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
       logger.i('👤 Current Auth UID: $_currentUserId');
 
       final firestoreDocId = await _findFirestoreUserDocId(_currentUserId!);
-      final userId = firestoreDocId ?? _currentUserId;
+      final String userId = firestoreDocId ?? _currentUserId!;
       logger.i(
         '🎯 Using userId for query: $userId (Firestore doc id: $firestoreDocId)',
       );
 
-      // Query contracts with userId field
+      _ptIdToUserId.clear();
+      final ptIdsFromContracts = <String>{};
+      final ptIdsFromChats = <String>{};
+
+      // ========== 1. Load từ contracts (existing logic) ==========
       logger.i('🔎 Querying contracts with userId=$userId');
       var contracts = await _firestore
           .collection('contracts')
@@ -122,14 +147,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         );
       }
 
-      if (contracts.docs.isEmpty) {
-        logger.w('❌ No contracts found for user: $userId');
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Map PT id sang userId (Firestore doc id) từ contract
-      _ptIdToUserId.clear();
       for (final doc in contracts.docs) {
         final contractUserId = doc.data()['userId'] ?? doc.data()['user_id'];
         final ptId = doc.data()['ptId'];
@@ -138,61 +155,65 @@ class _ChatListScreenState extends State<ChatListScreen> {
           '📋 Contract ${doc.id}: userId=$contractUserId, ptId=$ptId, status=${doc.data()['status']}',
         );
 
-        // Lưu mapping PT id -> User id (Firestore doc id)
         if (ptId != null && contractUserId != null) {
           _ptIdToUserId[ptId] = contractUserId;
-          logger.i('🔗 Mapped PT $ptId -> User $contractUserId');
+          ptIdsFromContracts.add(ptId);
+          logger.i(
+            '🔗 Mapped PT $ptId -> User $contractUserId (from contract)',
+          );
         }
       }
 
-      // Get PT info
-      final ptIds = _ptIdToUserId.keys.toSet();
-      logger.i('👨‍🏫 Loading ${ptIds.length} PT(s): $ptIds');
+      // ========== 2. Load từ chats collection ==========
+      logger.i('💬 Querying chats for userId=$userId');
+      try {
+        final chatsSnapshot = await _firestore
+            .collection('chats')
+            .where('participants', arrayContains: userId)
+            .get();
 
-      final ptList = <PTInfo>[];
-      for (final ptId in ptIds) {
-        try {
-          final ptDoc = await _firestore
-              .collection('employees')
-              .doc(ptId)
-              .get();
-          if (ptDoc.exists) {
-            final data = ptDoc.data()!;
-            // Lấy userId (Firestore doc id) từ mapping
-            final userId = _ptIdToUserId[ptId] ?? _currentUserId ?? '';
-            // Lấy PT Auth UID (để tạo chatId giống contract detail)
-            final ptUid = data['uid'] as String?;
-            final ptIdForChat =
-                ptUid ?? ptId; // Ưu tiên dùng uid, fallback về doc id
+        logger.i('💬 Found ${chatsSnapshot.docs.length} chat(s)');
 
-            logger.i(
-              '🔑 PT data: docId=$ptId, uid=$ptUid, using for chat: $ptIdForChat',
-            );
+        for (final chatDoc in chatsSnapshot.docs) {
+          final chatId = chatDoc.id;
+          // chatId format: {ptId}_{userId}
+          final parts = chatId.split('_');
+          if (parts.length == 2) {
+            final ptId = parts[0];
+            final chatUserId = parts[1];
 
-            final ptInfo = PTInfo(
-              id: ptIdForChat, // Dùng uid thay vì doc id
-              fullName: data['fullName'] ?? 'PT',
-              email: data['email'] ?? '',
-              avatarUrl: data['avatarUrl'] ?? '',
-              userId: userId,
-            );
-            ptList.add(ptInfo);
-            logger.i(
-              '✅ Loaded PT: ${ptInfo.fullName} (chatId will be: ${ptIdForChat}_$userId)',
-            );
-          } else {
-            logger.w('⚠️ PT doc not found: $ptId');
+            if (chatUserId == userId && ptId.isNotEmpty) {
+              ptIdsFromChats.add(ptId);
+              // Nếu chưa có mapping từ contract, tạo mapping mới
+              if (!_ptIdToUserId.containsKey(ptId)) {
+                _ptIdToUserId[ptId] = userId; // userId is non-null here
+                logger.i('🔗 Mapped PT $ptId -> User $userId (from chat)');
+              }
+            }
           }
-        } catch (e) {
-          logger.w('❌ Error loading PT $ptId: $e');
         }
+      } catch (e) {
+        logger.w('⚠️ Error loading chats: $e');
       }
 
-      logger.i('🎉 Successfully loaded ${ptList.length} PT(s)');
-      setState(() {
-        _ptList = ptList;
-        _isLoading = false;
-      });
+      // ========== 3. Merge PT IDs từ cả 2 nguồn ==========
+      _allPtIds.clear();
+      _allPtIds.addAll({...ptIdsFromContracts, ...ptIdsFromChats});
+      logger.i(
+        '👨‍🏫 Total unique PT(s): ${_allPtIds.length} (${ptIdsFromContracts.length} from contracts, ${ptIdsFromChats.length} from chats)',
+      );
+      logger.i('🔑 PT IDs: $_allPtIds');
+      logger.i('🗺️ PT-to-User mapping: $_ptIdToUserId');
+
+      if (_allPtIds.isEmpty) {
+        logger.w('❌ No PT found from contracts or chats');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // ========== 4. Load first batch ==========
+      await _loadMorePTs();
+      setState(() => _isLoading = false);
     } catch (e) {
       logger.e('❌ Error in _loadPTList: $e');
       setState(() => _isLoading = false);
@@ -201,6 +222,72 @@ class _ChatListScreenState extends State<ChatListScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
       }
+    }
+  }
+
+  Future<void> _loadMorePTs() async {
+    if (_isLoadingMore || _currentBatchIndex * _batchSize >= _allPtIds.length) {
+      return;
+    }
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final startIndex = _currentBatchIndex * _batchSize;
+      final endIndex = (_currentBatchIndex + 1) * _batchSize;
+      final batchIds = _allPtIds.sublist(
+        startIndex,
+        endIndex.clamp(0, _allPtIds.length),
+      );
+
+      logger.i(
+        '📦 Loading batch $_currentBatchIndex: ${batchIds.length} PT(s) (from $startIndex to ${endIndex.clamp(0, _allPtIds.length)})',
+      );
+
+      for (final ptId in batchIds) {
+        try {
+          // Try direct doc lookup first
+          var ptDoc = await _firestore.collection('employees').doc(ptId).get();
+
+          // If not found, try query by uid field (for Auth UID)
+          if (!ptDoc.exists) {
+            final ptQuery = await _firestore
+                .collection('employees')
+                .where('uid', isEqualTo: ptId)
+                .limit(1)
+                .get();
+
+            if (ptQuery.docs.isNotEmpty) {
+              ptDoc = ptQuery.docs.first;
+            }
+          }
+
+          if (ptDoc.exists) {
+            final data = ptDoc.data()!;
+            final userId = _ptIdToUserId[ptId] ?? _currentUserId ?? '';
+            final ptUid = data['uid'] as String?;
+            final ptIdForChat = ptUid ?? ptId;
+
+            final ptInfo = PTInfo(
+              id: ptIdForChat,
+              fullName: data['fullName'] ?? 'PT',
+              email: data['email'] ?? '',
+              avatarUrl: data['avatarUrl'] ?? '',
+              userId: userId,
+            );
+
+            setState(() => _ptList.add(ptInfo));
+            logger.i('✅ Loaded PT: ${ptInfo.fullName}');
+          }
+        } catch (e) {
+          logger.w('❌ Error loading PT $ptId: $e');
+        }
+      }
+
+      _currentBatchIndex++;
+      logger.i('🎉 Batch $_currentBatchIndex loaded. Total: ${_ptList.length}');
+    } finally {
+      setState(() => _isLoadingMore = false);
     }
   }
 
@@ -226,8 +313,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
             )
           : ListView.builder(
-              itemCount: _ptList.length,
+              controller: _scrollController,
+              itemCount: _ptList.length + (_isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
+                // Loading indicator ở cuối
+                if (index == _ptList.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
                 final pt = _ptList[index];
                 return ListTile(
                   leading: CircleAvatar(
