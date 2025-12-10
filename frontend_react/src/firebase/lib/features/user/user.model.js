@@ -675,14 +675,15 @@ export class UserModel {
 
     // Filter case-insensitive search trên client nếu có searchQuery
     if (filters.searchQuery && !filters.status) {
-      const searchQuery = filters.searchQuery.trim();
+      const searchQuery = filters.searchQuery.trim().toLowerCase();
       console.log("🔍 Searching for:", searchQuery);
       console.log("📊 Total users before filter:", users.length);
 
       // Kiểm tra xem có phải tìm kiếm số điện thoại không
-      const isPhoneSearch = /^\+?\d+$/.test(searchQuery);
+      const isPhoneSearch = /^\d+$/.test(searchQuery);
 
       if (isPhoneSearch) {
+        // Tìm kiếm theo số điện thoại
         let searchVariants = [];
 
         // ✅ Nếu người dùng nhập số bắt đầu bằng "0"
@@ -711,11 +712,40 @@ export class UserModel {
             (variant) => user.phone_number === variant
           );
           if (hasMatch) {
-            console.log("✅ Match found:", user.phone_number, user.full_name);
+            console.log(
+              "✅ Phone match found:",
+              user.phone_number,
+              user.full_name
+            );
           }
           return hasMatch;
         });
+      } else {
+        // Tìm kiếm theo tên hoặc email
+        users = users.filter((user) => {
+          const fullName = (user.full_name || "").toLowerCase();
+          const email = (user.email || "").toLowerCase();
+          const phone = (user.phone_number || "").toLowerCase();
+
+          const matchName = fullName.includes(searchQuery);
+          const matchEmail = email.includes(searchQuery);
+          const matchPhone = phone.includes(searchQuery);
+
+          const hasMatch = matchName || matchEmail || matchPhone;
+
+          if (hasMatch) {
+            console.log(
+              "✅ Name/Email match found:",
+              user.full_name,
+              user.email
+            );
+          }
+
+          return hasMatch;
+        });
       }
+
+      console.log("📊 Total users after filter:", users.length);
     }
 
     const lastDoc =

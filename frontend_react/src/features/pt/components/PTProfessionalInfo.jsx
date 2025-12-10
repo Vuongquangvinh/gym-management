@@ -178,8 +178,21 @@ export default function PTProfessionalInfo({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {(ptInfo.certificates || []).map((cert, index) => {
             const isObject = typeof cert === 'object';
-            const certText = isObject ? cert.text : cert;
-            const certImages = isObject ? cert.images : [];
+            const isFirebaseURL = typeof cert === 'string' && cert.startsWith('https://firebasestorage');
+            
+            // If cert is a Firebase Storage URL string, convert it to object format
+            let certText, certImages;
+            if (isFirebaseURL) {
+              certText = `Chứng chỉ ${index + 1}`;
+              certImages = [{
+                id: `img_${index}`,
+                url: cert,
+                fileName: cert.split('/').pop().split('?')[0]
+              }];
+            } else {
+              certText = isObject ? cert.text : cert;
+              certImages = isObject ? cert.images : [];
+            }
             
             return (
               <div 
@@ -212,10 +225,12 @@ export default function PTProfessionalInfo({
                 
                 {/* Display images */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {certImages?.map((img, imgIndex) => (
+                  {certImages?.map((img, imgIndex) => {
+                    const imageUrl = img.url?.startsWith('http') ? img.url : `http://localhost:3000${img.url}`;
+                    return (
                     <div key={imgIndex} style={{ position: 'relative' }}>
                       <img
-                        src={img.url}
+                        src={imageUrl}
                         alt={`Certificate ${index + 1} - Image ${imgIndex + 1}`}
                         style={{
                           width: '100px',
@@ -225,8 +240,12 @@ export default function PTProfessionalInfo({
                           border: '2px solid #ddd',
                           cursor: 'pointer'
                         }}
-                        onClick={() => window.open(img.url, '_blank')}
+                        onClick={() => window.open(imageUrl, '_blank')}
                         title="Click để xem ảnh lớn"
+                        onError={(e) => {
+                          console.error('Error loading image:', imageUrl);
+                          e.target.style.border = '2px solid red';
+                        }}
                       />
                       <button
                         onClick={() => removeCertificateImage(index, imgIndex)}
@@ -253,7 +272,8 @@ export default function PTProfessionalInfo({
                         ×
                       </button>
                     </div>
-                  ))}
+                  );
+                  })}
                   
                   {/* Upload button */}
                   <label
@@ -327,8 +347,21 @@ export default function PTProfessionalInfo({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {(ptInfo.achievements || []).map((achievement, index) => {
             const isObject = typeof achievement === 'object';
-            const achievementText = isObject ? achievement.text : achievement;
-            const achievementImages = isObject ? achievement.images : [];
+            const isFirebaseURL = typeof achievement === 'string' && achievement.startsWith('https://firebasestorage');
+            
+            // If achievement is a Firebase Storage URL string, convert it to object format
+            let achievementText, achievementImages;
+            if (isFirebaseURL) {
+              achievementText = `Thành tích ${index + 1}`;
+              achievementImages = [{
+                id: `img_${index}`,
+                url: achievement,
+                fileName: achievement.split('/').pop().split('?')[0]
+              }];
+            } else {
+              achievementText = isObject ? achievement.text : achievement;
+              achievementImages = isObject ? achievement.images : [];
+            }
             
             return (
               <div 
@@ -361,10 +394,12 @@ export default function PTProfessionalInfo({
                 
                 {/* Display images */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {achievementImages?.map((img, imgIndex) => (
+                  {achievementImages?.map((img, imgIndex) => {
+                    const imageUrl = img.url?.startsWith('http') ? img.url : `http://localhost:3000${img.url}`;
+                    return (
                     <div key={imgIndex} style={{ position: 'relative' }}>
                       <img
-                        src={img.url}
+                        src={imageUrl}
                         alt={`Achievement ${index + 1} - Image ${imgIndex + 1}`}
                         style={{
                           width: '100px',
@@ -374,8 +409,12 @@ export default function PTProfessionalInfo({
                           border: '2px solid #ddd',
                           cursor: 'pointer'
                         }}
-                        onClick={() => window.open(img.url, '_blank')}
+                        onClick={() => window.open(imageUrl, '_blank')}
                         title="Click để xem ảnh lớn"
+                        onError={(e) => {
+                          console.error('Error loading image:', imageUrl);
+                          e.target.style.border = '2px solid red';
+                        }}
                       />
                       <button
                         onClick={() => removeAchievementImage(index, imgIndex)}
@@ -402,7 +441,8 @@ export default function PTProfessionalInfo({
                         ×
                       </button>
                     </div>
-                  ))}
+                  );
+                  })}
                   
                   {/* Upload button */}
                   <label

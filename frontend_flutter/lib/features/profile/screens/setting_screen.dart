@@ -210,31 +210,6 @@ class _SettingScreenState extends State<SettingScreen> {
                         }
                       },
                     ),
-                    SettingOption(
-                      icon: Icons.credit_card,
-                      title: 'Phương thức thanh toán',
-                      subtitle: 'Quản lý các phương thức thanh toán',
-                      iconColor: AppColors.accent,
-                      onTap: () {
-                        _showSnackBar(
-                          context,
-                          'Đã nhấn vào Phương thức thanh toán',
-                        );
-                      },
-                    ),
-                    SettingOption(
-                      icon: Icons.fitness_center,
-                      title: 'Thành viên phòng gym',
-                      subtitle: 'Xem và quản lý tư cách thành viên',
-                      iconColor: AppColors.secondary,
-                      showDivider: false,
-                      onTap: () {
-                        _showSnackBar(
-                          context,
-                          'Đã nhấn vào Thành viên phòng gym',
-                        );
-                      },
-                    ),
                   ],
                 ),
 

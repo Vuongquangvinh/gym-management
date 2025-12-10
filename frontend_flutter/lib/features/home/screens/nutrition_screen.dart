@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend_flutter/features/model/nutrition_recommendation.dart';
 import 'package:frontend_flutter/features/model/user.model.dart';
+import 'package:frontend_flutter/features/model/meal_plan.dart';
 import 'package:frontend_flutter/features/services/nutrition_calculation_service.dart';
 import 'package:frontend_flutter/features/services/water_tracking_service.dart';
+import 'package:frontend_flutter/features/services/ai_meal_planner_service.dart';
 import 'package:frontend_flutter/features/home/screens/measurement_history_screen.dart';
+import 'package:frontend_flutter/features/home/screens/meal_plan_screen.dart';
+import 'package:frontend_flutter/features/home/screens/saved_meal_plans_screen.dart';
+import 'package:frontend_flutter/features/home/screens/progress_charts_screen.dart';
+import 'package:frontend_flutter/features/home/screens/progress_photos_screen.dart';
 import 'package:frontend_flutter/features/home/widgets/add_measurement_dialog.dart';
+import 'package:frontend_flutter/features/home/widgets/meal_preferences_dialog.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NutritionScreen extends StatefulWidget {
@@ -107,6 +114,20 @@ class _NutritionScreenState extends State<NutritionScreen> {
         title: const Text('Dinh dưỡng & Chế độ ăn'),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
+          // Nút xem thực đơn đã lưu
+          IconButton(
+            icon: const Icon(Icons.bookmark),
+            tooltip: 'Thực đơn đã lưu',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SavedMealPlansScreen(userId: widget.user.id),
+                ),
+              );
+            },
+          ),
           // Nút xem lịch sử
           IconButton(
             icon: const Icon(Icons.history),
@@ -232,7 +253,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     icon: const Icon(Icons.add, size: 18),
                     label: Text(
                       'Cập nhật',
-                      style: GoogleFonts.inter(fontSize: 13),
+                      style: GoogleFonts.inter(fontSize: 11),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.blue[700],
@@ -261,7 +282,61 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProgressChartsScreen(userId: widget.user.id),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.show_chart, size: 18),
+                    label: Text(
+                      'Biểu đồ',
+                      style: GoogleFonts.inter(fontSize: 13),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.orange[700],
+                      side: BorderSide(color: Colors.orange[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
               ],
+            ),
+            const SizedBox(height: 8),
+            // Progress Photos button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProgressPhotosScreen(userId: widget.user.id),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.photo_camera, size: 18),
+                label: Text(
+                  'Ảnh tiến độ (Before/After)',
+                  style: GoogleFonts.inter(fontSize: 13),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.green[700],
+                  side: BorderSide(color: Colors.green[300]!),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -339,6 +414,31 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            const Divider(height: 16),
+            // AI Meal Planner Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _generateMealPlan,
+                icon: const Icon(Icons.restaurant_menu, size: 20),
+                label: Text(
+                  'Tạo thực đơn 7 ngày với AI',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange[700],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 2,
                 ),
               ),
             ),
@@ -1453,5 +1553,141 @@ class _NutritionScreenState extends State<NutritionScreen> {
         builder: (context) => MeasurementHistoryScreen(userId: widget.user.id),
       ),
     );
+  }
+
+  Future<void> _generateMealPlan() async {
+    try {
+      // Hiển thị dialog chọn preferences
+      final preferences = await showDialog<MealPlanPreferences>(
+        context: context,
+        builder: (context) => const MealPreferencesDialog(),
+      );
+
+      if (preferences == null) return; // User hủy
+
+      // Show loading dialog
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false,
+          child: Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  Text(
+                    'AI đang tạo thực đơn...',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Vui lòng đợi 10-20 giây',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Generate meal plan
+      final mealPlan = await AIMealPlannerService.generateWeeklyMealPlan(
+        userId: widget.user.id,
+        nutrition: nutritionRecommendation,
+        fitnessGoal: selectedGoal,
+        preferences: preferences,
+      );
+
+      // Close loading dialog
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // Navigate to meal plan screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MealPlanScreen(mealPlan: mealPlan),
+        ),
+      );
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.bookmark_added, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Đã tạo và lưu thực đơn 7 ngày thành công!',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green[600],
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Xem đã lưu',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SavedMealPlansScreen(userId: widget.user.id),
+                ),
+              );
+            },
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      // Close loading dialog if error
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Show error
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Lỗi khi tạo thực đơn: $e',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 }

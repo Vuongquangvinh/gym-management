@@ -938,9 +938,9 @@ class _LoginScreenState extends State<LoginScreen>
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () {
-                                  Navigator.of(context).push(
+                                  Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
-                                      builder: (_) => PtLoginScreen(),
+                                      builder: (_) => const PtLoginScreen(),
                                     ),
                                   );
                                 },

@@ -163,7 +163,7 @@ export default function Dashboard() {
             </button>
             <button 
               className={`${styles.btn} ${styles.outline}`}
-              onClick={() => navigate('/admin/packages/new')}
+              onClick={() => navigate('/admin/packages')}
             >
               📦 Tạo gói
             </button>

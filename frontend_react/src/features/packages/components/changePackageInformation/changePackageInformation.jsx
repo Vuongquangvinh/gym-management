@@ -6,7 +6,6 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 	const [form, setForm] = useState({
 		PackageId: pkg.rawData?.PackageId || pkg.id || "",
 		PackageName: pkg.rawData?.PackageName || pkg.name || "",
-		PackageType: pkg.rawData?.PackageType || pkg.type || "",
 		Duration: pkg.rawData?.Duration || (pkg.duration ? parseInt(pkg.duration) : ""),
 		Price: pkg.rawData?.Price || (pkg.price ? parseInt(pkg.price.replace(/[^\d]/g, '')) : ""),
 		Description: pkg.rawData?.Description || pkg.description || "",
@@ -46,9 +45,6 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 			// Chỉ update các field đã thay đổi
 			if (form.PackageName !== pkg.rawData?.PackageName) {
 				dataToUpdate.PackageName = form.PackageName;
-			}
-			if (form.PackageType !== pkg.rawData?.PackageType) {
-				dataToUpdate.PackageType = form.PackageType;
 			}
 			if (form.Description !== pkg.rawData?.Description) {
 				dataToUpdate.Description = form.Description;
@@ -139,21 +135,6 @@ export default function ChangePackageInformation({ pkg, onSave, onCancel }) {
 				<div className={styles.formRow}>
 					<label>Tên gói <span className={styles.required}>*</span></label>
 					<input type="text" name="PackageName" value={form.PackageName} onChange={handleChange} required />
-				</div>
-				<div className={styles.formRow}>
-					<label>Loại gói <span className={styles.required}>*</span></label>
-					<select
-						name="PackageType"
-						value={form.PackageType}
-						onChange={handleChange}
-						required
-					>
-						<option value="">-- Chọn loại --</option>
-						<option value="Personal">Cá nhân</option>
-						<option value="PT">Huấn luyện viên cá nhân</option>
-						<option value="Trial">Thử nghiệm</option>
-						<option value="Promotional">Khuyến mãi</option>
-					</select>
 				</div>
 				<div className={styles.formRow}>
 					<label>Thời hạn (ngày) <span className={styles.required}>*</span></label>

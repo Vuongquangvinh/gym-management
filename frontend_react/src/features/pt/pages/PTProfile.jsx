@@ -47,6 +47,45 @@ export default function PTProfile() {
   const [newCertificate, setNewCertificate] = useState('');
   const [newAchievement, setNewAchievement] = useState('');
 
+  // Helper function to normalize certificates/achievements from Firestore
+  const normalizeItems = (items) => {
+    if (!items || !Array.isArray(items)) return [];
+    
+    return items.map((item, index) => {
+      // If item is a Firebase Storage URL string
+      if (typeof item === 'string' && item.startsWith('https://firebasestorage')) {
+        return {
+          id: `item_${Date.now()}_${index}`,
+          text: `Item ${index + 1}`,
+          images: [{
+            id: `img_${Date.now()}_${index}`,
+            url: item,
+            fileName: item.split('/').pop().split('?')[0]
+          }]
+        };
+      }
+      
+      // If item is a plain string (not URL)
+      if (typeof item === 'string') {
+        return {
+          id: `item_${Date.now()}_${index}`,
+          text: item,
+          images: []
+        };
+      }
+      
+      // If item is already an object, ensure it has an id
+      if (typeof item === 'object') {
+        return {
+          ...item,
+          id: item.id || `item_${Date.now()}_${index}`
+        };
+      }
+      
+      return item;
+    });
+  };
+
   // Real-time listener for employee data
   useEffect(() => {
     if (!currentUser?.email) return;
@@ -66,9 +105,15 @@ export default function PTProfile() {
             
             // Update PT info
             if (employee.ptInfo) {
+              const normalizedPtInfo = {
+                ...employee.ptInfo,
+                certificates: normalizeItems(employee.ptInfo.certificates || []),
+                achievements: normalizeItems(employee.ptInfo.achievements || [])
+              };
+              
               setPtInfo(prev => ({
                 ...prev,
-                ...employee.ptInfo
+                ...normalizedPtInfo
               }));
             }
             
@@ -243,8 +288,8 @@ export default function PTProfile() {
           bio: employee.ptInfo.bio || '',
           specialties: employee.ptInfo.specialties || [],
           experience: employee.ptInfo.experience || 0,
-          certificates: employee.ptInfo.certificates || [],
-          achievements: employee.ptInfo.achievements || [],
+          certificates: normalizeItems(employee.ptInfo.certificates || []),
+          achievements: normalizeItems(employee.ptInfo.achievements || []),
           languages: employee.ptInfo.languages || ['vi'],
           socialMedia: {
             facebook: employee.ptInfo.socialMedia?.facebook || '',

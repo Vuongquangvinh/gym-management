@@ -17,7 +17,6 @@ import { db } from "../../config/firebase.js";
 export const PackageSchema = Joi.object({
   PackageId: Joi.string().required(),
   PackageName: Joi.string().required(),
-  PackageType: Joi.string().required(),
   Description: Joi.string().optional(),
   Duration: Joi.number().required(),
   Price: Joi.number().required(),
@@ -40,7 +39,6 @@ export class PackageModel {
   constructor({
     PackageId,
     PackageName,
-    PackageType,
     Duration,
     Price,
     Description,
@@ -55,7 +53,6 @@ export class PackageModel {
   } = {}) {
     this.PackageId = PackageId;
     this.PackageName = PackageName;
-    this.PackageType = PackageType;
     this.Description = Description;
     this.Duration = Duration;
     this.Price = Price;

@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { ExpenseService } from '../../firebase/lib/features/expense/expense.service.js';
 import { EXPENSE_TYPE, EXPENSE_CATEGORY, EXPENSE_STATUS, ExpenseModel } from '../../firebase/lib/features/expense/expense.model.js';
+import Swal from 'sweetalert2';
 import styles from './OperatingExpenses.module.css';
 
 /**
@@ -44,8 +45,6 @@ import styles from './OperatingExpenses.module.css';
 export default function OperatingExpenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
 
@@ -56,7 +55,6 @@ export default function OperatingExpenses() {
     type: EXPENSE_TYPE.RENT,
     category: EXPENSE_CATEGORY.INFRASTRUCTURE,
     amount: '',
-    title: '',
     description: '',
     expenseDate: new Date().toISOString().split('T')[0],
     dueDate: new Date().toISOString().split('T')[0],
@@ -70,13 +68,17 @@ export default function OperatingExpenses() {
   const loadExpenses = async () => {
     try {
       setLoading(true);
-      setError('');
       const startDate = new Date(selectedYear, selectedMonth - 1, 1);
       const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59, 999);
       const loaded = await ExpenseService.getExpensesByDateRange(startDate, endDate);
       setExpenses(loaded);
     } catch (err) {
-      setError('Lỗi tải dữ liệu: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tải dữ liệu',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,6 @@ export default function OperatingExpenses() {
       description: '',
       expenseDate: new Date().toISOString().split('T')[0],
       dueDate: new Date().toISOString().split('T')[0],
-      vendor: '',
       notes: '',
     });
     setOpenDialog(true);
@@ -103,7 +104,6 @@ export default function OperatingExpenses() {
       type: expense.type,
       category: expense.category,
       amount: expense.amount,
-      title: expense.title || '',
       description: expense.description,
       expenseDate: expense.paidDate?.toDate?.()?.toISOString().split('T')[0] || 
                    new Date(expense.paidDate).toISOString().split('T')[0] || 
@@ -119,32 +119,42 @@ export default function OperatingExpenses() {
   const handleSave = async () => {
     try {
       if (!formData.amount || !formData.description) {
-        setError('Vui lòng nhập đầy đủ thông tin');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Thiếu thông tin',
+          text: 'Vui lòng nhập đầy đủ thông tin',
+          confirmButtonColor: '#667eea',
+        });
         return;
       }
 
       setLoading(true);
-      setError('');
 
       if (editingExpense) {
         // Update existing
         editingExpense.type = formData.type;
         editingExpense.category = formData.category;
         editingExpense.amount = parseFloat(formData.amount);
-        editingExpense.title = formData.title;
         editingExpense.description = formData.description;
         editingExpense.paidDate = new Date(formData.expenseDate);
         editingExpense.dueDate = new Date(formData.dueDate);
         editingExpense.notes = formData.notes;
         await editingExpense.save();
-        setSuccess('✅ Cập nhật chi phí thành công');
+        setOpenDialog(false);
+        await loadExpenses();
+        Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: 'Cập nhật chi phí thành công',
+          confirmButtonColor: '#667eea',
+          timer: 2000,
+        });
       } else {
         // Create new
         const newExpense = new ExpenseModel({
           type: formData.type,
           category: formData.category,
           amount: parseFloat(formData.amount),
-          title: formData.title,
           description: formData.description,
           paidDate: new Date(formData.expenseDate),
           dueDate: new Date(formData.dueDate),
@@ -152,44 +162,99 @@ export default function OperatingExpenses() {
           status: EXPENSE_STATUS.PENDING,
         });
         await newExpense.save();
-        setSuccess('✅ Thêm chi phí thành công');
+        setOpenDialog(false);
+        await loadExpenses();
+        Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: 'Thêm chi phí thành công',
+          confirmButtonColor: '#667eea',
+          timer: 2000,
+        });
       }
-
-      setOpenDialog(false);
-      await loadExpenses();
     } catch (err) {
-      setError('Lỗi lưu chi phí: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi lưu chi phí',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (expense) => {
-    if (!window.confirm('Xóa chi phí này?')) return;
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Xác nhận xóa',
+      text: 'Bạn có chắc chắn muốn xóa chi phí này?',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setLoading(true);
-      setError('');
-      await ExpenseModel.delete(expense._id);
-      setSuccess('✅ Xóa chi phí thành công');
+      // Gọi phương thức delete() trên instance của expense
+      await expense.hardDelete();
       await loadExpenses();
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã xóa!',
+        text: 'Xóa chi phí thành công',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi xóa chi phí: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi xóa chi phí',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (expense) => {
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Xác nhận duyệt',
+      text: 'Duyệt chi phí này là đã thanh toán?',
+      showCancelButton: true,
+      confirmButtonText: 'Duyệt',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#4caf50',
+      cancelButtonColor: '#6b7280',
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       setLoading(true);
-      setError('');
       expense.status = EXPENSE_STATUS.PAID;
       await expense.save();
-      setSuccess('✅ Duyệt chi phí thành công');
       await loadExpenses();
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã duyệt!',
+        text: 'Duyệt chi phí thành công',
+        confirmButtonColor: '#667eea',
+        timer: 2000,
+      });
     } catch (err) {
-      setError('Lỗi duyệt chi phí: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi duyệt chi phí',
+        text: err.message,
+        confirmButtonColor: '#667eea',
+      });
     } finally {
       setLoading(false);
     }
@@ -291,9 +356,6 @@ export default function OperatingExpenses() {
         </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
-
       {/* Summary Stats */}
       <Grid container spacing={3} mb={3}>
         <Grid item xs={12} md={4}>
@@ -368,7 +430,7 @@ export default function OperatingExpenses() {
               expenses.map((expense) => (
                 <TableRow key={expense.id} hover>
                   <TableCell sx={{ fontWeight: 600 }}>{getTypeLabel(expense.type)}</TableCell>
-                  <TableCell>{expense.title || expense.description}</TableCell>
+                  <TableCell>{expense.description}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', color: '#667eea' }}>
                     {formatCurrency(expense.amount)}
                   </TableCell>
@@ -435,18 +497,11 @@ export default function OperatingExpenses() {
 
           <TextField
             fullWidth
-            label="Tiêu đề"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="VD: Tiền điện tháng 11"
-          />
-
-          <TextField
-            fullWidth
             label="Mô tả"
+            required
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="VD: Tòa nhà, phòng gym..."
+            placeholder="VD: Tiền điện tháng 11 - Tòa nhà ABC"
             multiline
             rows={2}
           />
@@ -480,19 +535,12 @@ export default function OperatingExpenses() {
 
           <TextField
             fullWidth
-            label="Người bán/Công ty"
-            value={formData.vendor}
-            onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-            placeholder="VD: Công ty điện lực"
-          />
-
-          <TextField
-            fullWidth
             label="Ghi chú"
             multiline
             rows={3}
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="Ghi chú thêm (nếu có)"
           />
         </DialogContent>
         <DialogActions>

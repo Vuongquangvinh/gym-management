@@ -411,11 +411,14 @@ class _WeeklyScheduleSelectionScreenState
                       onTap: () {
                         //                     ],
 
+                        // Convert dayOfWeek từ 1-7 sang 0-6 (0 = Chủ nhật, 1 = Thứ 2, ...)
+                        final slotDayOfWeek = dayOfWeek == 7 ? 0 : dayOfWeek;
+
                         final selectedSlot = SelectedTimeSlot(
                           //                   ),
                           timeSlotId: slot.id, //                 ),
 
-                          dayOfWeek: dayOfWeek,
+                          dayOfWeek: slotDayOfWeek,
 
                           startTime:
                               slot.startTime, //                 // Content
@@ -833,7 +836,9 @@ class _WeeklyScheduleSelectionScreenState
                 final selectedSlot = _selectedSchedule[dayOfWeek];
 
                 // Lọc các time slots khả dụng cho ngày này
-                final slotDayOfWeek = dayOfWeek % 7;
+                // dayOfWeek: 1=Thứ 2, 2=Thứ 3, ..., 6=Thứ 7, 7=Chủ nhật
+                // Firestore dayOfWeek: 0=Chủ nhật, 1=Thứ 2, ..., 6=Thứ 7
+                final slotDayOfWeek = dayOfWeek == 7 ? 0 : dayOfWeek;
 
                 final availableSlots = widget.package.availableTimeSlots.where((
                   slot,

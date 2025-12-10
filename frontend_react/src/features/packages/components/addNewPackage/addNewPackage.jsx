@@ -7,7 +7,6 @@ export default function AddNewPackage({ onSave, onCancel }) {
   const [form, setForm] = useState({
     PackageId: "",
     PackageName: "",
-    PackageType: "",
     Description: "",
     Duration: "",
     Price: "",
@@ -109,22 +108,6 @@ export default function AddNewPackage({ onSave, onCancel }) {
               required
               placeholder="Nhập tên gói (ví dụ: Gói cơ bản 1 tháng)"
             />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Loại gói <span className={styles.required}>*</span></label>
-            <select
-              name="PackageType"
-              value={form.PackageType}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Chọn loại --</option>
-              <option value="Personal">Cá nhân</option>
-              <option value="PT">Huấn luyện viên cá nhân</option>
-              <option value="Trial">Thử nghiệm</option>
-              <option value="Promotional">Khuyến mãi</option>
-            </select>
           </div>
 
           <div className={styles.formGroup}>

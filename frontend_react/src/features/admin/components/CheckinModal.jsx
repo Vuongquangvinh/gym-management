@@ -43,6 +43,26 @@ export default function CheckinModal({
     }
 
     try {
+      // ✅ Kiểm tra membership status
+      if (selectedMember.membership_status !== 'Active') {
+        toast.error('Thành viên này không còn active. Vui lòng gia hạn gói tập trước khi check-in.');
+        return;
+      }
+
+      // ✅ Kiểm tra gói tập còn hạn
+      if (selectedMember.package_end_date) {
+        const packageEndDate = selectedMember.package_end_date?.toDate?.() || 
+                              new Date(selectedMember.package_end_date);
+        
+        if (packageEndDate < new Date()) {
+          toast.error('Gói tập đã hết hạn. Vui lòng gia hạn trước khi check-in.');
+          return;
+        }
+      } else {
+        toast.error('Thành viên chưa có gói tập. Vui lòng đăng ký gói tập trước khi check-in.');
+        return;
+      }
+
       const payload = {
         memberId: selectedMember.id,
         memberName: selectedMember.full_name,
@@ -102,6 +122,23 @@ export default function CheckinModal({
               <h5>Thông tin hội viên</h5>
               <p><strong>Tên:</strong> {selectedMember.full_name}</p>
               <p><strong>Số điện thoại:</strong> {selectedMember.phone_number}</p>
+              <p>
+                <strong>Trạng thái:</strong>{' '}
+                <span style={{ 
+                  color: selectedMember.membership_status === 'Active' ? '#22c55e' : 
+                         selectedMember.membership_status === 'Expired' ? '#ef4444' : '#f59e0b',
+                  fontWeight: 'bold'
+                }}>
+                  {selectedMember.membership_status || 'Unknown'}
+                </span>
+              </p>
+              {selectedMember.package_end_date && (
+                <p>
+                  <strong>Gói tập hết hạn:</strong>{' '}
+                  {(selectedMember.package_end_date?.toDate?.() || 
+                    new Date(selectedMember.package_end_date)).toLocaleDateString('vi-VN')}
+                </p>
+              )}
             </div>
           )}
 

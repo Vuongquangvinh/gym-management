@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/colors.dart';
 import '../../../features/auth/widgets/input_widget.dart';
 import '../../../features/auth/widgets/button_widget.dart';
+import '../../../features/auth/screens/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../provider/pt_auth_provider.dart';
 import 'package:logger/logger.dart';
@@ -319,7 +320,11 @@ class _PtLoginScreenState extends State<PtLoginScreen>
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              );
                             },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(

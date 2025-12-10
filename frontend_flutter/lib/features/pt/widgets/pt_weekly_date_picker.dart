@@ -129,19 +129,19 @@ class PTWeeklyDatePicker extends StatelessWidget {
 
                 return Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: InkWell(
                       onTap: () => onDateChange(day),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? theme.colorScheme.primary
                               : isToday
                               ? theme.colorScheme.primary.withOpacity(0.1)
                               : null,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           border: isToday && !isSelected
                               ? Border.all(
                                   color: theme.colorScheme.primary,
@@ -155,8 +155,8 @@ class PTWeeklyDatePicker extends StatelessWidget {
                             Text(
                               _formatDayName(day),
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                                 color: isSelected
                                     ? Colors.white
                                     : isToday
@@ -164,11 +164,11 @@ class PTWeeklyDatePicker extends StatelessWidget {
                                     : theme.textTheme.bodySmall?.color,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
-                              DateFormat('dd/MM').format(day),
+                              day.day.toString(),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
                                     ? Colors.white

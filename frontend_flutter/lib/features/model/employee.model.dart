@@ -34,6 +34,17 @@ class PTInfo {
   });
 
   factory PTInfo.fromMap(Map<String, dynamic> data) {
+    // Helper function to safely parse socialMedia
+    Map<String, String> parseSocialMedia(dynamic value) {
+      if (value == null) return {};
+      if (value is Map) {
+        return value.map(
+          (key, val) => MapEntry(key.toString(), val?.toString() ?? ''),
+        );
+      }
+      return {};
+    }
+
     return PTInfo(
       specialties: List<String>.from(data['specialties'] ?? []),
       experience: data['experience'] ?? 0,
@@ -46,7 +57,7 @@ class PTInfo {
       isAcceptingNewClients: data['isAcceptingNewClients'] ?? true,
       languages: List<String>.from(data['languages'] ?? ['vi']),
       achievements: List<dynamic>.from(data['achievements'] ?? []),
-      socialMedia: Map<String, String>.from(data['socialMedia'] ?? {}),
+      socialMedia: parseSocialMedia(data['socialMedia']),
     );
   }
 

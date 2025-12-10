@@ -71,7 +71,13 @@ class CheckinModel {
       return value.toDate();
     } else if (value is String) {
       try {
-        return DateTime.parse(value);
+        // Parse ISO 8601 string và convert sang local time
+        final utcTime = DateTime.parse(value);
+        // Nếu string có 'Z' (UTC), convert sang local time
+        if (value.endsWith('Z')) {
+          return utcTime.toLocal();
+        }
+        return utcTime;
       } catch (e) {
         logger.w('Không thể parse DateTime từ string: $value');
         return DateTime.now();

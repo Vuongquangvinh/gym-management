@@ -168,10 +168,7 @@ export default function PackageTable({ onSelectPackage }) {
                 <p className={styles.packageDescription}>{pkg.description}</p>
 
                 <div className={styles.packageGrid}>
-                  <div className={`${styles.infoBox} ${styles.type}`}>
-                    <div className={styles.infoLabel}>Loại gói</div>
-                    <div className={styles.infoValue}>{pkg.type}</div>
-                  </div>
+                 
                   <div className={`${styles.infoBox} ${styles.duration}`}>
                     <div className={styles.infoLabel}>Thời hạn</div>
                     <div className={styles.infoValue}>{pkg.duration}</div>

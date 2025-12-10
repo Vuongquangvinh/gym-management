@@ -8,7 +8,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon src/app.js"
+    "start": "nodemon src/app.js",
+    "seed": "node scripts/seed-mock-data.js",
+    "cleanup": "node scripts/cleanup-mock-data.js",
+    "mock:menu": "node scripts/quick-start.js"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
