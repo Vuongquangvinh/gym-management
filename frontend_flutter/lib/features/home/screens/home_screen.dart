@@ -464,8 +464,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: SafeArea(
               child: Container(
-                height: 65,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                height: 55,
+                padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -700,40 +700,39 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
           decoration: BoxDecoration(
             // Nền nổi bật hơn khi được chọn
             gradient: isSelected
                 ? LinearGradient(
                     colors: [
-                      AppColors.primary.withOpacity(0.12),
-                      AppColors.primaryLight.withOpacity(0.08),
+                      AppColors.primary.withOpacity(0.1),
+                      AppColors.primaryLight.withOpacity(0.06),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   )
                 : null,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             // Border khi active
             border: isSelected
                 ? Border.all(
-                    color: AppColors.primary.withOpacity(0.3),
-                    width: 1.5,
+                    color: AppColors.primary.withOpacity(0.25),
+                    width: 1,
                   )
                 : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Icon với container nổi bật khi active
               Container(
                 // Sửa lỗi padding ở đây: all(0) giống zero, tăng lên để thấy background
-                padding: isSelected
-                    ? const EdgeInsets.all(10)
-                    : EdgeInsets.zero,
+                padding: isSelected ? const EdgeInsets.all(6) : EdgeInsets.zero,
                 decoration: isSelected
                     ? BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.11),
+                        color: AppColors.primary.withOpacity(0.08),
                         shape: BoxShape.circle,
                       )
                     : null,
@@ -743,30 +742,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? AppColors.primary
                       : (isDarkMode ? Colors.white70 : Colors.black54),
                   // Sửa lỗi size: 14 quá nhỏ
-                  size: 24,
+                  size: 22,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               // Label với font đậm hơn khi active
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 9.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isSelected
                       ? AppColors.primary
                       : (isDarkMode ? Colors.white70 : Colors.black54),
-                  letterSpacing: isSelected ? 0.2 : 0,
+                  letterSpacing: 0,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              // Dot indicator khi active
+              // Dot indicator khi active - nhỏ hơn
               if (isSelected)
                 Container(
-                  margin: const EdgeInsets.only(top: 3),
-                  width: 4,
-                  height: 4,
+                  margin: const EdgeInsets.only(top: 1.5),
+                  width: 3,
+                  height: 3,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     shape: BoxShape.circle,

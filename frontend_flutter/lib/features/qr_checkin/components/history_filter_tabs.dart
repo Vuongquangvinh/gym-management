@@ -19,13 +19,13 @@ class HistoryFilterTabs extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _buildFilterChip(label: 'All', value: 'all', isDark: isDark),
+          _buildFilterChip(label: 'Tất cả', value: 'all', isDark: isDark),
           const SizedBox(width: 8),
-          _buildFilterChip(label: 'Today', value: 'today', isDark: isDark),
+          _buildFilterChip(label: 'Hôm nay', value: 'today', isDark: isDark),
           const SizedBox(width: 8),
-          _buildFilterChip(label: 'This Week', value: 'week', isDark: isDark),
+          _buildFilterChip(label: 'Tuần này', value: 'week', isDark: isDark),
           const SizedBox(width: 8),
-          _buildFilterChip(label: 'This Month', value: 'month', isDark: isDark),
+          _buildFilterChip(label: 'Tháng này', value: 'month', isDark: isDark),
         ],
       ),
     );

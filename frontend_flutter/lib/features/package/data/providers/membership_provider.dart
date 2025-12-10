@@ -150,32 +150,17 @@ class MembershipProvider extends ChangeNotifier {
     try {
       logger.i("Lấy lịch sử thanh toán cho userId (document ID): $userId");
 
-      // Bước 1: Lấy field _id từ document user
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-
-      if (!userDoc.exists) {
-        throw Exception('Không tìm thấy user với document ID: $userId');
-      }
-
-      final userData = userDoc.data();
-      final userIdField = userData?['_id']?.toString();
-
-      if (userIdField == null || userIdField.isEmpty) {
-        throw Exception('User không có field _id');
-      }
-
-      logger.i("Đã lấy được _id field: $userIdField");
-
-      // Bước 2: Lấy tất cả payment orders của user bằng _id field
+      // Query payment_orders trực tiếp bằng userId (document ID)
+      // Vì trong Firestore, payment_orders lưu userId là document ID, không phải field _id
       final querySnapshot = await _firestore
           .collection('payment_orders')
-          .where('userId', isEqualTo: userIdField)
+          .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
           .get();
 
-      logger.i("Lấy được ${querySnapshot.docs.length} bản ghi payment_orders");
+      logger.i("Tìm được ${querySnapshot.docs.length} giao dịch thanh toán");
 
-      // Bước 3: Enrich data với thông tin package chi tiết
+      // Enrich data với thông tin package chi tiết
       final paymentHistory = <Map<String, dynamic>>[];
 
       for (var doc in querySnapshot.docs) {

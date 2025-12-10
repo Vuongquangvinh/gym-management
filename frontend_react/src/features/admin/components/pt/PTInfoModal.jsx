@@ -755,13 +755,18 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                             {cert.images.map((image, imgIndex) => {
                               // Extra safety: create fallback key in case of duplicates
                               const safeKey = `${image.id}_${imgIndex}_${image.fileName || 'nofile'}`;
+                              const imageUrl = image.url?.startsWith('http') ? image.url : `http://localhost:3000${image.url}`;
                               return (
                                 <div key={safeKey} className={styles.imageItem}>
                                   <img 
-                                    src={image.url} 
+                                    src={imageUrl} 
                                     alt={`Certificate ${index + 1} - Image ${imgIndex + 1}`}
-                                    onClick={() => openImageViewer(image.url, 'certificate', imgIndex)}
+                                    onClick={() => openImageViewer(imageUrl, 'certificate', imgIndex)}
                                     className={styles.thumbnail}
+                                    onError={(e) => {
+                                      console.error('Error loading certificate image:', imageUrl);
+                                      e.target.style.border = '2px solid red';
+                                    }}
                                   />
                                   <button
                                     type="button"
@@ -892,12 +897,17 @@ export default function PTInfoModal({ isOpen, onClose, pt, onUpdate }) {
                             {achievement.images.map((image, imgIndex) => {
                               // Extra safety: create fallback key in case of duplicates  
                               const safeKey = `${image.id}_${imgIndex}_${image.fileName || 'nofile'}`;
+                              const imageUrl = image.url?.startsWith('http') ? image.url : `http://localhost:3000${image.url}`;
                               return (
                                 <div key={safeKey} className={styles.imageItem}>
                                   <img 
-                                    src={image.url} 
+                                    src={imageUrl} 
                                     alt={`Achievement ${index + 1} - Image ${imgIndex + 1}`}
-                                    onClick={() => openImageViewer(image.url, 'achievement', imgIndex)}
+                                    onClick={() => openImageViewer(imageUrl, 'achievement', imgIndex)}
+                                    onError={(e) => {
+                                      console.error('Error loading achievement image:', imageUrl);
+                                      e.target.style.border = '2px solid red';
+                                    }}
                                     className={styles.thumbnail}
                                   />
                                   <button

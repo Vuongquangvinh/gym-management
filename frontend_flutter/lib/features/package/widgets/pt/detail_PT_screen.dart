@@ -672,8 +672,17 @@ class _DetailPTScreenState extends State<DetailPTScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ...ptInfo.achievements.map(
-                            (a) => Padding(
+                          ...ptInfo.achievements.map((a) {
+                            // Xử lý an toàn: convert sang String
+                            final achievementText = a is String
+                                ? a
+                                : (a is Map
+                                      ? (a['title'] ??
+                                            a['name'] ??
+                                            a.toString())
+                                      : a.toString());
+
+                            return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -686,7 +695,7 @@ class _DetailPTScreenState extends State<DetailPTScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      a,
+                                      achievementText,
                                       style: GoogleFonts.inter(
                                         fontSize: 14,
                                         color: context.textSecondary,
@@ -695,8 +704,8 @@ class _DetailPTScreenState extends State<DetailPTScreen> {
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
+                            );
+                          }),
                         ],
                       ),
                     ),

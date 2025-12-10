@@ -55,7 +55,6 @@ export default function OperatingExpenses() {
     type: EXPENSE_TYPE.RENT,
     category: EXPENSE_CATEGORY.INFRASTRUCTURE,
     amount: '',
-    title: '',
     description: '',
     expenseDate: new Date().toISOString().split('T')[0],
     dueDate: new Date().toISOString().split('T')[0],
@@ -94,7 +93,6 @@ export default function OperatingExpenses() {
       description: '',
       expenseDate: new Date().toISOString().split('T')[0],
       dueDate: new Date().toISOString().split('T')[0],
-      vendor: '',
       notes: '',
     });
     setOpenDialog(true);
@@ -106,7 +104,6 @@ export default function OperatingExpenses() {
       type: expense.type,
       category: expense.category,
       amount: expense.amount,
-      title: expense.title || '',
       description: expense.description,
       expenseDate: expense.paidDate?.toDate?.()?.toISOString().split('T')[0] || 
                    new Date(expense.paidDate).toISOString().split('T')[0] || 
@@ -138,7 +135,6 @@ export default function OperatingExpenses() {
         editingExpense.type = formData.type;
         editingExpense.category = formData.category;
         editingExpense.amount = parseFloat(formData.amount);
-        editingExpense.title = formData.title;
         editingExpense.description = formData.description;
         editingExpense.paidDate = new Date(formData.expenseDate);
         editingExpense.dueDate = new Date(formData.dueDate);
@@ -159,7 +155,6 @@ export default function OperatingExpenses() {
           type: formData.type,
           category: formData.category,
           amount: parseFloat(formData.amount),
-          title: formData.title,
           description: formData.description,
           paidDate: new Date(formData.expenseDate),
           dueDate: new Date(formData.dueDate),
@@ -435,7 +430,7 @@ export default function OperatingExpenses() {
               expenses.map((expense) => (
                 <TableRow key={expense.id} hover>
                   <TableCell sx={{ fontWeight: 600 }}>{getTypeLabel(expense.type)}</TableCell>
-                  <TableCell>{expense.title || expense.description}</TableCell>
+                  <TableCell>{expense.description}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', color: '#667eea' }}>
                     {formatCurrency(expense.amount)}
                   </TableCell>
@@ -502,18 +497,11 @@ export default function OperatingExpenses() {
 
           <TextField
             fullWidth
-            label="Tiêu đề"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="VD: Tiền điện tháng 11"
-          />
-
-          <TextField
-            fullWidth
             label="Mô tả"
+            required
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="VD: Tòa nhà, phòng gym..."
+            placeholder="VD: Tiền điện tháng 11 - Tòa nhà ABC"
             multiline
             rows={2}
           />
@@ -547,19 +535,12 @@ export default function OperatingExpenses() {
 
           <TextField
             fullWidth
-            label="Người bán/Công ty"
-            value={formData.vendor}
-            onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-            placeholder="VD: Công ty điện lực"
-          />
-
-          <TextField
-            fullWidth
             label="Ghi chú"
             multiline
             rows={3}
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="Ghi chú thêm (nếu có)"
           />
         </DialogContent>
         <DialogActions>

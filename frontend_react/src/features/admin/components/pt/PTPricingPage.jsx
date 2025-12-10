@@ -268,7 +268,7 @@ export default function PTPricingPage() {
         }}
         pt={selectedPT}
         onUpdate={() => {
-          loadPTs(); // Refresh data
+          refreshEmployees(); // Refresh data
         }}
       />
 

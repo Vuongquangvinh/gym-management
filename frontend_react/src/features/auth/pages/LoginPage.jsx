@@ -46,8 +46,18 @@ export default function LoginPage() {
           const employee = employeeDoc.data();
           const ptId = employeeDoc.id;
 
+          // Xác định role của user
+          const userRole = employee.role === 'pt' || employee.position === 'PT' ? 'pt' : 
+                          employee.role === 'admin' || employee.position === 'Manager' ? 'admin' : 
+                          'admin'; // default
+
+          // Lưu thông tin user vào localStorage để sử dụng cho phân quyền
+          localStorage.setItem('userRole', userRole);
+          localStorage.setItem('userId', ptId);
+          localStorage.setItem('userEmail', userData.email);
+
           // Bật notification real-time cho PT
-          if (employee.role === 'pt' || employee.position === 'PT') {
+          if (userRole === 'pt') {
             try {
               // Yêu cầu quyền notification
               const hasPermission = await notificationService.requestPermission();
@@ -62,19 +72,21 @@ export default function LoginPage() {
             }
           }
 
-          // Redirect dựa vào role/position
-          if (employee.role === 'pt' || employee.position === 'PT') {
+          // Redirect dựa vào role
+          if (userRole === 'pt') {
             navigate('/pt');
-          } else if (employee.role === 'admin' || employee.position === 'Manager') {
-            navigate('/admin');
           } else {
             navigate('/admin');
           }
         } else {
+          // Nếu không tìm thấy employee, mặc định là admin
+          localStorage.setItem('userRole', 'admin');
           navigate('/admin');
         }
       } catch (roleError) {
         console.error('Error checking role:', roleError);
+        // Mặc định là admin nếu có lỗi
+        localStorage.setItem('userRole', 'admin');
         navigate('/admin');
       }
     } catch (err) {

@@ -49,6 +49,11 @@ export const signIn = (email, password) => {
  * @returns {Promise<void>}
  */
 export const signOutUser = () => {
+  // Xóa thông tin user khỏi localStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("userEmail");
   return signOut(auth);
 };
 

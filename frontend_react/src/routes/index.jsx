@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
+import RoleProtectedRoute from "../features/auth/components/RoleProtectedRoute";
 import ShowQRPage from "../features/qr/pages/ShowQRPage.jsx";
 import ResetPassword from "../features/auth/pages/ResetPasswordPageTest.jsx";
 import ChangePassword from "../features/auth/pages/ChangePasswordPage.jsx";
 import ForgotPasswordPage from "../features/auth/pages/ForgotPassword.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
+import UnauthorizedPage from "../features/auth/pages/UnauthorizedPage.jsx";
 import AdminLayout from '../features/admin/AdminLayout';
 import PTLayout from '../features/pt/PTLayout';
 import React from 'react';
@@ -49,44 +51,49 @@ const AppRouter = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Các route được bảo vệ */}
           <Route element={<ProtectedRoute />}>
             <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/qr" element={<ShowQRPage />} />
             
-            {/* Route admin layout và các trang con */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="members" element={<Members />} />
-              <Route path="employees" element={<Employees />} />
-              <Route path="pt-pricing" element={<PTPricing />} />
-              <Route path="pending-requests" element={
-                <PendingRequestProvider>
-                  <PendingRequests />
-                </PendingRequestProvider>
-              } />
-              <Route path="checkins" element={<Checkins />} />
-              <Route path="checkin-stats" element={<CheckinDashboard />} />
-              <Route path="packages" element={<Packages />} />
-              <Route path="face-checkin" element={<FaceCheckinPage />} />
-              <Route path="schedule" element={<SchedulePage />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="financial" element={<FinancialDashboard />} />
-              <Route path="operating-expenses" element={<OperatingExpenses />} />
-              <Route path="salary-config" element={<SalaryConfigManagement />} />
-              <Route path="payroll" element={<PayrollManagement />} />
+            {/* Route admin layout - CHỈ cho admin */}
+            <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="members" element={<Members />} />
+                <Route path="employees" element={<Employees />} />
+                <Route path="pt-pricing" element={<PTPricing />} />
+                <Route path="pending-requests" element={
+                  <PendingRequestProvider>
+                    <PendingRequests />
+                  </PendingRequestProvider>
+                } />
+                <Route path="checkins" element={<Checkins />} />
+                <Route path="checkin-stats" element={<CheckinDashboard />} />
+                <Route path="packages" element={<Packages />} />
+                <Route path="face-checkin" element={<FaceCheckinPage />} />
+                <Route path="schedule" element={<SchedulePage />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="financial" element={<FinancialDashboard />} />
+                <Route path="operating-expenses" element={<OperatingExpenses />} />
+                <Route path="salary-config" element={<SalaryConfigManagement />} />
+                <Route path="payroll" element={<PayrollManagement />} />
+              </Route>
             </Route>
 
-            {/* Route PT layout và các trang con */}
-            <Route path="/pt" element={<PTLayout />}>
-              <Route index element={<PTDashboard />} />
-              <Route path="profile" element={<PTProfile />} />
-              <Route path="packages" element={<PTPackages />} />
-              <Route path="clients" element={<PTClients />} />
-              <Route path="schedule" element={<PTSchedule />} />
-              <Route path="settings" element={<PTSettings />} />
+            {/* Route PT layout - CHỈ cho PT */}
+            <Route element={<RoleProtectedRoute allowedRoles={['pt']} />}>
+              <Route path="/pt" element={<PTLayout />}>
+                <Route index element={<PTDashboard />} />
+                <Route path="profile" element={<PTProfile />} />
+                <Route path="packages" element={<PTPackages />} />
+                <Route path="clients" element={<PTClients />} />
+                <Route path="schedule" element={<PTSchedule />} />
+                <Route path="settings" element={<PTSettings />} />
+              </Route>
             </Route>
           </Route>
           {/* Route cho trang không tồn tại */}

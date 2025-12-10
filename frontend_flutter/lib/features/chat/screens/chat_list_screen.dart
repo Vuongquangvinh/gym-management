@@ -268,16 +268,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
             final ptUid = data['uid'] as String?;
             final ptIdForChat = ptUid ?? ptId;
 
-            final ptInfo = PTInfo(
-              id: ptIdForChat,
-              fullName: data['fullName'] ?? 'PT',
-              email: data['email'] ?? '',
-              avatarUrl: data['avatarUrl'] ?? '',
-              userId: userId,
-            );
+            // Kiểm tra duplicate trước khi thêm
+            final isDuplicate = _ptList.any((pt) => pt.id == ptIdForChat);
 
-            setState(() => _ptList.add(ptInfo));
-            logger.i('✅ Loaded PT: ${ptInfo.fullName}');
+            if (!isDuplicate) {
+              final ptInfo = PTInfo(
+                id: ptIdForChat,
+                fullName: data['fullName'] ?? 'PT',
+                email: data['email'] ?? '',
+                avatarUrl: data['avatarUrl'] ?? '',
+                userId: userId,
+              );
+
+              setState(() => _ptList.add(ptInfo));
+              logger.i('✅ Loaded PT: ${ptInfo.fullName}');
+            } else {
+              logger.i(
+                '⏭️ Skipped duplicate PT: $ptIdForChat (${data['fullName']})',
+              );
+            }
           }
         } catch (e) {
           logger.w('❌ Error loading PT $ptId: $e');
