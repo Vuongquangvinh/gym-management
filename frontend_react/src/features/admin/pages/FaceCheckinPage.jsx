@@ -33,14 +33,38 @@ function FaceCheckinContent() {
       const registered = employees.filter(emp => emp.faceRegistered === true).length;
       const unregistered = employees.filter(emp => emp.faceRegistered === false || !emp.faceRegistered).length;
       
-      setFaceStats({
+      // Calculate today's check-ins
+      fetchTodayCheckins();
+      
+      setFaceStats(prev => ({
+        ...prev,
         total: employees.length,
         registered,
-        unregistered,
-        todayCheckins: 0 // Will be calculated from checkins
-      });
+        unregistered
+      }));
     }
   }, [employees]);
+
+  // Fetch today's check-ins count
+  const fetchTodayCheckins = async () => {
+    try {
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      const { db } = await import('../../../firebase/lib/config/firebase.js');
+      
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      const checkinsRef = collection(db, 'employee_checkins');
+      const q = query(checkinsRef, where('date', '==', today));
+      const snapshot = await getDocs(q);
+      
+      setFaceStats(prev => ({
+        ...prev,
+        todayCheckins: snapshot.size
+      }));
+    } catch (error) {
+      console.error('Error fetching today checkins:', error);
+    }
+  };
 
   // Handle search input change
   const handleSearchChange = (e) => {

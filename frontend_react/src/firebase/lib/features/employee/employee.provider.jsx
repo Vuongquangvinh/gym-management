@@ -28,6 +28,7 @@ export function EmployeeProvider({ children }) {
   const [hasMore, setHasMore] = useState(false);
   const [lastDoc, setLastDoc] = useState(null);
   const [stats, setStats] = useState({ total: 0, active: 0, pt: 0, recentHires: 0 });
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to force reload
   const [filters, setFilters] = useState({
     status: '',
     position: '',
@@ -84,10 +85,8 @@ export function EmployeeProvider({ children }) {
 
   // Refresh employees (reload from start)
   const refreshEmployees = async () => {
-    // onSnapshot handles real-time updates automatically
-    setEmployees([]);
-    setLastDoc(null);
-    setHasMore(false);
+    console.log('🔄 [EmployeeProvider] Manual refresh triggered');
+    setRefreshTrigger(prev => prev + 1); // Increment to trigger useEffect
     await fetchStats();
   };
 
@@ -192,7 +191,7 @@ export function EmployeeProvider({ children }) {
 
   // Real-time updates with onSnapshot + Pagination
   useEffect(() => {
-    console.log('🔄 [EmployeeProvider] Setting up subscription with filters:', filters);
+    console.log('🔄 [EmployeeProvider] Setting up subscription with filters:', filters, 'trigger:', refreshTrigger);
     setLoading(true);
     setEmployees([]);
     setLastDoc(null);
@@ -240,7 +239,7 @@ export function EmployeeProvider({ children }) {
         unsubscribeFn();
       }
     };
-  }, [filters]);
+  }, [filters, refreshTrigger]); // Add refreshTrigger to dependency array
 
   // Load stats on mount
   useEffect(() => {

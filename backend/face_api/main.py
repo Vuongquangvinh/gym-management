@@ -163,8 +163,10 @@ async def register_face(request: FaceRegisterRequest):
     try:
         print(f"📥 Received registration request for: {request.employeeId}")
         
-        # Save image
-        filename = f"{request.employeeId}_{request.employeeName.replace(' ', '_')}.jpg"
+        # Save image with timestamp to avoid Unicode issues in filename
+        import time
+        timestamp = int(time.time() * 1000)
+        filename = f"{request.employeeId}_{timestamp}.jpg"
         print(f"💾 Saving image to: {filename}")
         
         image_path = save_base64_image(request.imageBase64, filename)
@@ -174,18 +176,58 @@ async def register_face(request: FaceRegisterRequest):
         print("🔍 Loading image for face encoding...")
         img = face_recognition.load_image_file(image_path)
         
-        # Try with HOG model first (faster and more tolerant)
-        # Options: 
-        # - None or 'small' = uses HOG (faster, more tolerant)
-        # - 'large' = uses CNN (slower but more accurate)
-        encodings = face_recognition.face_encodings(img, num_jitters=1)
+        # VALIDATION: Check image quality
+        # 1. Check if image is too dark or too bright
+        cv_img = cv2.imread(image_path)
+        if cv_img is None:
+            os.remove(image_path)
+            raise HTTPException(status_code=400, detail="Không thể đọc file ảnh. Vui lòng thử lại")
+        
+        gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
+        mean_brightness = np.mean(gray)
+        if mean_brightness < 30:
+            os.remove(image_path)
+            raise HTTPException(status_code=400, detail="Ảnh quá tối. Vui lòng chụp ở nơi có ánh sáng tốt hơn")
+        if mean_brightness > 225:
+            os.remove(image_path)
+            raise HTTPException(status_code=400, detail="Ảnh quá sáng. Vui lòng điều chỉnh ánh sáng")
+        
+        # 2. Detect faces - use HOG model for faster detection
+        face_locations = face_recognition.face_locations(img, model='hog')
+        
+        # VALIDATION: Must have exactly 1 face
+        if len(face_locations) == 0:
+            os.remove(image_path)
+            print("❌ No face found in image")
+            raise HTTPException(status_code=400, detail="Không tìm thấy khuôn mặt trong ảnh. Vui lòng đảm bảo khuôn mặt rõ ràng và nhìn thẳng vào camera")
+        
+        if len(face_locations) > 1:
+            os.remove(image_path)
+            print(f"❌ Multiple faces found: {len(face_locations)}")
+            raise HTTPException(status_code=400, detail=f"Phát hiện {len(face_locations)} khuôn mặt. Vui lòng đảm bảo chỉ có 1 người trong khung hình")
+        
+        # 3. Check face size (too small = poor quality)
+        top, right, bottom, left = face_locations[0]
+        face_width = right - left
+        face_height = bottom - top
+        img_height, img_width = img.shape[:2]
+        
+        face_area_ratio = (face_width * face_height) / (img_width * img_height)
+        if face_area_ratio < 0.05:  # Face takes less than 5% of image
+            os.remove(image_path)
+            raise HTTPException(status_code=400, detail="Khuôn mặt quá nhỏ. Vui lòng di chuyển gần camera hơn")
+        
+        print(f"✅ Image quality check passed (brightness: {mean_brightness:.1f}, face ratio: {face_area_ratio:.2%})")
+        
+        # Generate face encoding with num_jitters for better accuracy
+        print("🔍 Generating face encoding...")
+        encodings = face_recognition.face_encodings(img, known_face_locations=face_locations, num_jitters=2)
         
         if len(encodings) == 0:
-            os.remove(image_path)  # Clean up
-            print("❌ No face found in image")
-            raise HTTPException(status_code=400, detail="Không tìm thấy khuôn mặt trong ảnh")
+            os.remove(image_path)
+            raise HTTPException(status_code=400, detail="Không thể tạo mã hóa khuôn mặt. Vui lòng thử lại")
         
-        print(f"✅ Found face, generating encoding...")
+        print(f"✅ Face encoding generated successfully")
         encoding = encodings[0].tolist()  # Convert numpy array to list
         
         # Update Firestore
@@ -214,7 +256,11 @@ async def register_face(request: FaceRegisterRequest):
             "data": {
                 "employeeId": request.employeeId,
                 "employeeName": request.employeeName,
-                "imagePath": image_path
+                "imagePath": image_path,
+                "faceQuality": {
+                    "brightness": round(float(mean_brightness), 2),
+                    "faceAreaRatio": round(float(face_area_ratio), 4)
+                }
             }
         }
         
@@ -247,16 +293,26 @@ async def recognize_face(request: FaceRecognizeRequest):
         
         # Load and encode face
         img = face_recognition.load_image_file(temp_file.name)
-        # Use large model for recognition too (more accurate)
-        face_encodings = face_recognition.face_encodings(img, model='large')
+        # Use CNN model for better accuracy during recognition
+        face_locations = face_recognition.face_locations(img, model='cnn')
         
         # Clean up temp file
         os.unlink(temp_file.name)
         
+        if len(face_locations) == 0:
+            return {
+                "success": False,
+                "message": "Không tìm thấy khuôn mặt trong ảnh. Vui lòng đảm bảo khuôn mặt rõ ràng",
+                "employee": None
+            }
+        
+        # Get face encodings with higher accuracy (num_jitters=2)
+        face_encodings = face_recognition.face_encodings(img, known_face_locations=face_locations, num_jitters=2)
+        
         if len(face_encodings) == 0:
             return {
                 "success": False,
-                "message": "Không tìm thấy khuôn mặt trong ảnh",
+                "message": "Không thể mã hóa khuôn mặt. Vui lòng thử lại",
                 "employee": None
             }
         
@@ -267,8 +323,9 @@ async def recognize_face(request: FaceRecognizeRequest):
         for emp_id, known_encoding in known_face_encodings.items():
             distance = face_recognition.face_distance([known_encoding], face_encoding)[0]
             
-            # Threshold for face recognition (0.6 is default)
-            if distance < 0.6:
+            # Lower threshold for better accuracy (0.5 instead of 0.6)
+            # Lower value = stricter matching
+            if distance < 0.5:
                 matches.append({
                     "employeeId": emp_id,
                     "distance": float(distance),
@@ -278,12 +335,23 @@ async def recognize_face(request: FaceRecognizeRequest):
         if not matches:
             return {
                 "success": False,
-                "message": "Không nhận diện được khuôn mặt",
+                "message": "Không nhận diện được khuôn mặt. Vui lòng thử lại hoặc đăng ký Face ID",
                 "employee": None
             }
         
         # Get best match (lowest distance)
         best_match = min(matches, key=lambda x: x["distance"])
+        confidence = round((1 - best_match["distance"]) * 100, 2)
+        
+        # Additional check: confidence must be at least 50%
+        if confidence < 50:
+            return {
+                "success": False,
+                "message": f"Độ tin cậy thấp ({confidence}%). Vui lòng thử lại",
+                "employee": None
+            }
+        
+        print(f"✅ Face recognized: {best_match['metadata'].get('fullName', 'Unknown')} (confidence: {confidence}%)")
         
         return {
             "success": True,
@@ -293,7 +361,7 @@ async def recognize_face(request: FaceRecognizeRequest):
                 "fullName": best_match["metadata"].get("fullName", ""),
                 "position": best_match["metadata"].get("position", ""),
                 "avatarUrl": best_match["metadata"].get("avatarUrl", ""),
-                "confidence": round((1 - best_match["distance"]) * 100, 2)
+                "confidence": confidence
             }
         }
         
@@ -455,7 +523,16 @@ async def delete_face_id(employeeId: str):
         
         emp_data = emp_doc.to_dict()
         
-        # Delete face data
+        # Delete face image file if exists
+        face_image_path = emp_data.get("faceImagePath")
+        if face_image_path and os.path.exists(face_image_path):
+            try:
+                os.remove(face_image_path)
+                print(f"🗑️ Deleted face image: {face_image_path}")
+            except Exception as e:
+                print(f"⚠️ Could not delete face image: {str(e)}")
+        
+        # Delete face data from Firestore
         update_data = {
             "faceRegistered": False,
             "faceEncoding": firestore.DELETE_FIELD,
@@ -468,8 +545,10 @@ async def delete_face_id(employeeId: str):
         # Remove from in-memory storage
         if employeeId in known_face_encodings:
             del known_face_encodings[employeeId]
+            print(f"🗑️ Removed from known_face_encodings")
         if employeeId in known_face_metadata:
             del known_face_metadata[employeeId]
+            print(f"🗑️ Removed from known_face_metadata")
         
         print(f"✅ Face ID deleted successfully for: {employeeId}")
         
@@ -478,7 +557,8 @@ async def delete_face_id(employeeId: str):
             "message": "Xóa Face ID thành công",
             "data": {
                 "employeeId": employeeId,
-                "employeeName": emp_data.get("fullName", "")
+                "employeeName": emp_data.get("fullName", ""),
+                "imageDeleted": face_image_path is not None
             }
         }
         
@@ -522,9 +602,55 @@ async def get_unregistered_employees():
         raise HTTPException(status_code=500, detail=f"Lỗi lấy danh sách: {str(e)}")
 
 
+async def load_face_encodings_from_firestore():
+    """Load all face encodings from Firestore on startup"""
+    try:
+        print("📥 Loading face encodings from Firestore...")
+        
+        if not db:
+            print("⚠️ Firestore not initialized, skipping face encoding load")
+            return
+        
+        # Query all employees with face registered
+        employees_ref = db.collection("employees").where("faceRegistered", "==", True)
+        docs = employees_ref.stream()
+        
+        count = 0
+        for doc in docs:
+            emp_data = doc.to_dict()
+            emp_id = doc.id
+            
+            # Check if faceEncoding exists
+            if "faceEncoding" in emp_data and emp_data["faceEncoding"]:
+                try:
+                    # Convert encoding back to numpy array
+                    encoding = np.array(emp_data["faceEncoding"])
+                    
+                    # Store in memory
+                    known_face_encodings[emp_id] = encoding
+                    known_face_metadata[emp_id] = {
+                        "fullName": emp_data.get("fullName", ""),
+                        "position": emp_data.get("position", ""),
+                        "avatarUrl": emp_data.get("avatarUrl", "")
+                    }
+                    count += 1
+                    print(f"✅ Loaded: {emp_data.get('fullName', emp_id)}")
+                except Exception as e:
+                    print(f"⚠️ Error loading encoding for {emp_id}: {str(e)}")
+        
+        print(f"✅ Successfully loaded {count} face encodings from Firestore")
+        
+    except Exception as e:
+        print(f"❌ Error loading face encodings: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
 @app.on_event("startup")
 async def startup_event():
     print("🚀 Face Recognition API started")
+    # Load existing face encodings from database
+    await load_face_encodings_from_firestore()
 
 
 @app.on_event("shutdown")

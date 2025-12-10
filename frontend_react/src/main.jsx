@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 
 // Đăng ký service worker cho FCM
+// TODO: Uncomment khi cần sử dụng FCM push notifications
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -17,6 +19,7 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import styles from './PTFaceCheckinModal.module.css';
 
 const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
@@ -8,6 +9,7 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [checkinResult, setCheckinResult] = useState(null);
+  const [scanningMessage, setScanningMessage] = useState('Đang quét khuôn mặt...');
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -15,15 +17,32 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
   const scanIntervalRef = useRef(null);
   const isScanningRef = useRef(false);
   const isProcessingRef = useRef(false);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       startCamera();
+    } else {
+      // Đảm bảo dừng hoàn toàn khi đóng modal
+      stopCamera();
+      resetState();
     }
     return () => {
       stopCamera();
+      resetState();
     };
   }, [isOpen]);
+
+  const resetState = () => {
+    setIsScanning(false);
+    setDetectedEmployee(null);
+    setError(null);
+    setSuccess(false);
+    setCheckinResult(null);
+    setScanningMessage('Đang quét khuôn mặt...');
+    isScanningRef.current = false;
+    isProcessingRef.current = false;
+  };
 
   const startCamera = async () => {
     try {
@@ -47,25 +66,65 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
   };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+    console.log('🛑 Stopping camera and face detection...');
+    
+    // Dừng ngay lập tức việc quét
+    isScanningRef.current = false;
+    isProcessingRef.current = false;
+    setIsScanning(false);
+    
+    // Abort any ongoing fetch requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      console.log('✅ Aborted ongoing requests');
     }
+    
+    // Clear interval
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
       scanIntervalRef.current = null;
+      console.log('✅ Cleared scan interval');
+    }
+    
+    // Stop camera stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      console.log('✅ Stopped camera stream');
     }
   };
 
   const startFaceDetection = () => {
+    console.log('🚀 Starting face detection interval...');
+    
+    // Clear any existing interval first
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+    
     scanIntervalRef.current = setInterval(async () => {
-      if (!isScanningRef.current || isProcessingRef.current) {
+      // Check if we should still be scanning
+      if (!isScanningRef.current || isProcessingRef.current || !isOpen) {
+        console.log('⏸️ Skipping scan - scanning:', isScanningRef.current, 'processing:', isProcessingRef.current, 'modal open:', isOpen);
         return;
       }
 
       try {
+        console.log('📸 Capturing frame for face detection...');
+        
+        // Mark as processing to prevent overlapping requests
+        isProcessingRef.current = true;
+        
         const video = videoRef.current;
         const canvas = canvasRef.current;
+        
+        if (!video || !canvas) {
+          console.log('⚠️ Video or canvas ref not available');
+          isProcessingRef.current = false;
+          return;
+        }
+        
         const context = canvas.getContext('2d');
 
         canvas.width = video.videoWidth;
@@ -75,6 +134,11 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
         const imageBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
         const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+        console.log('🌐 Sending request to /api/face/recognize...');
+
+        // Create new AbortController for this request
+        abortControllerRef.current = new AbortController();
+
         const response = await fetch(`${API_BASE_URL}/api/face/recognize`, {
           method: 'POST',
           headers: {
@@ -82,28 +146,68 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
           },
           body: JSON.stringify({
             imageBase64: imageBase64
-          })
+          }),
+          signal: abortControllerRef.current.signal
         });
+
+        console.log('📡 Response status:', response.status, response.ok);
 
         if (response.ok) {
           const result = await response.json();
           
           if (result.success && result.employee) {
+            // Prevent duplicate processing if already detected
+            if (detectedEmployee) {
+              console.log('⚠️ Already have detected employee, skipping');
+              return;
+            }
+            
+            // Show success notification
+            toast.success(`✅ Nhận diện thành công: ${result.employee.fullName}`, {
+              position: "top-center",
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            });
+            
+            // Update scanning message
+            setScanningMessage(`✅ Đã nhận diện: ${result.employee.fullName}`);
+            
             setDetectedEmployee(result.employee);
             setIsScanning(false);
             isScanningRef.current = false;
+            isProcessingRef.current = false; // Reset so buttons work
             stopCamera();
+          } else {
+            isProcessingRef.current = false; // Reset for next attempt
           }
+        } else {
+          isProcessingRef.current = false; // Reset for next attempt
         }
       } catch (err) {
-        // Continue scanning on error
+        // Ignore AbortError when request is cancelled
+        if (err.name === 'AbortError') {
+          console.log('🚫 Request aborted');
+          return;
+        }
+        
+        // Log other errors but continue scanning
+        console.error('❌ Error during face detection:', err);
+        isProcessingRef.current = false; // Reset on error
       }
     }, 2000);
   };
 
   const processCheckin = async (checkinType = 'checkin') => {
-    if (!detectedEmployee) return;
+    if (!detectedEmployee) {
+      console.log('⚠️ No detected employee');
+      return;
+    }
 
+    console.log(`🚀 Processing ${checkinType} for employee:`, detectedEmployee._id);
+    
     setIsProcessing(true);
     isProcessingRef.current = true;
     setError(null);
@@ -111,20 +215,27 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       
+      const requestBody = {
+        employeeId: detectedEmployee._id,
+        checkinType: checkinType,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('📤 Sending checkin request:', requestBody);
+      
       const response = await fetch(`${API_BASE_URL}/api/face/checkin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          employeeId: detectedEmployee._id,
-          checkinType: checkinType,
-          timestamp: new Date().toISOString()
-        })
+        body: JSON.stringify(requestBody)
       });
+
+      console.log('📡 Checkin response status:', response.status, response.ok);
 
       if (response.ok) {
         const result = await response.json();
+        console.log('✅ Checkin successful:', result);
         setCheckinResult(result.data);
         setSuccess(true);
         
@@ -141,6 +252,8 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData?.detail || errorData?.message || 'Thất bại';
         
+        console.log('❌ Checkin failed:', response.status, errorMessage, errorData);
+        
         if (errorMessage.includes('không có lịch làm việc') || errorMessage.includes('lịch làm việc')) {
           setError(`❌ ${errorMessage}\n\n💡 Vui lòng liên hệ quản lý để được xếp lịch làm việc.`);
         } else {
@@ -148,6 +261,7 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
         }
       }
     } catch (err) {
+      console.error('❌ Checkin exception:', err);
       setError('Có lỗi xảy ra khi thực hiện. Vui lòng thử lại.');
     } finally {
       setIsProcessing(false);
@@ -163,21 +277,21 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
     setError(null);
     setSuccess(false);
     setCheckinResult(null);
+    setScanningMessage('Đang quét khuôn mặt...');
     startCamera();
   };
 
   const handleClose = () => {
+    console.log('🚪 Closing modal...');
+    
+    // Stop camera and scanning first
     stopCamera();
+    
+    // Reset all state
+    resetState();
+    
+    // Close modal
     onClose();
-    // Reset state
-    setDetectedEmployee(null);
-    setError(null);
-    setSuccess(false);
-    setCheckinResult(null);
-    setIsScanning(false);
-    setIsProcessing(false);
-    isScanningRef.current = false;
-    isProcessingRef.current = false;
   };
 
   if (!isOpen) return null;
@@ -225,7 +339,7 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
               </div>
 
               <div className={styles.ptScanningInfo}>
-                <h3>🔍 Đang quét khuôn mặt...</h3>
+                <h3>🔍 {scanningMessage}</h3>
                 <p>Vui lòng nhìn thẳng vào camera và giữ nguyên tư thế</p>
               </div>
 
@@ -311,12 +425,60 @@ const PTFaceCheckinModal = ({ isOpen, onClose, onCheckinSuccess }) => {
                 <div className={styles.ptResultItem}>
                   <span className={styles.ptLabel}>Thời gian:</span>
                   <span className={styles.ptValue}>
-                    {new Date(checkinResult.timestamp).toLocaleString('vi-VN')}
+                    {(() => {
+                      try {
+                        const timestamp = checkinResult.timestamp;
+                        const date = new Date(timestamp);
+                        if (isNaN(date.getTime())) {
+                          return new Date().toLocaleString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          });
+                        }
+                        return date.toLocaleString('vi-VN', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        });
+                      } catch (e) {
+                        return new Date().toLocaleString('vi-VN', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        });
+                      }
+                    })()}
                   </span>
                 </div>
                 <div className={styles.ptResultItem}>
                   <span className={styles.ptLabel}>Ngày:</span>
-                  <span className={styles.ptValue}>{checkinResult.date}</span>
+                  <span className={styles.ptValue}>
+                    {(() => {
+                      try {
+                        const dateStr = checkinResult.date;
+                        if (!dateStr) return new Date().toLocaleDateString('vi-VN');
+                        
+                        // If already in DD/MM/YYYY format
+                        if (dateStr.includes('/')) return dateStr;
+                        
+                        // If in YYYY-MM-DD format
+                        const [year, month, day] = dateStr.split('-');
+                        return `${day}/${month}/${year}`;
+                      } catch (e) {
+                        return new Date().toLocaleDateString('vi-VN');
+                      }
+                    })()}
+                  </span>
                 </div>
                 <div className={styles.ptResultItem}>
                   <span className={styles.ptLabel}>Phương thức:</span>
